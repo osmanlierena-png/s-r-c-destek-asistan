@@ -348,8 +348,12 @@ export default function OrderManagementPage() {
 
     setIsAssigningThreeLayer(true);
     try {
+      console.log('🚀 3 Katmanlı atama başlatılıyor...', { targetDate: selectedDate });
       const { threeLayerAssignment } = await import("@/functions/threeLayerAssignment");
+      console.log('✅ Fonksiyon import edildi');
+      
       const response = await threeLayerAssignment({ targetDate: selectedDate });
+      console.log('📦 Backend response:', response);
       
       if (response.data.success) {
         setThreeLayerResults(response.data);
@@ -381,8 +385,10 @@ export default function OrderManagementPage() {
         alert(`❌ Hata: ${response.data.error}`);
       }
     } catch (error) {
-      console.error('3 Katmanlı Atama hatası:', error);
-      alert(`❌ Bağlantı hatası: ${error.message}`);
+      console.error('❌ 3 Katmanlı Atama hatası:', error);
+      console.error('Error stack:', error.stack);
+      console.error('Error response:', error.response?.data);
+      alert(`❌ Bağlantı hatası: ${error.message}\n\nDetaylar için console'u kontrol edin.`);
     }
     setIsAssigningThreeLayer(false);
   };
