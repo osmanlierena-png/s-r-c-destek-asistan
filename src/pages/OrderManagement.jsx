@@ -29,6 +29,14 @@ import IntelligentAssignmentResults from "../components/orders/IntelligentAssign
 import OrderDetails from "../components/orders/OrderDetails";
 import AssignmentReport from "../components/orders/AssignmentReport";
 import ScreenshotUpload from "../components/orders/ScreenshotUpload";
+import { threeLayerAssignment } from "@/functions/threeLayerAssignment";
+import { intelligentOrderAssignment } from "@/functions/intelligentOrderAssignment";
+import { gptAssignment } from "@/functions/gptAssignment";
+import { cleanOldOrders } from "@/functions/cleanOldOrders";
+import { resetAllAssignments } from "@/functions/resetAllAssignments";
+import { sendOrdersToDrivers } from "@/functions/sendOrdersToDrivers";
+import { parseAndUpdateDriverRules } from "@/functions/parseAndUpdateDriverRules";
+import { sendOrderAssignmentSMS } from "@/functions/sendOrderAssignmentSMS";
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState([]);
@@ -310,7 +318,6 @@ export default function OrderManagementPage() {
   const handleIntelligentAssignment = async () => {
     setIsAssigning(true);
     try {
-      const { intelligentOrderAssignment } = await import("@/functions/intelligentOrderAssignment");
       const response = await intelligentOrderAssignment({ targetDate: selectedDate });
       
       if (response.data.success) {
@@ -349,9 +356,6 @@ export default function OrderManagementPage() {
     setIsAssigningThreeLayer(true);
     try {
       console.log('🚀 3 Katmanlı atama başlatılıyor...', { targetDate: selectedDate });
-      const { threeLayerAssignment } = await import("@/functions/threeLayerAssignment");
-      console.log('✅ Fonksiyon import edildi');
-      
       const response = await threeLayerAssignment({ targetDate: selectedDate });
       console.log('📦 Backend response:', response);
       
@@ -409,7 +413,6 @@ export default function OrderManagementPage() {
 
     setIsSendingOrders(true);
     try {
-      const { sendOrdersToDrivers } = await import("@/functions/sendOrdersToDrivers");
       const response = await sendOrdersToDrivers({ targetDate: selectedDate });
       
       if (response.data.success) {
@@ -537,7 +540,6 @@ export default function OrderManagementPage() {
     setIsCleaningOldOrders(true);
     
     try {
-      const { cleanOldOrders } = await import("@/functions/cleanOldOrders");
       const response = await cleanOldOrders();
       
       if (response.data.success) {
@@ -562,7 +564,6 @@ export default function OrderManagementPage() {
     setIsResettingAll(true);
     
     try {
-      const { resetAllAssignments } = await import("@/functions/resetAllAssignments");
       const response = await resetAllAssignments({ targetDate: selectedDate });
       
       if (response.data.success) {
@@ -586,7 +587,6 @@ export default function OrderManagementPage() {
 
     setIsAssigningGPT(true);
     try {
-      const { gptAssignment } = await import("@/functions/gptAssignment");
       const response = await gptAssignment({ targetDate: selectedDate });
       
       if (response.data.success) {
@@ -1136,8 +1136,6 @@ export default function OrderManagementPage() {
     setRuleUpdateProgress({ current: 0, total: 0, updated: 0, created: 0 });
 
     try {
-      const { parseAndUpdateDriverRules } = await import("@/functions/parseAndUpdateDriverRules");
-      
       let batchStart = 0;
       let totalUpdated = 0;
       let totalCreated = 0;
@@ -1229,7 +1227,6 @@ export default function OrderManagementPage() {
 
     setIsSendingAssignmentSMS(true);
     try {
-      const { sendOrderAssignmentSMS } = await import("@/functions/sendOrderAssignmentSMS");
       const response = await sendOrderAssignmentSMS({ 
         orderIds: assignedOrders.map(o => o.id)
       });
