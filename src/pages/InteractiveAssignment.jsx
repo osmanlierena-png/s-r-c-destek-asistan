@@ -247,6 +247,14 @@ export default function InteractiveAssignmentPage() {
     return 'text-slate-900';
   };
 
+  const getTimeSlotBg = (pickupTime) => {
+    const slot = getTimeSlot(pickupTime);
+    if (slot === 'morning') return 'bg-amber-50';
+    if (slot === 'noon') return 'bg-blue-50';
+    if (slot === 'evening') return 'bg-purple-50';
+    return 'bg-white';
+  };
+
   const OrderCard = ({ order, index }) => (
     <Draggable draggableId={order.id} index={index}>
       {(provided, snapshot) => (
@@ -254,20 +262,20 @@ export default function InteractiveAssignmentPage() {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`${snapshot.isDragging ? 'opacity-50' : ''}`}
+          className={`mb-2 ${snapshot.isDragging ? 'opacity-60 scale-105' : ''}`}
         >
-          <div className={`border ${snapshot.isDragging ? 'border-blue-500' : 'border-slate-300'} bg-white p-2 hover:border-blue-400 transition-colors text-xs`}>
-            <div className="flex items-center gap-2">
-              <div className={`text-2xl font-bold min-w-[65px] text-center ${getTimeSlotColor(order.pickup_time)}`}>
+          <div className={`${getTimeSlotBg(order.pickup_time)} ${snapshot.isDragging ? 'shadow-xl' : 'hover:shadow-md'} transition-all duration-200 p-2.5 rounded-lg`}>
+            <div className="flex items-center gap-3">
+              <div className={`text-3xl font-black min-w-[70px] text-center ${getTimeSlotColor(order.pickup_time)} leading-none`}>
                 {order.pickup_time || 'N/A'}
               </div>
-              <div className="text-base font-semibold text-slate-600 min-w-[65px] text-center border-l pl-2">
+              <div className="text-sm font-bold text-slate-500 min-w-[60px] text-center">
                 {order.dropoff_time || 'N/A'}
               </div>
-              <div className="flex-1 min-w-0 border-l pl-2">
-                <p className="font-mono font-bold text-xs mb-0.5">{order.ezcater_order_id}</p>
-                <p className="text-slate-700 truncate">{order.pickup_address}</p>
-                <p className="text-slate-600 truncate mt-0.5">{order.dropoff_address}</p>
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-[10px] font-bold text-slate-400 mb-1">{order.ezcater_order_id}</p>
+                <p className="text-[11px] text-slate-800 truncate leading-tight">{order.pickup_address}</p>
+                <p className="text-[11px] text-slate-600 truncate leading-tight mt-0.5">{order.dropoff_address}</p>
               </div>
             </div>
           </div>
@@ -282,13 +290,16 @@ export default function InteractiveAssignmentPage() {
 
     if (slotOrders.length === 0) return null;
 
+    const bgColor = slot === 'morning' ? 'bg-amber-50/30' : slot === 'noon' ? 'bg-blue-50/30' : 'bg-purple-50/30';
+    const textColor = slot === 'morning' ? 'text-amber-800' : slot === 'noon' ? 'text-blue-800' : 'text-purple-800';
+
     return (
-      <div className={`border ${TIME_SLOTS[slot].color} p-2`}>
-        <div className="flex items-center justify-between mb-2 pb-2 border-b">
-          <h3 className="font-bold text-sm">{title}</h3>
-          <Badge variant="outline">{slotOrders.length}</Badge>
+      <div className={`${bgColor} rounded-xl p-3`}>
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
+          <h3 className={`font-black text-xs uppercase tracking-wide ${textColor}`}>{title}</h3>
+          <span className={`text-xs font-bold ${textColor}`}>{slotOrders.length}</span>
         </div>
-        <div className="space-y-0.5">
+        <div>
           {slotOrders.map((order, idx) => (
             <OrderCard key={order.id} order={order} index={idx} />
           ))}
