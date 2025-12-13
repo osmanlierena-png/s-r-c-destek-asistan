@@ -29,7 +29,7 @@ const navigationItems = [
   },
   {
     title: "Manuel Atama",
-    url: createPageUrl("ManualAssignment"),
+    url: createPageUrl("InteractiveAssignment"),
     icon: SlidersHorizontal,
   },
   {
