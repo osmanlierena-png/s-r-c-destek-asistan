@@ -246,34 +246,20 @@ export default function InteractiveAssignmentPage() {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`mb-1.5 ${snapshot.isDragging ? 'opacity-50' : ''}`}
+          className={`${snapshot.isDragging ? 'opacity-50' : ''}`}
         >
-          <div className={`border ${snapshot.isDragging ? 'border-blue-500' : 'border-slate-300'} bg-white p-2.5 hover:shadow-md transition-shadow`}>
-            <div className="flex gap-3">
-              {/* Saat Kolonu */}
-              <div className="flex flex-col items-center justify-center min-w-[70px] border-r pr-3">
-                <div className="text-3xl font-bold text-slate-900 leading-none">{order.pickup_time || 'N/A'}</div>
-                <div className="text-xs text-slate-500 mt-0.5">pickup</div>
-                <div className="text-sm font-semibold text-slate-700 mt-1">{order.dropoff_time || 'N/A'}</div>
-                <div className="text-xs text-slate-400">dropoff</div>
+          <div className={`border ${snapshot.isDragging ? 'border-blue-500' : 'border-slate-300'} bg-white p-2 hover:border-blue-400 transition-colors text-xs`}>
+            <div className="flex items-center gap-2">
+              <div className="text-2xl font-bold text-slate-900 min-w-[65px] text-center">
+                {order.pickup_time || 'N/A'}
               </div>
-
-              {/* İçerik Kolonu */}
-              <div className="flex-1 min-w-0">
-                <p className="font-mono text-xs font-bold mb-1.5">{order.ezcater_order_id}</p>
-                <div className="space-y-1 text-xs">
-                  <div>
-                    <span className="font-semibold text-green-700">P:</span>
-                    <span className="text-slate-700 ml-1">{order.pickup_address}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-red-700">D:</span>
-                    <span className="text-slate-700 ml-1">{order.dropoff_address}</span>
-                  </div>
-                </div>
-                {order.customer_name && (
-                  <p className="text-xs text-slate-500 mt-1 truncate">{order.customer_name}</p>
-                )}
+              <div className="text-base font-semibold text-slate-600 min-w-[65px] text-center border-l pl-2">
+                {order.dropoff_time || 'N/A'}
+              </div>
+              <div className="flex-1 min-w-0 border-l pl-2">
+                <p className="font-mono font-bold text-xs mb-0.5">{order.ezcater_order_id}</p>
+                <p className="text-slate-700 truncate">{order.pickup_address}</p>
+                <p className="text-slate-600 truncate mt-0.5">{order.dropoff_address}</p>
               </div>
             </div>
           </div>
@@ -345,7 +331,7 @@ export default function InteractiveAssignmentPage() {
             {/* Sol Panel - Sürücüler */}
             <div className="col-span-3">
               <Card className="sticky top-4 border">
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <User className="w-4 h-4" />
                     Sürücüler ({filteredDrivers.length})
@@ -360,7 +346,7 @@ export default function InteractiveAssignmentPage() {
                     />
                   </div>
                 </CardHeader>
-                <CardContent className="max-h-[calc(100vh-200px)] overflow-y-auto space-y-2 p-3">
+                <CardContent className="max-h-[calc(100vh-180px)] overflow-y-auto space-y-1.5 p-2">
                   {filteredDrivers.map(driver => {
                     const driverOrders = getDriverOrders(driver.id);
                     return (
@@ -369,7 +355,7 @@ export default function InteractiveAssignmentPage() {
                           <div
                             ref={provided.innerRef}
                             {...provided.droppableProps}
-                            className={`border p-3 ${
+                            className={`border p-2 ${
                               snapshot.isDraggingOver 
                                 ? 'border-blue-500 bg-blue-50' 
                                 : driverOrders.length > 0
@@ -377,7 +363,7 @@ export default function InteractiveAssignmentPage() {
                                 : 'border-slate-300 bg-white'
                             }`}
                           >
-                            <div className="flex justify-between items-start mb-2">
+                            <div className="flex justify-between items-start mb-1.5">
                               <div>
                                 <p className="font-bold text-sm">{driver.name}</p>
                                 <p className="text-xs text-slate-500">{driver.phone}</p>
@@ -388,7 +374,7 @@ export default function InteractiveAssignmentPage() {
                             </div>
 
                             {driverOrders.length > 0 && (
-                              <div className="space-y-2 mt-2 pt-2 border-t">
+                              <div className="space-y-0.5 mt-1.5 pt-1.5 border-t">
                                 {driverOrders.map((order, idx) => (
                                   <OrderCard key={order.id} order={order} index={idx} />
                                 ))}
@@ -408,18 +394,18 @@ export default function InteractiveAssignmentPage() {
             {/* Sağ Panel - Atanmamış Siparişler */}
             <div className="col-span-9">
               <Card className="border">
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2">
                   <CardTitle className="text-sm">
                     Atanmamış Siparişler ({getUnassignedOrders().length})
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-3">
+                <CardContent className="p-2">
                   <Droppable droppableId="unassigned">
                     {(provided, snapshot) => (
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={`max-h-[calc(100vh-180px)] overflow-y-auto ${snapshot.isDraggingOver ? 'bg-slate-50' : ''}`}
+                        className={`max-h-[calc(100vh-160px)] overflow-y-auto space-y-0.5 ${snapshot.isDraggingOver ? 'bg-slate-50' : ''}`}
                       >
                         {getUnassignedOrders().length === 0 ? (
                           <div className="flex flex-col items-center justify-center py-12 text-slate-400">
