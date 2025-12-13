@@ -246,33 +246,37 @@ export default function InteractiveAssignmentPage() {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`mb-2 ${snapshot.isDragging ? 'opacity-50' : ''}`}
+          className={`mb-1.5 ${snapshot.isDragging ? 'opacity-50' : ''}`}
         >
-          <Card className={`border ${snapshot.isDragging ? 'border-blue-500' : 'border-slate-300 bg-white'}`}>
-            <CardContent className="p-3">
-              <div className="flex justify-between items-start mb-2 pb-2 border-b">
-                <p className="font-mono text-sm font-bold">{order.ezcater_order_id}</p>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-blue-700">{order.pickup_time || 'N/A'}</p>
-                  <p className="text-xs text-slate-500">→ {order.dropoff_time || 'N/A'}</p>
-                </div>
+          <div className={`border ${snapshot.isDragging ? 'border-blue-500' : 'border-slate-300'} bg-white p-2.5 hover:shadow-md transition-shadow`}>
+            <div className="flex gap-3">
+              {/* Saat Kolonu */}
+              <div className="flex flex-col items-center justify-center min-w-[70px] border-r pr-3">
+                <div className="text-3xl font-bold text-slate-900 leading-none">{order.pickup_time || 'N/A'}</div>
+                <div className="text-xs text-slate-500 mt-0.5">pickup</div>
+                <div className="text-sm font-semibold text-slate-700 mt-1">{order.dropoff_time || 'N/A'}</div>
+                <div className="text-xs text-slate-400">dropoff</div>
               </div>
 
-              <div className="space-y-2 text-xs">
-                <div>
-                  <p className="font-semibold text-green-700 mb-1">PICKUP:</p>
-                  <p className="text-slate-700">{order.pickup_address}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-red-700 mb-1">DROPOFF:</p>
-                  <p className="text-slate-700">{order.dropoff_address}</p>
+              {/* İçerik Kolonu */}
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-xs font-bold mb-1.5">{order.ezcater_order_id}</p>
+                <div className="space-y-1 text-xs">
+                  <div>
+                    <span className="font-semibold text-green-700">P:</span>
+                    <span className="text-slate-700 ml-1">{order.pickup_address}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-red-700">D:</span>
+                    <span className="text-slate-700 ml-1">{order.dropoff_address}</span>
+                  </div>
                 </div>
                 {order.customer_name && (
-                  <p className="text-slate-500 italic">{order.customer_name}</p>
+                  <p className="text-xs text-slate-500 mt-1 truncate">{order.customer_name}</p>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
     </Draggable>
@@ -415,7 +419,7 @@ export default function InteractiveAssignmentPage() {
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={snapshot.isDraggingOver ? 'bg-slate-50' : ''}
+                        className={`max-h-[calc(100vh-180px)] overflow-y-auto ${snapshot.isDraggingOver ? 'bg-slate-50' : ''}`}
                       >
                         {getUnassignedOrders().length === 0 ? (
                           <div className="flex flex-col items-center justify-center py-12 text-slate-400">
@@ -423,23 +427,15 @@ export default function InteractiveAssignmentPage() {
                             <p className="text-sm">Tüm siparişler atandı</p>
                           </div>
                         ) : (
-                          <div className="grid grid-cols-3 gap-3">
-                            <TimeSlotSection 
-                              slot="morning" 
-                              orders={getUnassignedOrders()} 
-                              title="Sabah (04:00-11:00)" 
-                            />
-                            <TimeSlotSection 
-                              slot="noon" 
-                              orders={getUnassignedOrders()} 
-                              title="Öğle (12:00-15:00)" 
-                            />
-                            <TimeSlotSection 
-                              slot="evening" 
-                              orders={getUnassignedOrders()} 
-                              title="Akşam (16:00-22:00)" 
-                            />
-                          </div>
+                          getUnassignedOrders()
+                            .sort((a, b) => {
+                              const timeA = parseTime(a.pickup_time) || 0;
+                              const timeB = parseTime(b.pickup_time) || 0;
+                              return timeA - timeB;
+                            })
+                            .map((order, idx) => (
+                              <OrderCard key={order.id} order={order} index={idx} />
+                            ))
                         )}
                         {provided.placeholder}
                       </div>
