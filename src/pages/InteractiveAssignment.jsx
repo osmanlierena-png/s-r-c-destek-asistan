@@ -246,35 +246,56 @@ export default function InteractiveAssignmentPage() {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`mb-2 ${snapshot.isDragging ? 'opacity-50' : ''}`}
+          className={`mb-3 ${snapshot.isDragging ? 'opacity-50' : ''}`}
         >
-          <Card className="bg-white border-slate-200 hover:shadow-md transition-shadow">
-            <CardContent className="p-3">
-              <div className="space-y-2">
-                <div className="flex justify-between items-start">
-                  <p className="font-mono text-xs font-bold text-slate-900">
-                    {order.ezcater_order_id}
-                  </p>
-                  <Badge variant="outline" className="text-xs">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {order.pickup_time}
-                  </Badge>
-                </div>
-                
-                <div className="text-xs space-y-1">
-                  <div className="flex items-start gap-1">
-                    <MapPin className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-600 line-clamp-2">{order.pickup_address}</span>
+          <Card className={`border-2 hover:shadow-lg transition-all ${
+            snapshot.isDragging ? 'border-blue-400 shadow-xl' : 'border-slate-300 bg-white'
+          }`}>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                {/* Header - Order ID ve Saatler */}
+                <div className="flex justify-between items-start pb-3 border-b-2 border-slate-200">
+                  <div>
+                    <p className="font-mono text-sm font-extrabold text-slate-900 mb-1">
+                      {order.ezcater_order_id}
+                    </p>
+                    {order.customer_name && (
+                      <p className="text-xs text-slate-500">{order.customer_name}</p>
+                    )}
                   </div>
-                  <div className="flex items-start gap-1">
-                    <MapPin className="w-3 h-3 text-red-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-600 line-clamp-2">{order.dropoff_address}</span>
+                  <div className="text-right">
+                    <div className="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold text-lg shadow-md">
+                      {order.pickup_time}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">pickup time</div>
                   </div>
                 </div>
-                
-                {order.customer_name && (
-                  <p className="text-xs text-slate-500 truncate">{order.customer_name}</p>
-                )}
+
+                {/* Pickup Address */}
+                <div className="bg-green-50 border-2 border-green-300 rounded-lg p-3">
+                  <div className="flex items-start gap-2 mb-1">
+                    <MapPin className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-green-800 mb-1">PICKUP</p>
+                      <p className="text-sm text-slate-700 font-medium">{order.pickup_address}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dropoff Address */}
+                <div className="bg-red-50 border-2 border-red-300 rounded-lg p-3">
+                  <div className="flex items-start gap-2 mb-1">
+                    <MapPin className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-red-800 mb-1">DROPOFF</p>
+                      <p className="text-sm text-slate-700 font-medium">{order.dropoff_address}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Clock className="w-4 h-4 text-red-600" />
+                        <span className="text-base font-bold text-red-700">{order.dropoff_time}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -286,16 +307,23 @@ export default function InteractiveAssignmentPage() {
   const TimeSlotSection = ({ slot, orders, title }) => {
     const grouped = groupOrdersByTimeSlot(orders);
     const slotOrders = grouped[slot] || [];
-    
+
     if (slotOrders.length === 0) return null;
-    
+
     return (
-      <div className={`rounded-lg border-2 p-3 ${TIME_SLOTS[slot].color}`}>
-        <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
-          <Clock className="w-4 h-4" />
-          {title} ({slotOrders.length})
-        </h3>
-        <div className="space-y-2">
+      <div className={`rounded-xl border-3 p-5 shadow-lg ${TIME_SLOTS[slot].color}`}>
+        <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-current opacity-30">
+          <h3 className="font-bold text-lg flex items-center gap-3">
+            <div className="bg-white rounded-full p-2 shadow-md">
+              <Clock className="w-5 h-5" />
+            </div>
+            {title}
+          </h3>
+          <div className="bg-white rounded-full px-4 py-2 shadow-md">
+            <span className="font-bold text-lg">{slotOrders.length}</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-3">
           {slotOrders.map((order, idx) => (
             <OrderCard key={order.id} order={order} index={idx} />
           ))}
@@ -345,23 +373,23 @@ export default function InteractiveAssignmentPage() {
             
             {/* Sol Panel - Sürücüler */}
             <div className="col-span-3 space-y-3">
-              <Card className="sticky top-4">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <User className="w-4 h-4" />
+              <Card className="sticky top-4 shadow-xl border-2 border-slate-300">
+                <CardHeader className="pb-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
+                  <CardTitle className="text-base flex items-center gap-2 font-bold">
+                    <User className="w-5 h-5" />
                     Sürücüler ({filteredDrivers.length})
                   </CardTitle>
-                  <div className="relative mt-2">
-                    <Search className="absolute left-2 top-2 w-4 h-4 text-slate-400" />
+                  <div className="relative mt-3">
+                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
                     <Input
                       placeholder="Sürücü ara..."
                       value={searchDriver}
                       onChange={(e) => setSearchDriver(e.target.value)}
-                      className="pl-8 h-8 text-sm"
+                      className="pl-10 h-9 text-sm bg-white"
                     />
                   </div>
                 </CardHeader>
-                <CardContent className="max-h-[calc(100vh-200px)] overflow-y-auto space-y-2">
+                <CardContent className="max-h-[calc(100vh-220px)] overflow-y-auto space-y-3 p-4">
                   {filteredDrivers.map(driver => {
                     const driverOrders = getDriverOrders(driver.id);
                     return (
@@ -370,32 +398,40 @@ export default function InteractiveAssignmentPage() {
                           <div
                             ref={provided.innerRef}
                             {...provided.droppableProps}
-                            className={`border-2 rounded-lg p-2 ${
+                            className={`border-3 rounded-xl p-4 transition-all shadow-md ${
                               snapshot.isDraggingOver 
-                                ? 'border-blue-500 bg-blue-50' 
-                                : 'border-slate-200 bg-white'
+                                ? 'border-blue-500 bg-blue-100 shadow-2xl scale-105' 
+                                : driverOrders.length > 0
+                                ? 'border-green-400 bg-green-50'
+                                : 'border-slate-300 bg-white'
                             }`}
                           >
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <p className="font-semibold text-sm text-slate-900">{driver.name}</p>
-                                <p className="text-xs text-slate-500">{driver.phone}</p>
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex-1">
+                                <p className="font-bold text-base text-slate-900">{driver.name}</p>
+                                <p className="text-xs text-slate-600 mt-1">{driver.phone}</p>
                               </div>
                               {driverOrders.length > 0 && (
-                                <Badge className="bg-blue-600 text-white">
+                                <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-lg">
                                   {driverOrders.length}
-                                </Badge>
+                                </div>
                               )}
                             </div>
-                            
+
                             {driverOrders.length > 0 && (
-                              <div className="space-y-1 mt-2 pt-2 border-t">
+                              <div className="space-y-2 mt-3 pt-3 border-t-2 border-slate-200">
                                 {driverOrders.map((order, idx) => (
                                   <OrderCard key={order.id} order={order} index={idx} />
                                 ))}
                               </div>
                             )}
-                            
+
+                            {driverOrders.length === 0 && (
+                              <p className="text-xs text-slate-400 text-center py-2 italic">
+                                Sipariş yok - buraya sürükleyin
+                              </p>
+                            )}
+
                             {provided.placeholder}
                           </div>
                         )}
@@ -408,13 +444,14 @@ export default function InteractiveAssignmentPage() {
 
             {/* Sağ Panel - Atanmamış Siparişler */}
             <div className="col-span-9">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">
-                    Atanmamış Siparişler ({getUnassignedOrders().length})
+              <Card className="shadow-xl border-2 border-slate-300">
+                <CardHeader className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-lg">
+                  <CardTitle className="text-lg font-bold">
+                    📦 Atanmamış Siparişler ({getUnassignedOrders().length})
                   </CardTitle>
+                  <p className="text-sm text-white/90 mt-1">Siparişleri sürücülere sürükleyin</p>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-6">
                   <Droppable droppableId="unassigned">
                     {(provided, snapshot) => (
                       <div
