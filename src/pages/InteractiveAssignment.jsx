@@ -239,6 +239,14 @@ export default function InteractiveAssignmentPage() {
     d.phone?.includes(searchDriver)
   );
 
+  const getTimeSlotColor = (pickupTime) => {
+    const slot = getTimeSlot(pickupTime);
+    if (slot === 'morning') return 'text-amber-600';
+    if (slot === 'noon') return 'text-blue-600';
+    if (slot === 'evening') return 'text-purple-600';
+    return 'text-slate-900';
+  };
+
   const OrderCard = ({ order, index }) => (
     <Draggable draggableId={order.id} index={index}>
       {(provided, snapshot) => (
@@ -250,7 +258,7 @@ export default function InteractiveAssignmentPage() {
         >
           <div className={`border ${snapshot.isDragging ? 'border-blue-500' : 'border-slate-300'} bg-white p-2 hover:border-blue-400 transition-colors text-xs`}>
             <div className="flex items-center gap-2">
-              <div className="text-2xl font-bold text-slate-900 min-w-[65px] text-center">
+              <div className={`text-2xl font-bold min-w-[65px] text-center ${getTimeSlotColor(order.pickup_time)}`}>
                 {order.pickup_time || 'N/A'}
               </div>
               <div className="text-base font-semibold text-slate-600 min-w-[65px] text-center border-l pl-2">
@@ -275,12 +283,12 @@ export default function InteractiveAssignmentPage() {
     if (slotOrders.length === 0) return null;
 
     return (
-      <div className={`border ${TIME_SLOTS[slot].color} p-3`}>
-        <div className="flex items-center justify-between mb-3 pb-2 border-b">
-          <h3 className="font-bold text-base">{title}</h3>
+      <div className={`border ${TIME_SLOTS[slot].color} p-2`}>
+        <div className="flex items-center justify-between mb-2 pb-2 border-b">
+          <h3 className="font-bold text-sm">{title}</h3>
           <Badge variant="outline">{slotOrders.length}</Badge>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-0.5">
           {slotOrders.map((order, idx) => (
             <OrderCard key={order.id} order={order} index={idx} />
           ))}
@@ -405,7 +413,7 @@ export default function InteractiveAssignmentPage() {
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={`max-h-[calc(100vh-160px)] overflow-y-auto space-y-0.5 ${snapshot.isDraggingOver ? 'bg-slate-50' : ''}`}
+                        className={`max-h-[calc(100vh-160px)] overflow-y-auto ${snapshot.isDraggingOver ? 'bg-slate-50' : ''}`}
                       >
                         {getUnassignedOrders().length === 0 ? (
                           <div className="flex flex-col items-center justify-center py-12 text-slate-400">
@@ -413,15 +421,23 @@ export default function InteractiveAssignmentPage() {
                             <p className="text-sm">Tüm siparişler atandı</p>
                           </div>
                         ) : (
-                          getUnassignedOrders()
-                            .sort((a, b) => {
-                              const timeA = parseTime(a.pickup_time) || 0;
-                              const timeB = parseTime(b.pickup_time) || 0;
-                              return timeA - timeB;
-                            })
-                            .map((order, idx) => (
-                              <OrderCard key={order.id} order={order} index={idx} />
-                            ))
+                          <div className="grid grid-cols-3 gap-2">
+                            <TimeSlotSection 
+                              slot="morning" 
+                              orders={getUnassignedOrders()} 
+                              title="Sabah (04:00-11:00)" 
+                            />
+                            <TimeSlotSection 
+                              slot="noon" 
+                              orders={getUnassignedOrders()} 
+                              title="Öğle (12:00-15:00)" 
+                            />
+                            <TimeSlotSection 
+                              slot="evening" 
+                              orders={getUnassignedOrders()} 
+                              title="Akşam (16:00-22:00)" 
+                            />
+                          </div>
                         )}
                         {provided.placeholder}
                       </div>
