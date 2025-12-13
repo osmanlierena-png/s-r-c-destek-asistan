@@ -265,17 +265,19 @@ export default function InteractiveAssignmentPage() {
           className={`mb-2 ${snapshot.isDragging ? 'opacity-60 scale-105' : ''}`}
         >
           <div className={`${getTimeSlotBg(order.pickup_time)} ${snapshot.isDragging ? 'shadow-xl' : 'hover:shadow-md'} transition-all duration-200 p-2.5 rounded-lg`}>
-            <div className="flex items-center gap-3">
-              <div className={`text-3xl font-black min-w-[70px] text-center ${getTimeSlotColor(order.pickup_time)} leading-none`}>
-                {order.pickup_time || 'N/A'}
-              </div>
-              <div className="text-sm font-bold text-slate-500 min-w-[60px] text-center">
-                {order.dropoff_time || 'N/A'}
+            <div className="flex items-start gap-3">
+              <div className="flex flex-col items-center gap-1 min-w-[55px]">
+                <div className={`text-xl font-bold ${getTimeSlotColor(order.pickup_time)} leading-none`}>
+                  {order.pickup_time || 'N/A'}
+                </div>
+                <div className="text-base font-semibold text-slate-600 leading-none">
+                  {order.dropoff_time || 'N/A'}
+                </div>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-mono text-[10px] font-bold text-slate-400 mb-1">{order.ezcater_order_id}</p>
-                <p className="text-[11px] text-slate-800 truncate leading-tight">{order.pickup_address}</p>
-                <p className="text-[11px] text-slate-600 truncate leading-tight mt-0.5">{order.dropoff_address}</p>
+                <p className="font-mono text-xs font-bold text-slate-500 mb-1.5">{order.ezcater_order_id}</p>
+                <p className="text-xs text-slate-800 truncate leading-relaxed">{order.pickup_address}</p>
+                <p className="text-xs text-slate-600 truncate leading-relaxed mt-1">{order.dropoff_address}</p>
               </div>
             </div>
           </div>
