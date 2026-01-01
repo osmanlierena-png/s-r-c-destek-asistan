@@ -56,11 +56,32 @@ Deno.serve(async (req) => {
                     continue;
                 }
 
-                if (!order.driver_id || !order.driver_phone) {
+                // Geçersiz telefon numaralarını filtrele
+                if (!order.driver_id || !order.driver_phone || 
+                    order.driver_phone.trim() === '' || 
+                    order.driver_phone.toUpperCase().includes('MISSING')) {
                     results.failed.push({
                         orderId: order.ezcater_order_id,
-                        reason: 'Sürücü atanmamış veya telefonu yok'
+                        reason: 'Sürücü atanmamış veya telefon numarası eksik/geçersiz'
                     });
+                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Geçersiz telefon: ${order.driver_phone}`);
+                    continue;
+                }
+
+                // Telefon numarasını E.164 formatına çevir (+ile başlamalı)
+                let toPhoneNumber = order.driver_phone.trim();
+                if (!toPhoneNumber.startsWith('+')) {
+                    // Sadece rakamları al ve başına + ekle
+                    toPhoneNumber = '+' + toPhoneNumber.replace(/[^\d]/g, '');
+                }
+                
+                // Minimum uzunluk kontrolü (ülke kodu + numara en az 10 karakter olmalı)
+                if (toPhoneNumber.length < 10) {
+                    results.failed.push({
+                        orderId: order.ezcater_order_id,
+                        reason: 'Telefon numarası çok kısa veya geçersiz format'
+                    });
+                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Kısa numara: ${toPhoneNumber}`);
                     continue;
                 }
 
@@ -106,13 +127,13 @@ Example: "YES" or "NO"`
 
                 const message = messages[driverLanguage];
 
-                console.log(`📤 SMS gönderiliyor: ${order.driver_name} (${order.driver_phone})`);
+                console.log(`📤 SMS gönderiliyor: ${order.driver_name} (${toPhoneNumber})`);
 
                 // SMS gönder
                 const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
                 
                 const formData = new URLSearchParams();
-                formData.append('To', order.driver_phone);
+                formData.append('To', toPhoneNumber);
                 formData.append('From', twilioFromNumber);
                 formData.append('Body', message);
 
