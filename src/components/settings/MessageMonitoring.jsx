@@ -17,6 +17,7 @@ import {
 
 export default function MessageMonitoring() {
   const [messages, setMessages] = useState([]);
+  const [allMessages, setAllMessages] = useState([]); // Tüm mesajlar stats için
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
@@ -166,6 +167,7 @@ export default function MessageMonitoring() {
         new Date(b.lastUpdateTime) - new Date(a.lastUpdateTime)
       );
       
+      setAllMessages(enrichedMessages); // Stats için tüm mesajları sakla
       setMessages(consolidatedMessages);
       setLastUpdate(new Date());
       
@@ -230,14 +232,15 @@ export default function MessageMonitoring() {
     ? messages 
     : messages.filter(m => m.status === filterStatus);
 
+  // Stats tüm mesajlar üzerinden hesaplanır (konsolide edilmemiş)
   const stats = {
-    total: messages.length,
-    sent: messages.filter(m => m.message_status === 'sent').length,
-    failed: messages.filter(m => m.message_status === 'failed').length,
-    responded: messages.filter(m => m.response_received).length,
-    pending: messages.filter(m => !m.response_received && m.status === 'sent').length,
-    warning: messages.filter(m => m.status === 'warning').length,
-    critical: messages.filter(m => m.status === 'critical').length,
+    total: allMessages.length,
+    sent: allMessages.filter(m => m.message_status === 'sent').length,
+    failed: allMessages.filter(m => m.message_status === 'failed').length,
+    responded: allMessages.filter(m => m.response_received).length,
+    pending: allMessages.filter(m => !m.response_received && m.status === 'sent').length,
+    warning: allMessages.filter(m => m.status === 'warning').length,
+    critical: allMessages.filter(m => m.status === 'critical').length,
   };
 
   const getFilterLabel = (status) => {
