@@ -75,8 +75,18 @@ Deno.serve(async (req) => {
                     toPhoneNumber = '+' + toPhoneNumber.replace(/[^\d]/g, '');
                 }
                 
-                // Minimum uzunluk kontrolü (ülke kodu + numara en az 10 karakter olmalı)
-                if (toPhoneNumber.length < 10) {
+                // Sadece ABD numaralarına (+1) izin ver
+                if (!toPhoneNumber.startsWith('+1')) {
+                    results.failed.push({
+                        orderId: order.ezcater_order_id,
+                        reason: 'Sadece ABD numaralarına SMS gönderilebilir'
+                    });
+                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - ABD dışı numara: ${toPhoneNumber}`);
+                    continue;
+                }
+                
+                // Minimum uzunluk kontrolü (ABD için +1 + 10 digit = 12 karakter)
+                if (toPhoneNumber.length < 12) {
                     results.failed.push({
                         orderId: order.ezcater_order_id,
                         reason: 'Telefon numarası çok kısa veya geçersiz format'
