@@ -56,42 +56,83 @@ Deno.serve(async (req) => {
                     continue;
                 }
 
-                // Geçersiz telefon numaralarını filtrele
-                if (!order.driver_id || !order.driver_phone || 
-                    order.driver_phone.trim() === '' || 
-                    order.driver_phone.toUpperCase().includes('MISSING')) {
+                // Kapsamlı telefon numarası doğrulaması
+                const phone = order.driver_phone;
+                
+                // 1. Temel kontroller
+                if (!order.driver_id || !phone || phone.trim() === '') {
                     results.failed.push({
                         orderId: order.ezcater_order_id,
-                        reason: 'Sürücü atanmamış veya telefon numarası eksik/geçersiz'
+                        reason: 'Sürücü atanmamış veya telefon numarası eksik'
                     });
-                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Geçersiz telefon: ${order.driver_phone}`);
+                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Telefon numarası yok`);
                     continue;
                 }
 
-                // Telefon numarasını E.164 formatına çevir (+ile başlamalı)
-                let toPhoneNumber = order.driver_phone.trim();
+                // 2. MISSING kontrolü
+                if (phone.toUpperCase().includes('MISSING')) {
+                    results.failed.push({
+                        orderId: order.ezcater_order_id,
+                        reason: 'Telefon numarası "MISSING" olarak işaretli'
+                    });
+                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - MISSING: ${phone}`);
+                    continue;
+                }
+
+                // 3. Boşluk ve parantez kontrolü
+                if (phone.includes(' ') || phone.includes('(') || phone.includes(')')) {
+                    results.failed.push({
+                        orderId: order.ezcater_order_id,
+                        reason: 'Telefon numarası geçersiz karakterler içeriyor (boşluk/parantez)'
+                    });
+                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Geçersiz format: ${phone}`);
+                    continue;
+                }
+
+                // 4. Telefon numarasını E.164 formatına çevir
+                let toPhoneNumber = phone.trim();
                 if (!toPhoneNumber.startsWith('+')) {
-                    // Sadece rakamları al ve başına + ekle
                     toPhoneNumber = '+' + toPhoneNumber.replace(/[^\d]/g, '');
                 }
-                
-                // Sadece ABD numaralarına (+1) izin ver
+
+                // 5. ABD dışı numara kontrolü
                 if (!toPhoneNumber.startsWith('+1')) {
                     results.failed.push({
                         orderId: order.ezcater_order_id,
-                        reason: 'Sadece ABD numaralarına SMS gönderilebilir'
+                        reason: `ABD dışı numara tespit edildi: ${toPhoneNumber.substring(0, 4)}...`
                     });
                     console.log(`⚠️ ${order.ezcater_order_id} atlandı - ABD dışı numara: ${toPhoneNumber}`);
                     continue;
                 }
-                
-                // Minimum uzunluk kontrolü (ABD için +1 + 10 digit = 12 karakter)
-                if (toPhoneNumber.length < 12) {
+
+                // 6. +1'den sonra rakam kontrolü
+                if (toPhoneNumber.match(/^\+1[^0-9]/)) {
                     results.failed.push({
                         orderId: order.ezcater_order_id,
-                        reason: 'Telefon numarası çok kısa veya geçersiz format'
+                        reason: '+1 sonrası geçersiz karakter'
                     });
-                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Kısa numara: ${toPhoneNumber}`);
+                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - +1 sonrası geçersiz: ${toPhoneNumber}`);
+                    continue;
+                }
+
+                // 7. Uzunluk kontrolü (ABD için +1 + 10 digit = 12 karakter)
+                if (toPhoneNumber.length !== 12) {
+                    results.failed.push({
+                        orderId: order.ezcater_order_id,
+                        reason: `Geçersiz numara uzunluğu: ${toPhoneNumber.length} karakter (12 olmalı)`
+                    });
+                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Yanlış uzunluk: ${toPhoneNumber} (${toPhoneNumber.length} karakter)`);
+                    continue;
+                }
+
+                // 8. Sadece rakam kontrolü (+1'den sonra)
+                const digitsOnly = toPhoneNumber.substring(2);
+                if (!/^\d{10}$/.test(digitsOnly)) {
+                    results.failed.push({
+                        orderId: order.ezcater_order_id,
+                        reason: 'Telefon numarası sadece rakam içermeli'
+                    });
+                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Geçersiz karakter: ${toPhoneNumber}`);
                     continue;
                 }
 
