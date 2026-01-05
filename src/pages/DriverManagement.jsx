@@ -25,6 +25,7 @@ export default function DriverManagementPage() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [isTestingRegionPriorities, setIsTestingRegionPriorities] = useState(false);
   const [isUpdatingRegionPriorities, setIsUpdatingRegionPriorities] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
