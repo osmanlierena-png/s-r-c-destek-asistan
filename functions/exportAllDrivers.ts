@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
             aktif: aktif.length,
             pasif: pasif.length,
             izinli: izinli.length,
-            drivers: formatted,
+            names: driverNames,
         });
 
     } catch (error) {
