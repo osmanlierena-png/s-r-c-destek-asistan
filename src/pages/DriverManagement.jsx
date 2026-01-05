@@ -586,8 +586,7 @@ export default function DriverManagementPage() {
   const handleExportAllDrivers = async () => {
     setIsExporting(true);
     try {
-      const { exportAllDrivers } = await import("@/functions/exportAllDrivers");
-      const response = await exportAllDrivers();
+      const response = await base44.functions.invoke('exportAllDrivers', {});
       
       if (response.data.success) {
         let msg = `📊 TÜM SÜRÜCÜLER\n\n`;
