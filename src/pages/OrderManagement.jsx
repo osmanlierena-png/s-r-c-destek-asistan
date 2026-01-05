@@ -37,6 +37,7 @@ import { resetAllAssignments } from "@/functions/resetAllAssignments";
 import { sendOrdersToDrivers } from "@/functions/sendOrdersToDrivers";
 import { parseAndUpdateDriverRules } from "@/functions/parseAndUpdateDriverRules";
 import { sendOrderAssignmentSMS } from "@/functions/sendOrderAssignmentSMS";
+import { sendOrdersToCanvas } from "@/functions/sendOrdersToCanvas";
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState([]);
@@ -71,6 +72,30 @@ export default function OrderManagementPage() {
   const [missingPhones, setMissingPhones] = useState(null);
   const [isPreviewingGroups, setIsPreviewingGroups] = useState(false);
   const [groupPreview, setGroupPreview] = useState(null);
+  const [sendingToCanvas, setSendingToCanvas] = useState(false);
+
+  const handleSendToCanvas = async () => {
+    if (!selectedDate) {
+      alert('Lütfen bir tarih seçin');
+      return;
+    }
+
+    setSendingToCanvas(true);
+    try {
+      const result = await sendOrdersToCanvas({ date: selectedDate });
+
+      if (result.data.success) {
+        alert(`✅ ${result.data.ordersCount} sipariş Canvas'a gönderildi!\n\n📍 Canvas URL: ${result.data.canvasUrl}`);
+        window.open(result.data.canvasUrl, '_blank');
+      } else {
+        alert('❌ Hata: ' + result.data.error);
+      }
+    } catch (error) {
+      alert('❌ Canvas\'a gönderilemedi: ' + error.message);
+    } finally {
+      setSendingToCanvas(false);
+    }
+  };
 
   const loadOrders = useCallback(async () => {
     setIsLoading(true);

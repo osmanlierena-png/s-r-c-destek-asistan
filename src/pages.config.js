@@ -1,33 +1,35 @@
+import AssignmentEvaluation from './pages/AssignmentEvaluation';
+import ChatInterface from './pages/ChatInterface';
 import Dashboard from './pages/Dashboard';
 import DriverManagement from './pages/DriverManagement';
-import Settings from './pages/Settings';
-import ChatInterface from './pages/ChatInterface';
-import OrderManagement from './pages/OrderManagement';
 import DriverOrderView from './pages/DriverOrderView';
-import AssignmentEvaluation from './pages/AssignmentEvaluation';
-import WeeklyAnalysis from './pages/WeeklyAnalysis';
-import RealAssignmentAnalysis from './pages/RealAssignmentAnalysis';
 import DriverRegionAnalysis from './pages/DriverRegionAnalysis';
-import TopDasherMap from './pages/TopDasherMap';
-import LearningInsights from './pages/LearningInsights';
+import Home from './pages/Home';
 import InteractiveAssignment from './pages/InteractiveAssignment';
+import LearningInsights from './pages/LearningInsights';
+import OrderManagement from './pages/OrderManagement';
+import RealAssignmentAnalysis from './pages/RealAssignmentAnalysis';
+import Settings from './pages/Settings';
+import TopDasherMap from './pages/TopDasherMap';
+import WeeklyAnalysis from './pages/WeeklyAnalysis';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AssignmentEvaluation": AssignmentEvaluation,
+    "ChatInterface": ChatInterface,
     "Dashboard": Dashboard,
     "DriverManagement": DriverManagement,
-    "Settings": Settings,
-    "ChatInterface": ChatInterface,
-    "OrderManagement": OrderManagement,
     "DriverOrderView": DriverOrderView,
-    "AssignmentEvaluation": AssignmentEvaluation,
-    "WeeklyAnalysis": WeeklyAnalysis,
-    "RealAssignmentAnalysis": RealAssignmentAnalysis,
     "DriverRegionAnalysis": DriverRegionAnalysis,
-    "TopDasherMap": TopDasherMap,
-    "LearningInsights": LearningInsights,
+    "Home": Home,
     "InteractiveAssignment": InteractiveAssignment,
+    "LearningInsights": LearningInsights,
+    "OrderManagement": OrderManagement,
+    "RealAssignmentAnalysis": RealAssignmentAnalysis,
+    "Settings": Settings,
+    "TopDasherMap": TopDasherMap,
+    "WeeklyAnalysis": WeeklyAnalysis,
 }
 
 export const pagesConfig = {
