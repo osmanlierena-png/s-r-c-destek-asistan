@@ -66,9 +66,7 @@ Deno.serve(async (req) => {
                     driverPhone: o.driver_phone
                 })),
                 drivers: drivers.map(d => ({
-                    id: d.id,
-                    name: d.name,
-                    phone: d.phone
+                    name: d.name
                 }))
             })
         });
