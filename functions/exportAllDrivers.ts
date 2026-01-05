@@ -18,24 +18,8 @@ Deno.serve(async (req) => {
         const pasif = allDrivers.filter(d => d.status === 'Pasif');
         const izinli = allDrivers.filter(d => d.status === 'İzinli');
         
-        // Her sürücüyü format'la
-        const formatted = allDrivers.map(d => ({
-            id: d.id,
-            name: d.name,
-            phone: d.phone || '',
-            status: d.status || 'Bilinmiyor',
-            language: d.language || '',
-            is_top_dasher: d.is_top_dasher ? 'Evet' : 'Hayır',
-            is_joker_driver: d.is_joker_driver ? 'Evet' : 'Hayır',
-            preferred_shift: d.preferred_shift || 'all_day',
-            max_orders_per_day: d.assignment_preferences?.max_orders_per_day || 5,
-            working_days: (d.assignment_preferences?.working_days || []).join(', '),
-            early_morning_eligible: d.early_morning_eligible ? 'Evet' : 'Hayır',
-            avoid_dc: d.special_notes?.avoid_dc ? 'Evet' : 'Hayır',
-            avoid_long_distance: d.special_notes?.avoid_long_distance ? 'Evet' : 'Hayır',
-            priority_level: d.special_notes?.priority_level || 0,
-            created_date: new Date(d.created_date).toLocaleDateString('tr-TR'),
-        }));
+        // Sadece isimleri al
+        const driverNames = allDrivers.map(d => d.name).sort();
         
         return Response.json({
             success: true,
