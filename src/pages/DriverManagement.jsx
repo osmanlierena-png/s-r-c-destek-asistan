@@ -654,6 +654,24 @@ export default function DriverManagementPage() {
 
         <div className="flex gap-2 flex-wrap">
           <Button 
+            onClick={handleExportAllDrivers}
+            disabled={anyActionInProgress}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {isExporting ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Yükleniyor...
+              </>
+            ) : (
+              <>
+                <BarChart2 className="w-4 h-4 mr-2" />
+                Tüm Sürücüleri Listele (Console)
+              </>
+            )}
+          </Button>
+          
+          <Button 
             onClick={handleDeleteAll}
             disabled={anyActionInProgress}
             className="bg-red-600 hover:bg-red-700"
