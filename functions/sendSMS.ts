@@ -16,58 +16,6 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
-        // 🚨 KAPSAMLI TELEFON NUMARASI DOĞRULAMASI
-        const phone = to;
-        
-        // 1. MISSING kontrolü
-        if (phone.toUpperCase().includes('MISSING')) {
-            return Response.json({ 
-                error: 'Telefon numarası "MISSING" olarak işaretli' 
-            }, { status: 400 });
-        }
-        
-        // 2. Boşluk/parantez kontrolü
-        if (phone.includes(' ') || phone.includes('(') || phone.includes(')')) {
-            return Response.json({ 
-                error: 'Geçersiz telefon formatı (boşluk/parantez içeriyor)' 
-            }, { status: 400 });
-        }
-        
-        // 3. E.164 format dönüşümü
-        let cleanPhone = phone.trim();
-        if (!cleanPhone.startsWith('+')) {
-            cleanPhone = '+' + cleanPhone.replace(/[^\d]/g, '');
-        }
-        
-        // 4. ABD dışı numara kontrolü
-        if (!cleanPhone.startsWith('+1')) {
-            return Response.json({ 
-                error: `ABD dışı numara: ${cleanPhone.substring(0, 4)}...` 
-            }, { status: 400 });
-        }
-        
-        // 5. +1'den sonra rakam kontrolü
-        if (cleanPhone.match(/^\+1[^0-9]/)) {
-            return Response.json({ 
-                error: '+1 sonrası geçersiz karakter' 
-            }, { status: 400 });
-        }
-        
-        // 6. Uzunluk kontrolü (12 karakter tam)
-        if (cleanPhone.length !== 12) {
-            return Response.json({ 
-                error: `Yanlış numara uzunluğu: ${cleanPhone.length} karakter (12 olmalı)` 
-            }, { status: 400 });
-        }
-        
-        // 7. Sadece rakam kontrolü
-        const digitsOnly = cleanPhone.substring(2);
-        if (!/^\d{10}$/.test(digitsOnly)) {
-            return Response.json({ 
-                error: 'Telefon numarası sadece rakam içermeli' 
-            }, { status: 400 });
-        }
-
         // Twilio bilgilerini al
         const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
         const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
@@ -85,7 +33,7 @@ Deno.serve(async (req) => {
         const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
         
         const formData = new URLSearchParams();
-        formData.append('To', cleanPhone); // Temizlenmiş telefon numarasını kullan
+        formData.append('To', to);
         formData.append('From', fromNumber);
         formData.append('Body', message);
 

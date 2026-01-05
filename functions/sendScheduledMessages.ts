@@ -110,88 +110,47 @@ Deno.serve(async (req) => {
         continue;
       }
       
-      // 🚨 KAPSAMLI TELEFON NUMARASI DOĞRULAMASI
-      const phone = order.driver_phone;
-      
-      // 1. Boş kontrolü
-      if (!phone || phone.trim() === '') {
+      if (!order.driver_phone || order.driver_phone.trim() === '') {
         console.log(`❌ ${order.ezcater_order_id}: Telefon numarası eksik`);
         failedMessages.push({
           orderId: order.ezcater_order_id,
           reason: 'Telefon numarası eksik'
         });
-        continue; // CheckMessage oluşturmadan atla
+        
+        await base44.asServiceRole.entities.CheckMessage.create({
+          order_id: order.id,
+          driver_phone: 'MISSING',
+          driver_language: 'tr',
+          message_type: '60dk_Kontrol',
+          message_content: 'FAILED: Telefon numarası eksik',
+          message_status: 'failed',
+          failure_reason: 'Telefon numarası eksik',
+          sent_time: new Date().toISOString()
+        }).catch(err => console.error('CheckMessage oluşturulamadı:', err));
+        
+        continue;
       }
       
-      // 2. MISSING kontrolü
-      if (phone.toUpperCase().includes('MISSING')) {
-        console.log(`🚫 ${order.ezcater_order_id}: MISSING numara`);
+      if (!order.driver_phone.startsWith('+1')) {
+        console.log(`🚫 ${order.ezcater_order_id}: Geçersiz numara (${order.driver_phone})`);
         failedMessages.push({
           orderId: order.ezcater_order_id,
-          reason: 'Telefon numarası "MISSING"'
+          reason: `Geçersiz numara: ${order.driver_phone}`
         });
-        continue; // CheckMessage oluşturmadan atla
+        
+        await base44.asServiceRole.entities.CheckMessage.create({
+          order_id: order.id,
+          driver_phone: order.driver_phone,
+          driver_language: 'tr',
+          message_type: '60dk_Kontrol',
+          message_content: 'BLOCKED: Geçersiz numara formatı',
+          message_status: 'failed',
+          failure_reason: `Sadece +1 numaralarına izin var`,
+          sent_time: new Date().toISOString()
+        }).catch(err => console.error('CheckMessage oluşturulamadı:', err));
+        
+        continue;
       }
-      
-      // 3. Boşluk/parantez kontrolü
-      if (phone.includes(' ') || phone.includes('(') || phone.includes(')')) {
-        console.log(`🚫 ${order.ezcater_order_id}: Geçersiz format (boşluk/parantez): ${phone}`);
-        failedMessages.push({
-          orderId: order.ezcater_order_id,
-          reason: 'Geçersiz format (boşluk/parantez)'
-        });
-        continue; // CheckMessage oluşturmadan atla
-      }
-      
-      // 4. E.164 format dönüşümü
-      let cleanPhone = phone.trim();
-      if (!cleanPhone.startsWith('+')) {
-        cleanPhone = '+' + cleanPhone.replace(/[^\d]/g, '');
-      }
-      
-      // 5. ABD dışı numara kontrolü
-      if (!cleanPhone.startsWith('+1')) {
-        console.log(`🚫 ${order.ezcater_order_id}: ABD dışı numara: ${cleanPhone}`);
-        failedMessages.push({
-          orderId: order.ezcater_order_id,
-          reason: `ABD dışı numara: ${cleanPhone.substring(0, 4)}...`
-        });
-        continue; // CheckMessage oluşturmadan atla
-      }
-      
-      // 6. +1'den sonra rakam kontrolü
-      if (cleanPhone.match(/^\+1[^0-9]/)) {
-        console.log(`🚫 ${order.ezcater_order_id}: +1 sonrası geçersiz: ${cleanPhone}`);
-        failedMessages.push({
-          orderId: order.ezcater_order_id,
-          reason: '+1 sonrası geçersiz karakter'
-        });
-        continue; // CheckMessage oluşturmadan atla
-      }
-      
-      // 7. Uzunluk kontrolü (12 karakter tam)
-      if (cleanPhone.length !== 12) {
-        console.log(`🚫 ${order.ezcater_order_id}: Yanlış uzunluk: ${cleanPhone} (${cleanPhone.length} karakter)`);
-        failedMessages.push({
-          orderId: order.ezcater_order_id,
-          reason: `Yanlış uzunluk: ${cleanPhone.length} karakter (12 olmalı)`
-        });
-        continue; // CheckMessage oluşturmadan atla
-      }
-      
-      // 8. Sadece rakam kontrolü
-      const digitsOnly = cleanPhone.substring(2);
-      if (!/^\d{10}$/.test(digitsOnly)) {
-        console.log(`🚫 ${order.ezcater_order_id}: Geçersiz karakter: ${cleanPhone}`);
-        failedMessages.push({
-          orderId: order.ezcater_order_id,
-          reason: 'Telefon numarası sadece rakam içermeli'
-        });
-        continue; // CheckMessage oluşturmadan atla
-      }
-      
-      // ✅ Telefon numarası geçerli, devam et
-      console.log(`✅ ${order.ezcater_order_id}: Telefon geçerli: ${cleanPhone}`);
       
       if (!ordersByDriver[order.driver_id]) {
         ordersByDriver[order.driver_id] = [];
@@ -391,7 +350,7 @@ Deno.serve(async (req) => {
                 'Content-Type': 'application/x-www-form-urlencoded'
               },
               body: new URLSearchParams({
-                To: cleanPhone, // Temizlenmiş telefon numarasını kullan
+                To: firstOrder.driver_phone,
                 From: twilioPhoneNumber,
                 Body: messageContent
               })
