@@ -77,6 +77,49 @@ Deno.serve(async (req) => {
 
         console.log(`✅ Canvas'a gönderim başarılı: ${result.message || 'OK'}`);
 
+        // Slack'e bildirim gönder
+        const slackWebhookUrl = Deno.env.get("SLACK_WEBHOOK_URL");
+        if (slackWebhookUrl) {
+            try {
+                const slackMessage = {
+                    text: `🚀 *Siparişler Canvas'a Gönderildi!*`,
+                    blocks: [
+                        {
+                            type: "section",
+                            text: {
+                                type: "mrkdwn",
+                                text: `🚀 *Siparişler Canvas'a Gönderildi!*\n\n📦 *Sipariş Sayısı:* ${orders.length}\n📅 *Tarih:* ${date}\n✅ *Durum:* Başarılı`
+                            }
+                        },
+                        {
+                            type: "actions",
+                            elements: [
+                                {
+                                    type: "button",
+                                    text: {
+                                        type: "plain_text",
+                                        text: "Canvas'ı Aç"
+                                    },
+                                    url: `${CANVAS_URL}/atama`
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                await fetch(slackWebhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(slackMessage)
+                });
+
+                console.log('✅ Slack bildirimi gönderildi');
+            } catch (slackError) {
+                console.error('⚠️ Slack bildirimi gönderilemedi:', slackError);
+                // Slack hatası ana işlemi etkilemesin
+            }
+        }
+
         return Response.json({
             success: result.success,
             message: result.message || 'Siparişler Canvas\'a gönderildi',
