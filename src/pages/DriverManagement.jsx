@@ -583,6 +583,39 @@ export default function DriverManagementPage() {
     setIsUpdatingRegionPriorities(false);
   };
 
+  const handleExportAllDrivers = async () => {
+    setIsExporting(true);
+    try {
+      const { exportAllDrivers } = await import("@/functions/exportAllDrivers");
+      const response = await exportAllDrivers();
+      
+      if (response.data.success) {
+        let msg = `📊 TÜM SÜRÜCÜLER\n\n`;
+        msg += `Toplam: ${response.data.total}\n`;
+        msg += `✅ Aktif: ${response.data.aktif}\n`;
+        msg += `🚫 Pasif: ${response.data.pasif}\n`;
+        msg += `🏖️ İzinli: ${response.data.izinli}\n\n`;
+        msg += `Detaylı liste console'da!`;
+        
+        alert(msg);
+        console.log('📋 DETAYLI SÜRÜCÜ LİSTESİ:', response.data.drivers);
+        
+        // CSV olarak da console'a yaz
+        console.log('\n📄 CSV FORMAT:');
+        console.log('İsim,Telefon,Durum,Dil,Top Dasher,Joker,Vardiya,Max Sipariş,Çalışma Günleri,Sabah Uygun,DC Kaçın,Uzun Mesafe Kaçın,Öncelik');
+        response.data.drivers.forEach(d => {
+          console.log(`${d.name},${d.phone},${d.status},${d.language},${d.is_top_dasher},${d.is_joker_driver},${d.preferred_shift},${d.max_orders_per_day},"${d.working_days}",${d.early_morning_eligible},${d.avoid_dc},${d.avoid_long_distance},${d.priority_level}`);
+        });
+      } else {
+        alert(`❌ Hata: ${response.data.error}`);
+      }
+    } catch (error) {
+      alert(`❌ Export hatası: ${error.message}`);
+      console.error('Export hatası:', error);
+    }
+    setIsExporting(false);
+  };
+
   const daysOfWeek = [
     { en: 'Monday', tr: 'Pazartesi', emoji: '📅' },
     { en: 'Tuesday', tr: 'Salı', emoji: '📅' },
