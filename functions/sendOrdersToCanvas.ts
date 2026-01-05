@@ -23,9 +23,10 @@ Deno.serve(async (req) => {
 
         console.log(`📤 ${date} tarihindeki siparişler Canvas'a gönderiliyor...`);
 
-        // 1. Siparişleri çek (Service Role ile)
+        // 1. Sadece atanmamış siparişleri çek (Service Role ile)
         const orders = await base44.asServiceRole.entities.DailyOrder.filter({
-            order_date: date
+            order_date: date,
+            status: 'Çekildi'
         }, '-created_date', 500);
 
         // 2. Aktif sürücüleri çek
