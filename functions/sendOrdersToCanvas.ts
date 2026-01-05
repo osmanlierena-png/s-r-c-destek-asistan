@@ -29,11 +29,6 @@ Deno.serve(async (req) => {
             status: 'Çekildi'
         }, '-created_date', 500);
 
-        // 2. Aktif sürücüleri çek
-        const drivers = await base44.asServiceRole.entities.Driver.filter({
-            status: 'Aktif'
-        }, '', 100);
-
         if (orders.length === 0) {
             return Response.json({
                 success: false,
@@ -41,7 +36,7 @@ Deno.serve(async (req) => {
             });
         }
 
-        console.log(`📦 ${orders.length} sipariş, ${drivers.length} sürücü Canvas'a gönderiliyor...`);
+        console.log(`📦 ${orders.length} sipariş Canvas'a gönderiliyor...`);
 
         // 3. Canvas'a gönder
         const response = await fetch(`${CANVAS_URL}/api/base44/import`, {
@@ -64,9 +59,6 @@ Deno.serve(async (req) => {
                     customerName: o.customer_name,
                     driverName: o.driver_name,
                     driverPhone: o.driver_phone
-                })),
-                drivers: drivers.map(d => ({
-                    name: d.name
                 }))
             })
         });
@@ -89,7 +81,6 @@ Deno.serve(async (req) => {
             success: result.success,
             message: result.message || 'Siparişler Canvas\'a gönderildi',
             ordersCount: orders.length,
-            driversCount: drivers.length,
             canvasUrl: `${CANVAS_URL}/atama`,
             imported: result.imported
         });
