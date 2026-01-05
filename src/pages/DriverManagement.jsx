@@ -635,7 +635,7 @@ export default function DriverManagementPage() {
 
   const activeDrivers = filteredDrivers.filter(d => d.status === 'Aktif').length;
 
-  const anyActionInProgress = isUpdatingEarlyMorning || isImporting || isUpdating || isUpdatingStatuses || isDeleting || isImportingChains || isImportingNewDrivers || isExtractingAreas || isParsingRules || isRestoring || isAnalyzing || isTestingRegionPriorities || isUpdatingRegionPriorities;
+  const anyActionInProgress = isUpdatingEarlyMorning || isImporting || isUpdating || isUpdatingStatuses || isDeleting || isImportingChains || isImportingNewDrivers || isExtractingAreas || isParsingRules || isRestoring || isAnalyzing || isTestingRegionPriorities || isUpdatingRegionPriorities || isExporting;
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
