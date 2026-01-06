@@ -65,10 +65,35 @@ Deno.serve(async (req) => {
                     return { type: 'failed', order: order.ezcater_order_id, reason: 'Sürücü bulunamadı' };
                 }
 
-                // ✅ VALİDASYON - Twilio'ya göndermeden önce
-                if (!isValidUSPhone(driver.phone)) {
-                    return { type: 'failed', order: order.ezcater_order_id, driver: driver.name, reason: `Geçersiz telefon numarası: ${driver.phone}` };
+                // ========== KRİTİK VALİDASYON - TWILIO'YA GÖNDERMEDİĞİMİZ NUMARALAR ==========
+                const phone = driver.phone;
+                
+                if (!phone || phone.trim() === '') {
+                    console.error(`🚫 [sendBulkCheckMessages] BLOCKED - Boş numara: ${order.ezcater_order_id}`);
+                    return { type: 'failed', order: order.ezcater_order_id, driver: driver.name, reason: 'Telefon numarası eksik' };
                 }
+                
+                if (phone.toUpperCase().includes('MISSING')) {
+                    console.error(`🚫 [sendBulkCheckMessages] BLOCKED - MISSING: ${phone}`);
+                    return { type: 'failed', order: order.ezcater_order_id, driver: driver.name, reason: `MISSING numara: ${phone}` };
+                }
+                
+                if (!phone.startsWith('+1')) {
+                    console.error(`🚫 [sendBulkCheckMessages] BLOCKED - ABD dışı: ${phone}`);
+                    return { type: 'failed', order: order.ezcater_order_id, driver: driver.name, reason: `ABD dışı numara: ${phone}` };
+                }
+                
+                if (phone.length !== 12) {
+                    console.error(`🚫 [sendBulkCheckMessages] BLOCKED - Yanlış uzunluk (${phone.length}): ${phone}`);
+                    return { type: 'failed', order: order.ezcater_order_id, driver: driver.name, reason: `Geçersiz uzunluk: ${phone}` };
+                }
+                
+                const digits = phone.substring(2);
+                if (!/^\d{10}$/.test(digits)) {
+                    console.error(`🚫 [sendBulkCheckMessages] BLOCKED - Geçersiz karakter: ${phone}`);
+                    return { type: 'failed', order: order.ezcater_order_id, driver: driver.name, reason: `Geçersiz karakter: ${phone}` };
+                }
+                // ========== VALİDASYON BİTTİ ==========
 
                 // Daha önce mesaj gönderilmiş mi kontrol et
                 const existingMessages = await base44.entities.CheckMessage.filter({

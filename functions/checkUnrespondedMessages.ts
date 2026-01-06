@@ -307,13 +307,35 @@ Deno.serve(async (req) => {
 
 // SMS gönderme helper fonksiyonu
 async function sendSMS(toPhone, messageBody) {
+  // ========== KRİTİK VALİDASYON - TWILIO'YA GÖNDERMEDİĞİMİZ NUMARALAR ==========
+  if (!toPhone || toPhone.trim() === '') {
+    console.error(`🚫 [checkUnrespondedMessages] BLOCKED - Boş numara`);
+    return false;
+  }
+  
+  if (toPhone.toUpperCase().includes('MISSING')) {
+    console.error(`🚫 [checkUnrespondedMessages] BLOCKED - MISSING: ${toPhone}`);
+    return false;
+  }
+  
+  if (!toPhone.startsWith('+1')) {
+    console.error(`🚫 [checkUnrespondedMessages] BLOCKED - ABD dışı: ${toPhone}`);
+    return false;
+  }
+  
+  if (toPhone.length !== 12) {
+    console.error(`🚫 [checkUnrespondedMessages] BLOCKED - Yanlış uzunluk (${toPhone.length}): ${toPhone}`);
+    return false;
+  }
+  
+  const digits = toPhone.substring(2);
+  if (!/^\d{10}$/.test(digits)) {
+    console.error(`🚫 [checkUnrespondedMessages] BLOCKED - Geçersiz karakter: ${toPhone}`);
+    return false;
+  }
+  // ========== VALİDASYON BİTTİ - NUMARA GEÇERLİ ==========
+  
   try {
-    // ✅ VALİDASYON - Twilio'ya göndermeden önce
-    if (!isValidUSPhone(toPhone)) {
-      console.log(`[checkUnrespondedMessages] BLOCKED - Geçersiz numara: ${toPhone}`);
-      return false;
-    }
-
     const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
     const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
     const twilioPhoneNumber = Deno.env.get('TWILIO_PHONE_NUMBER');

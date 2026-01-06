@@ -575,13 +575,35 @@ async function handleOrderResponse(phone, message, base44) {
 }
 
 async function sendSMSReply(to, message) {
+    // ========== KRİTİK VALİDASYON - TWILIO'YA GÖNDERMEDİĞİMİZ NUMARALAR ==========
+    if (!to || to.trim() === '') {
+        console.error(`🚫 [handleTwilioMessage] BLOCKED - Boş numara`);
+        return;
+    }
+    
+    if (to.toUpperCase().includes('MISSING')) {
+        console.error(`🚫 [handleTwilioMessage] BLOCKED - MISSING: ${to}`);
+        return;
+    }
+    
+    if (!to.startsWith('+1')) {
+        console.error(`🚫 [handleTwilioMessage] BLOCKED - ABD dışı: ${to}`);
+        return;
+    }
+    
+    if (to.length !== 12) {
+        console.error(`🚫 [handleTwilioMessage] BLOCKED - Yanlış uzunluk (${to.length}): ${to}`);
+        return;
+    }
+    
+    const digits = to.substring(2);
+    if (!/^\d{10}$/.test(digits)) {
+        console.error(`🚫 [handleTwilioMessage] BLOCKED - Geçersiz karakter: ${to}`);
+        return;
+    }
+    // ========== VALİDASYON BİTTİ ==========
+    
     try {
-        // ✅ VALİDASYON - Twilio'ya göndermeden önce
-        if (!isValidUSPhone(to)) {
-            console.log(`[handleTwilioMessage - sendSMSReply] BLOCKED - Geçersiz numara: ${to}`);
-            return;
-        }
-
         const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
         const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
         let fromNumber = Deno.env.get("TWILIO_PHONE_NUMBER");
