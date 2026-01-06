@@ -160,23 +160,22 @@ Deno.serve(async (req) => {
                 const driver = drivers[0];
                 const driverLanguage = driver?.language || 'tr';
 
-                // Web link oluştur (URL encode için)
-                const appBaseUrl = 'https://driverapp-ihtiyac.app.base44.com';
-                const orderLink = `${appBaseUrl}/DriverOrderView?driver_id=${encodeURIComponent(order.driver_id)}&date=${encodeURIComponent(order.order_date)}`;
+                // Kısa link oluştur (d=driver, t=tarih)
+                const functionUrl = `https://driverapp-ihtiyac.app.base44.com/api/functions/getDriverOrders?d=${encodeURIComponent(order.driver_id)}&t=${encodeURIComponent(order.order_date)}`;
 
                 // SMS mesajı oluştur (sadece link)
                 const messages = {
                     tr: `🚚 Yeni Sipariş!
 
-👉 Detaylar ve harita:
-${orderLink}
+👉 Detaylar:
+${functionUrl}
 
 ✅ EVET - ❌ HAYIR`,
                     
                     en: `🚚 New Order!
 
-👉 Details and map:
-${orderLink}
+👉 Details:
+${functionUrl}
 
 ✅ YES - ❌ NO`
                 };
