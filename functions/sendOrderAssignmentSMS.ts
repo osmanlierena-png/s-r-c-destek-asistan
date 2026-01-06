@@ -34,11 +34,18 @@ Deno.serve(async (req) => {
         // Telefon numarasını temizle
         twilioFromNumber = twilioFromNumber.replace(/[^\d+]/g, '');
 
-        console.log(`\n🚀 PRODUCTION MODU - Tüm sürücülere SMS gönderilecek`);
+        // TEST modu kontrolü
+        const testWhitelist = Deno.env.get('TEST_SMS_WHITELIST');
+        if (testWhitelist) {
+            console.log(`\n🧪 TEST MODU AKTIF - Sadece whitelist'teki numaralara gönderilecek: ${testWhitelist}`);
+        } else {
+            console.log(`\n🚀 PRODUCTION MODU - Tüm sürücülere SMS gönderilecek`);
+        }
 
         const results = {
             sent: [],
-            failed: []
+            failed: [],
+            skipped: []
         };
 
         // Her sipariş için SMS gönder
@@ -133,6 +140,18 @@ Deno.serve(async (req) => {
                         reason: 'Telefon numarası sadece rakam içermeli'
                     });
                     console.log(`⚠️ ${order.ezcater_order_id} atlandı - Geçersiz karakter: ${toPhoneNumber}`);
+                    continue;
+                }
+
+                // 9. TEST modu whitelist kontrolü
+                if (testWhitelist && !testWhitelist.includes(toPhoneNumber)) {
+                    results.skipped.push({
+                        orderId: order.ezcater_order_id,
+                        driver: order.driver_name,
+                        phone: toPhoneNumber,
+                        reason: 'TEST modu - Whitelist dışı'
+                    });
+                    console.log(`🚫 ${order.ezcater_order_id} atlandı - TEST whitelist dışı: ${toPhoneNumber}`);
                     continue;
                 }
 
@@ -233,12 +252,14 @@ ${orderLink}
         console.log(`\n📊 Sonuç:`);
         console.log(`   ✅ Gönderilen: ${results.sent.length}`);
         console.log(`   ❌ Başarısız: ${results.failed.length}`);
+        console.log(`   🚫 Atlanan (TEST): ${results.skipped.length}`);
 
         return Response.json({
             success: true,
-            message: `${results.sent.length} sipariş için SMS gönderildi`,
+            message: `${results.sent.length} sipariş için SMS gönderildi${results.skipped.length > 0 ? ` (${results.skipped.length} test modunda atlandı)` : ''}`,
             sent: results.sent,
-            failed: results.failed
+            failed: results.failed,
+            skipped: results.skipped
         });
 
     } catch (error) {
