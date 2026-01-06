@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 // ===== MERKEZİ TELEFON VALİDASYONU =====
-// Force deployment: 2026-01-06
+// Force deployment: 2026-01-06 TEST 2
 function isValidUSPhone(phone: string | null | undefined): boolean {
   if (!phone) return false;
   const cleaned = phone.replace(/[\s\(\)\-]/g, '');
