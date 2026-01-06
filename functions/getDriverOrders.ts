@@ -1,23 +1,31 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 Deno.serve(async (req) => {
-    const base44 = createClientFromRequest(req);
-    
     try {
-        console.log('📱 Link açılıyor...');
-        console.log('URL:', req.url);
-        
         // URL parametrelerini al
         const url = new URL(req.url);
         const driverId = url.searchParams.get('d');
         const orderDate = url.searchParams.get('t');
         
-        console.log('Driver ID:', driverId);
-        console.log('Date:', orderDate);
+        console.log('📱 Link açılıyor:', req.url);
+        console.log('Driver ID:', driverId, 'Date:', orderDate);
         
         if (!driverId || !orderDate) {
-            return Response.json({ error: 'Geçersiz link' }, { status: 400 });
+            return new Response(`
+                <html>
+                <body style="font-family: sans-serif; text-align: center; padding: 40px;">
+                    <h1 style="color: #dc2626;">⚠️ Geçersiz Link</h1>
+                    <p>Lütfen doğru linki kullanın.</p>
+                </body>
+                </html>
+            `, {
+                status: 400,
+                headers: { 'Content-Type': 'text/html' }
+            });
         }
+        
+        // Base44 client oluştur (service role ile)
+        const base44 = createClientFromRequest(req);
         
         // Service role ile veri çek (auth olmadan)
         const drivers = await base44.asServiceRole.entities.Driver.filter({ id: driverId });
