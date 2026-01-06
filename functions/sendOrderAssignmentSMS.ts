@@ -141,39 +141,33 @@ Deno.serve(async (req) => {
                 const driver = drivers[0];
                 const driverLanguage = driver?.language || 'tr';
 
-                // SMS mesajı oluştur
+                // Web link oluştur
+                const appBaseUrl = 'https://driverapp-ihtiyac.app.base44.com';
+                const orderLink = `${appBaseUrl}/DriverOrderView?driver_id=${order.driver_id}&date=${order.order_date}`;
+
+                // SMS mesajı oluştur (link ile)
                 const messages = {
-                    tr: `Merhaba ${driver?.name?.split(' ')[0] || 'Sürücü'}!
+                    tr: `🚚 Yeni Sipariş!
 
-📦 Yeni Sipariş: ${order.ezcater_order_id}
-📅 Tarih: ${order.order_date}
+📦 ${order.ezcater_order_id}
 🕐 Pickup: ${order.pickup_time}
-📍 ${order.pickup_address}
-🕑 Delivery: ${order.dropoff_time}
-📍 ${order.dropoff_address}
+📍 ${order.pickup_address?.substring(0, 40)}...
 
-Bu siparişi alabilir misiniz?
+👉 Detaylı bilgi ve harita:
+${orderLink}
 
-✅ EVET
-❌ HAYIR
-
-Örnek: "EVET" veya "HAYIR"`,
+✅ EVET - ❌ HAYIR`,
                     
-                    en: `Hello ${driver?.name?.split(' ')[0] || 'Driver'}!
+                    en: `🚚 New Order!
 
-📦 New Order: ${order.ezcater_order_id}
-📅 Date: ${order.order_date}
+📦 ${order.ezcater_order_id}
 🕐 Pickup: ${order.pickup_time}
-📍 ${order.pickup_address}
-🕑 Delivery: ${order.dropoff_time}
-📍 ${order.dropoff_address}
+📍 ${order.pickup_address?.substring(0, 40)}...
 
-Can you take this order?
+👉 Details and map:
+${orderLink}
 
-✅ YES
-❌ NO
-
-Example: "YES" or "NO"`
+✅ YES - ❌ NO`
                 };
 
                 const message = messages[driverLanguage];
