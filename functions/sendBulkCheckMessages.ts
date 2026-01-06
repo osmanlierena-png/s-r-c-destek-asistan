@@ -1,5 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
+// ===== MERKEZİ TELEFON VALİDASYONU =====
+function isValidUSPhone(phone: string | null | undefined): boolean {
+  if (!phone) return false;
+  const cleaned = phone.replace(/[\s\(\)\-]/g, '');
+  if (cleaned.toUpperCase().includes('MISSING')) return false;
+  if (!cleaned.startsWith('+1')) return false;
+  if (cleaned.length !== 12) return false;
+  return /^\d{10}$/.test(cleaned.substring(2));
+}
+
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     
@@ -54,8 +64,9 @@ Deno.serve(async (req) => {
                     return { type: 'failed', order: order.ezcater_order_id, reason: 'Sürücü bulunamadı' };
                 }
 
-                if (!driver.phone) {
-                    return { type: 'failed', order: order.ezcater_order_id, driver: driver.name, reason: 'Telefon numarası yok' };
+                // ✅ VALİDASYON - Twilio'ya göndermeden önce
+                if (!isValidUSPhone(driver.phone)) {
+                    return { type: 'failed', order: order.ezcater_order_id, driver: driver.name, reason: `Geçersiz telefon numarası: ${driver.phone}` };
                 }
 
                 // Daha önce mesaj gönderilmiş mi kontrol et

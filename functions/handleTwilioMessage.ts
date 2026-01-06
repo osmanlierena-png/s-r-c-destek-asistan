@@ -1,5 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
+// ===== MERKEZİ TELEFON VALİDASYONU =====
+function isValidUSPhone(phone: string | null | undefined): boolean {
+  if (!phone) return false;
+  const cleaned = phone.replace(/[\s\(\)\-]/g, '');
+  if (cleaned.toUpperCase().includes('MISSING')) return false;
+  if (!cleaned.startsWith('+1')) return false;
+  if (cleaned.length !== 12) return false;
+  return /^\d{10}$/.test(cleaned.substring(2));
+}
+
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req).asServiceRole;
 
@@ -113,11 +123,12 @@ Deno.serve(async (req) => {
             }
         }
         
-        if (!driver) {
-            console.log(`⚠️ Sürücü bulunamadı: ${cleanSenderPhone}`);
+        // ✅ VALİDASYON EKLENDİ
+        if (!driver || !isValidUSPhone(cleanSenderPhone)) {
+            console.log(`⚠️ Sürücü bulunamadı veya numara geçersiz: ${cleanSenderPhone}`);
             console.log(`   Kayıtlı numaralar:`, allDrivers.map(d => `${d.name}: ${d.phone}`).join(', '));
             
-            const notFoundReply = `Merhaba! Sistemimizde kayıtlı telefon numaranızı bulamadık (${cleanSenderPhone}). Lütfen yöneticinizle iletişime geçin.`;
+            const notFoundReply = `Merhaba! Sistemimizde kayıtlı telefon numaranızı bulamadık (${cleanSenderPhone}) veya numara formatı hatalı. Lütfen yöneticinizle iletişime geçin.`;
             
             await sendSMSReply(cleanSenderPhone, notFoundReply);
             return new Response('', { status: 200 });
@@ -564,6 +575,12 @@ async function handleOrderResponse(phone, message, base44) {
 
 async function sendSMSReply(to, message) {
     try {
+        // ✅ VALİDASYON - Twilio'ya göndermeden önce
+        if (!isValidUSPhone(to)) {
+            console.log(`[handleTwilioMessage - sendSMSReply] BLOCKED - Geçersiz numara: ${to}`);
+            return;
+        }
+
         const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
         const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
         let fromNumber = Deno.env.get("TWILIO_PHONE_NUMBER");

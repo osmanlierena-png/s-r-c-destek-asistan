@@ -1,5 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
+// ===== MERKEZİ TELEFON VALİDASYONU =====
+function isValidUSPhone(phone: string | null | undefined): boolean {
+  if (!phone) return false;
+  const cleaned = phone.replace(/[\s\(\)\-]/g, '');
+  if (cleaned.toUpperCase().includes('MISSING')) return false;
+  if (!cleaned.startsWith('+1')) return false;
+  if (cleaned.length !== 12) return false;
+  return /^\d{10}$/.test(cleaned.substring(2));
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -297,6 +307,12 @@ Deno.serve(async (req) => {
 // SMS gönderme helper fonksiyonu
 async function sendSMS(toPhone, messageBody) {
   try {
+    // ✅ VALİDASYON - Twilio'ya göndermeden önce
+    if (!isValidUSPhone(toPhone)) {
+      console.log(`[checkUnrespondedMessages] BLOCKED - Geçersiz numara: ${toPhone}`);
+      return false;
+    }
+
     const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
     const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
     const twilioPhoneNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
