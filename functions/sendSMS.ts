@@ -1,5 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
+// ===== MERKEZİ TELEFON VALİDASYONU =====
+function isValidUSPhone(phone: string | null | undefined): boolean {
+  if (!phone) return false;
+  const cleaned = phone.replace(/[\s\(\)\-]/g, ''); // boşluk, parantez, tire temizle
+  if (cleaned.toUpperCase().includes('MISSING')) return false;
+  if (!cleaned.startsWith('+1')) return false;
+  if (cleaned.length !== 12) return false; // +1 + 10 hane = 12
+  const digits = cleaned.substring(2);
+  return /^\d{10}$/.test(digits);
+}
+
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     
@@ -9,6 +20,16 @@ Deno.serve(async (req) => {
 
     try {
         const { to, message } = await req.json();
+
+        // Twilio'ya göndermeden önce kontrol
+        if (!isValidUSPhone(to)) {
+          console.log(`[sendSMS] BLOCKED - Geçersiz numara: ${to}`);
+          return Response.json({ 
+            success: false, 
+            error: 'Invalid phone number', 
+            blocked: true 
+          }, { status: 400 });
+        }
 
         if (!to || !message) {
             return Response.json({ 
