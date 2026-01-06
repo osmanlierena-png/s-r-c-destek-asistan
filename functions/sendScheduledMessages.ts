@@ -110,8 +110,18 @@ Deno.serve(async (req) => {
         continue;
       }
       
-      if (!order.driver_phone || order.driver_phone.trim() === '') {
-        console.log(`❌ ${order.ezcater_order_id}: Telefon numarası eksik`);
+      // ========== GELİŞTİRİLMİŞ TELEFON NUMARASI VALİDASYONU ==========
+      // 1. Boş, null, undefined kontrolü
+      // 2. MISSING string kontrolü
+      // 3. +1 prefix kontrolü
+      // 4. Uzunluk kontrolü (12 karakter: +1XXXXXXXXXX)
+      // 5. Sadece rakam kontrolü
+
+      const phoneNumber = order.driver_phone;
+
+      // Kontrol 1: Boş veya eksik
+      if (!phoneNumber || phoneNumber.trim() === '') {
+        console.log(`[SKIP] Boş numara - Order: ${order.ezcater_order_id}`);
         failedMessages.push({
           orderId: order.ezcater_order_id,
           reason: 'Telefon numarası eksik'
@@ -130,27 +140,98 @@ Deno.serve(async (req) => {
         
         continue;
       }
-      
-      if (!order.driver_phone.startsWith('+1')) {
-        console.log(`🚫 ${order.ezcater_order_id}: Geçersiz numara (${order.driver_phone})`);
+
+      // Kontrol 2: MISSING string
+      if (phoneNumber.toUpperCase() === 'MISSING' || phoneNumber.toUpperCase().includes('MISSING')) {
+        console.log(`[SKIP] MISSING numara - Order: ${order.ezcater_order_id}, Phone: ${phoneNumber}`);
         failedMessages.push({
           orderId: order.ezcater_order_id,
-          reason: `Geçersiz numara: ${order.driver_phone}`
+          reason: 'MISSING olarak işaretli'
         });
         
         await base44.asServiceRole.entities.CheckMessage.create({
           order_id: order.id,
-          driver_phone: order.driver_phone,
+          driver_phone: 'MISSING',
           driver_language: 'tr',
           message_type: '60dk_Kontrol',
-          message_content: 'BLOCKED: Geçersiz numara formatı',
+          message_content: 'BLOCKED: MISSING numara',
           message_status: 'failed',
-          failure_reason: `Sadece +1 numaralarına izin var`,
+          failure_reason: 'Telefon numarası MISSING olarak işaretli',
           sent_time: new Date().toISOString()
         }).catch(err => console.error('CheckMessage oluşturulamadı:', err));
         
         continue;
       }
+
+      // Kontrol 3: +1 prefix
+      if (!phoneNumber.startsWith('+1')) {
+        console.log(`[SKIP] +1 ile başlamıyor - Order: ${order.ezcater_order_id}, Phone: ${phoneNumber}`);
+        failedMessages.push({
+          orderId: order.ezcater_order_id,
+          reason: `Geçersiz prefix: ${phoneNumber}`
+        });
+        
+        await base44.asServiceRole.entities.CheckMessage.create({
+          order_id: order.id,
+          driver_phone: phoneNumber,
+          driver_language: 'tr',
+          message_type: '60dk_Kontrol',
+          message_content: 'BLOCKED: Geçersiz prefix',
+          message_status: 'failed',
+          failure_reason: `Sadece ABD numaraları destekleniyor. Numara: ${phoneNumber}`,
+          sent_time: new Date().toISOString()
+        }).catch(err => console.error('CheckMessage oluşturulamadı:', err));
+        
+        continue;
+      }
+
+      // Kontrol 4: Uzunluk (12 karakter: +1XXXXXXXXXX)
+      if (phoneNumber.length !== 12) {
+        console.log(`[SKIP] Geçersiz uzunluk (${phoneNumber.length}) - Order: ${order.ezcater_order_id}, Phone: ${phoneNumber}`);
+        failedMessages.push({
+          orderId: order.ezcater_order_id,
+          reason: `Geçersiz uzunluk: ${phoneNumber.length} karakter`
+        });
+        
+        await base44.asServiceRole.entities.CheckMessage.create({
+          order_id: order.id,
+          driver_phone: phoneNumber,
+          driver_language: 'tr',
+          message_type: '60dk_Kontrol',
+          message_content: 'BLOCKED: Geçersiz uzunluk',
+          message_status: 'failed',
+          failure_reason: `Geçersiz numara uzunluğu: ${phoneNumber.length} karakter (12 olmalı)`,
+          sent_time: new Date().toISOString()
+        }).catch(err => console.error('CheckMessage oluşturulamadı:', err));
+        
+        continue;
+      }
+
+      // Kontrol 5: Sadece rakam (+1'den sonra)
+      const digitsOnly = phoneNumber.substring(2); // +1'i çıkar
+      if (!/^\d{10}$/.test(digitsOnly)) {
+        console.log(`[SKIP] Geçersiz karakterler - Order: ${order.ezcater_order_id}, Phone: ${phoneNumber}`);
+        failedMessages.push({
+          orderId: order.ezcater_order_id,
+          reason: `Geçersiz karakterler: ${phoneNumber}`
+        });
+        
+        await base44.asServiceRole.entities.CheckMessage.create({
+          order_id: order.id,
+          driver_phone: phoneNumber,
+          driver_language: 'tr',
+          message_type: '60dk_Kontrol',
+          message_content: 'BLOCKED: Geçersiz karakterler',
+          message_status: 'failed',
+          failure_reason: `Numara geçersiz karakterler içeriyor: ${phoneNumber}`,
+          sent_time: new Date().toISOString()
+        }).catch(err => console.error('CheckMessage oluşturulamadı:', err));
+        
+        continue;
+      }
+
+      // ========== VALİDASYON BAŞARILI - SMS GÖNDERİMİNE DEVAM ==========
+      console.log(`[OK] Geçerli numara - Order: ${order.ezcater_order_id}, Phone: ${phoneNumber}`);
       
       if (!ordersByDriver[order.driver_id]) {
         ordersByDriver[order.driver_id] = [];
