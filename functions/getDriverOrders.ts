@@ -4,10 +4,16 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     
     try {
+        console.log('📱 Link açılıyor...');
+        console.log('URL:', req.url);
+        
         // URL parametrelerini al
         const url = new URL(req.url);
         const driverId = url.searchParams.get('d');
         const orderDate = url.searchParams.get('t');
+        
+        console.log('Driver ID:', driverId);
+        console.log('Date:', orderDate);
         
         if (!driverId || !orderDate) {
             return Response.json({ error: 'Geçersiz link' }, { status: 400 });
