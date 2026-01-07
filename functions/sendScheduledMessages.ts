@@ -446,36 +446,6 @@ Deno.serve(async (req) => {
             
             const messageGroupId = isGrouped ? `group_${Date.now()}_${firstOrder.driver_id}` : null;
             
-            // 🔥 YENİ: Her sürücü için case oluştur (yoksa)
-            let caseId = null;
-            try {
-              const existingCase = await base44.asServiceRole.entities.Case.filter({
-                driver_phone: firstOrder.driver_phone,
-                created_date: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() }
-              });
-
-              if (existingCase && existingCase.length > 0) {
-                caseId = existingCase[0].id;
-                console.log(`📋 Mevcut case kullanılıyor: ${caseId}`);
-              } else {
-                // Case oluştururken created_date'i otomatik olarak şu anki zamana ayarla
-                // Base44 SDK otomatik olarak created_date ekler, bu yüzden manuel ayar gereksiz
-                const newCase = await base44.asServiceRole.entities.Case.create({
-                  driver_name: firstOrder.driver_name,
-                  driver_phone: firstOrder.driver_phone,
-                  sorun: `Pickup hatırlatma mesajı - ${firstOrder.pickup_time}`,
-                  konum: firstOrder.pickup_address,
-                  aciliyet: 'Orta',
-                  kategori: 'Lojistik & Ulaşım',
-                  durum: 'Bildirildi'
-                });
-                caseId = newCase.id;
-                console.log(`📋 Yeni case oluşturuldu: ${caseId} (${new Date().toISOString()} / EST: ${estDate.toLocaleString('en-US', { timeZone: 'America/New_York' })})`);
-              }
-            } catch (error) {
-              console.error(`⚠️ Case oluşturulamadı: ${error.message}`);
-            }
-            
             for (const order of group) {
               try {
                 await base44.asServiceRole.entities.CheckMessage.create({
@@ -503,22 +473,6 @@ Deno.serve(async (req) => {
                 console.log(`✅ CheckMessage: ${order.ezcater_order_id}`);
               } catch (error) {
                 console.error(`❌ CheckMessage hatası: ${error.message}`);
-              }
-            }
-            
-            // 🔥 YENİ: ChatMessage oluştur (Konuşma Paneli için)
-            if (caseId) {
-              try {
-                // ChatMessage oluştururken timestamp otomatik olarak şu anki zamana ayarlanır
-                await base44.asServiceRole.entities.ChatMessage.create({
-                  case_id: caseId,
-                  sender: 'bot',
-                  message: messageContent,
-                  timestamp: new Date().toISOString()
-                });
-                console.log(`💬 ChatMessage oluşturuldu (case: ${caseId}, timestamp: ${new Date().toISOString()})`);
-              } catch (error) {
-                console.error(`⚠️ ChatMessage hatası: ${error.message}`);
               }
             }
             
