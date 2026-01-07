@@ -7,8 +7,9 @@ Deno.serve(async (req) => {
         const driverId = url.searchParams.get('d');
         const orderDate = url.searchParams.get('t');
         
-        console.log('📱 Link açılıyor:', req.url);
-        console.log('Driver ID:', driverId, 'Date:', orderDate);
+        console.log('📱 İstek geldi!');
+        console.log('📍 Full URL:', req.url);
+        console.log('🔍 Parsed params - Driver ID:', driverId, '| Date:', orderDate);
         
         if (!driverId || !orderDate) {
             return new Response(`
