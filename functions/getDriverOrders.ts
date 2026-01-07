@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { Base44Client } from 'npm:@base44/sdk@0.8.4';
 
 Deno.serve(async (req) => {
     try {
@@ -25,12 +25,16 @@ Deno.serve(async (req) => {
             });
         }
         
-        // Base44 client oluştur (service role ile)
-        const base44 = createClientFromRequest(req);
+        // Public access için service role ile manuel client oluştur
+        const appId = Deno.env.get('BASE44_APP_ID');
+        const base44 = new Base44Client({
+            appId,
+            useServiceRole: true
+        });
         
         // Service role ile veri çek (auth olmadan)
-        const drivers = await base44.asServiceRole.entities.Driver.filter({ id: driverId });
-        const orders = await base44.asServiceRole.entities.DailyOrder.filter({
+        const drivers = await base44.entities.Driver.filter({ id: driverId });
+        const orders = await base44.entities.DailyOrder.filter({
             driver_id: driverId,
             order_date: orderDate
         }, 'pickup_time');
