@@ -167,12 +167,12 @@ Deno.serve(async (req) => {
                 const messages = {
                     tr: `🚚 Yeni Sipariş!
 
-👉 Detaylar:
+Sipariş detaylarını görmek için tıklayın:
 ${functionUrl}`,
                     
                     en: `🚚 New Order!
 
-👉 Details:
+Click to view order details:
 ${functionUrl}`
                 };
 
