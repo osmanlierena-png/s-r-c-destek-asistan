@@ -168,16 +168,12 @@ Deno.serve(async (req) => {
                     tr: `🚚 Yeni Sipariş!
 
 👉 Detaylar:
-${functionUrl}
-
-✅ EVET - ❌ HAYIR`,
+${functionUrl}`,
                     
                     en: `🚚 New Order!
 
 👉 Details:
-${functionUrl}
-
-✅ YES - ❌ NO`
+${functionUrl}`
                 };
 
                 const message = messages[driverLanguage];
