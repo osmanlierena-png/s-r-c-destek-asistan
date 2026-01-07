@@ -86,6 +86,35 @@ Deno.serve(async (req) => {
       const driver = await base44.asServiceRole.entities.Driver.filter({ phone: from });
       const driverLanguage = driver && driver[0] ? driver[0].language : 'tr';
       
+      // Canvas'a sürücü yanıtını bildir
+      const CANVAS_URL = Deno.env.get("CANVAS_URL");
+      if (CANVAS_URL) {
+        for (const orderId of uniqueOrderIds) {
+          try {
+            const order = await base44.asServiceRole.entities.DailyOrder.filter({ id: orderId });
+            if (order && order[0]) {
+              await fetch(`${CANVAS_URL}/api/base44/webhook`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'DRIVER_RESPONSE',
+                  orderId: order[0].id,
+                  orderNumber: order[0].ezcater_order_id,
+                  driverResponse: responseType === 'Onay' ? 'Evet' : 'Hayır',
+                  driverName: order[0].driver_name,
+                  responseTime: new Date().toISOString(),
+                  date: order[0].order_date,
+                  groupId: order[0].group_id || null
+                })
+              });
+              console.log(`[WEBHOOK] Canvas'a bildirim gönderildi: ${order[0].ezcater_order_id} - ${responseType === 'Onay' ? 'Evet' : 'Hayır'}`);
+            }
+          } catch (err) {
+            console.error('[WEBHOOK] Canvas bildirimi başarısız:', err);
+          }
+        }
+      }
+      
       const confirmationMessages = {
         tr: responseType === 'Onay' 
           ? '✅ Teşekkürler! Siparişleriniz onaylandı. Pickup adresine ulaştığınızda Arrive\'a basmayı unutmayın!'
