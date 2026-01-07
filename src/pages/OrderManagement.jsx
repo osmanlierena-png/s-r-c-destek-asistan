@@ -34,7 +34,7 @@ import { intelligentOrderAssignment } from "@/functions/intelligentOrderAssignme
 import { gptAssignment } from "@/functions/gptAssignment";
 import { cleanOldOrders } from "@/functions/cleanOldOrders";
 import { resetAllAssignments } from "@/functions/resetAllAssignments";
-import { sendOrdersToDrivers } from "@/functions/sendOrdersToDrivers";
+
 import { parseAndUpdateDriverRules } from "@/functions/parseAndUpdateDriverRules";
 import { sendOrderAssignmentSMS } from "@/functions/sendOrderAssignmentSMS";
 import { sendOrdersToCanvas } from "@/functions/sendOrdersToCanvas";
@@ -46,7 +46,7 @@ export default function OrderManagementPage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [assignmentResults, setAssignmentResults] = useState(null);
   const [isAssigning, setIsAssigning] = useState(false);
-  const [isSendingOrders, setIsSendingOrders] = useState(false);
+
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showAssignedOrders, setShowAssignedOrders] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -422,36 +422,7 @@ export default function OrderManagementPage() {
     setIsAssigningThreeLayer(false);
   };
 
-  const handleSendOrdersToDrivers = async () => {
-    const assignedCount = orders.filter(o => o.status === 'Atandı').length;
-    
-    if (assignedCount === 0) {
-      alert('Bu tarihte atanmış sipariş bulunamadı!');
-      return;
-    }
 
-    const confirmMessage = `${selectedDate} tarihindeki ${assignedCount} siparişi sürücülere SMS'le göndermek istediğinizden emin misiniz?`;
-    
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
-    setIsSendingOrders(true);
-    try {
-      const response = await sendOrdersToDrivers({ targetDate: selectedDate });
-      
-      if (response.data.success) {
-        alert(`✅ ${response.data.message}`);
-        loadOrders();
-      } else {
-        alert(`❌ Hata: ${response.data.message}`);
-      }
-    } catch (error) {
-      console.error('Sipariş gönderim hatası:', error);
-      alert(`❌ Bağlantı hatası: ${error.message}`);
-    }
-    setIsSendingOrders(false);
-  };
 
   const handleBulkDelete = async () => {
     if (selectedOrderIds.length === 0) {
