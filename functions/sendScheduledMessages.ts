@@ -356,22 +356,7 @@ Deno.serve(async (req) => {
         const estHour = estDate.getHours();
         const estMin = estDate.getMinutes();
         const currentTimeInMinutes = estHour * 60 + estMin;
-        
-        // 🚨 KRİTİK KONTROL 3: ŞU ANKİ SAAT UYGUN MU?
-        const MIN_HOUR = 5;  // Sabah 05:00'dan önce mesaj yok
-        const MAX_HOUR = 21; // Gece 21:00'dan sonra mesaj yok
-        
-        if (estHour < MIN_HOUR || estHour >= MAX_HOUR) {
-          console.log(`🚫 MESAJ ENGELLENDİ - Şu anki saat mesaj gönderimine uygun değil: ${estHour}:${estMin.toString().padStart(2, '0')} EST (İzin: ${MIN_HOUR}:00-${MAX_HOUR}:00)`);
-          group.forEach(order => {
-            skippedOrders.push({
-              orderId: order.ezcater_order_id,
-              reason: `Mesaj gönderim saati dışında (${estHour}:${estMin.toString().padStart(2, '0')} EST)`
-            });
-          });
-          continue;
-        }
-        
+
         const minutesUntilPickup = pickupTimeInMinutes - currentTimeInMinutes;
         
         const minThreshold = config.minutes_before - 5;
