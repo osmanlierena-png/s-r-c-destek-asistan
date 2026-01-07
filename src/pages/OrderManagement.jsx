@@ -1578,18 +1578,6 @@ export default function OrderManagementPage() {
             
             {orders.filter(o => o.status === 'Atandı').length > 0 && (
               <Button 
-                onClick={handleSendOrdersToDrivers}
-                disabled={isSendingOrders}
-                size="sm"
-                className="bg-green-600 hover:bg-green-700"
-                title="Atanmış siparişleri SMS ile sürücülere gönder"
-              >
-                {isSendingOrders ? 'Gönderiliyor...' : `SMS Gönder (${orders.filter(o => o.status === 'Atandı').length})`}
-              </Button>
-            )}
-
-            {orders.filter(o => o.status === 'Atandı').length > 0 && (
-              <Button 
                 onClick={handleSendAssignmentSMS}
                 disabled={isSendingAssignmentSMS}
                 size="sm"
