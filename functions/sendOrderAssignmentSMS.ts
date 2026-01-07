@@ -160,8 +160,8 @@ Deno.serve(async (req) => {
                 const driver = drivers[0];
                 const driverLanguage = driver?.language || 'tr';
 
-                // Page URL'ini oluştur (DriverOrderView page'i)
-                const functionUrl = `https://driverapp-ihtiyac.app.base44.com/DriverOrderView?driver_id=${encodeURIComponent(order.driver_id)}&date=${encodeURIComponent(order.order_date)}`;
+                // Backend function URL'ini oluştur (getDriverOrders)
+                const functionUrl = `https://driverapp-ihtiyac.app.base44.com/api/functions/getDriverOrders?d=${encodeURIComponent(order.driver_id)}&t=${encodeURIComponent(order.order_date)}`;
 
                 // SMS mesajı oluştur (sadece link)
                 const messages = {
