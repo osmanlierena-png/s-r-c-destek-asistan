@@ -400,13 +400,7 @@ Deno.serve(async (req) => {
             : config.grouped_message_template_tr;
           
           const orderList = group.map((order, idx) => {
-            // Parse pickup_time to show only HH:MM AM/PM
-            const parsedTime = parseTime(order.pickup_time);
-            const displayHour = parsedTime.hours > 12 ? parsedTime.hours - 12 : (parsedTime.hours === 0 ? 12 : parsedTime.hours);
-            const ampm = parsedTime.hours >= 12 ? 'PM' : 'AM';
-            const timeDisplay = `${displayHour}:${parsedTime.minutes.toString().padStart(2, '0')} ${ampm}`;
-            
-            return `${idx + 1}. ⏰ ${timeDisplay}\n   📍 ${order.pickup_address}`;
+            return `${idx + 1}. ⏰ ${order.pickup_time}\n   📍 ${order.pickup_address}`;
           }).join('\n\n');
           
           messageContent = template
@@ -418,16 +412,10 @@ Deno.serve(async (req) => {
             ? config.message_template_en 
             : config.message_template_tr;
           
-          // Parse pickup_time to show only HH:MM AM/PM
-          const parsedTime = parseTime(firstOrder.pickup_time);
-          const displayHour = parsedTime.hours > 12 ? parsedTime.hours - 12 : (parsedTime.hours === 0 ? 12 : parsedTime.hours);
-          const ampm = parsedTime.hours >= 12 ? 'PM' : 'AM';
-          const timeDisplay = `${displayHour}:${parsedTime.minutes.toString().padStart(2, '0')} ${ampm}`;
-          
           messageContent = template
             .replace('{driver_name}', firstOrder.driver_name || 'Sürücü')
             .replace('{minutes}', Math.round(minutesUntilPickup).toString())
-            .replace('{pickup_time}', timeDisplay)
+            .replace('{pickup_time}', firstOrder.pickup_time)
             .replace('{pickup_address}', firstOrder.pickup_address || 'Adres yok');
         }
         
