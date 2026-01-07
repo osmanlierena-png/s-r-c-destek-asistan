@@ -187,11 +187,79 @@ Deno.serve(async (req) => {
             <p style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #0f172a;">
                 Toplam ${orders.length} Sipariş
             </p>
-            <p style="margin: 0; color: #64748b;">
+            <p style="margin: 0 0 20px 0; color: #64748b;">
                 İyi çalışmalar! 🚚
             </p>
+            
+            <!-- Onay Butonları -->
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button 
+                    onclick="handleResponse('approve')" 
+                    style="flex: 1; padding: 16px 24px; background: linear-gradient(to right, #10b981, #059669); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);"
+                >
+                    ✅ HEPSİNİ ONAYLA
+                </button>
+                <button 
+                    onclick="handleResponse('reject')" 
+                    style="flex: 1; padding: 16px 24px; background: linear-gradient(to right, #ef4444, #dc2626); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);"
+                >
+                    ❌ HEPSİNİ REDDET
+                </button>
+            </div>
+            
+            <div id="responseMessage" style="margin-top: 16px; padding: 12px; border-radius: 8px; display: none;"></div>
         </div>
     </div>
+    
+    <script>
+        async function handleResponse(response) {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.style.opacity = '0.6';
+            btn.innerHTML = '⏳ İşleniyor...';
+            
+            try {
+                const res = await fetch(window.location.href, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ response })
+                });
+                
+                const data = await res.json();
+                
+                const messageDiv = document.getElementById('responseMessage');
+                messageDiv.style.display = 'block';
+                
+                if (data.success) {
+                    messageDiv.style.background = '#dcfce7';
+                    messageDiv.style.color = '#166534';
+                    messageDiv.style.border = '2px solid #86efac';
+                    messageDiv.innerHTML = '✅ ' + data.message + ' (' + data.updatedCount + ' sipariş)';
+                    
+                    // Butonları gizle
+                    document.querySelectorAll('button').forEach(b => b.style.display = 'none');
+                } else {
+                    messageDiv.style.background = '#fee2e2';
+                    messageDiv.style.color = '#991b1b';
+                    messageDiv.style.border = '2px solid #fca5a5';
+                    messageDiv.innerHTML = '❌ Hata: ' + data.message;
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.innerHTML = originalText;
+                }
+            } catch (error) {
+                const messageDiv = document.getElementById('responseMessage');
+                messageDiv.style.display = 'block';
+                messageDiv.style.background = '#fee2e2';
+                messageDiv.style.color = '#991b1b';
+                messageDiv.innerHTML = '❌ Bağlantı hatası: ' + error.message;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerHTML = originalText;
+            }
+        }
+    </script>
 </body>
 </html>
         `;
