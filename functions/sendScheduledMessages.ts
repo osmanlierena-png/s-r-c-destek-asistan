@@ -66,20 +66,22 @@ Deno.serve(async (req) => {
     const sentOrderIds = new Set(existingMessages.map(m => m.order_id));
     console.log(`📋 Son 24 saatte ${sentOrderIds.size} siparişe mesaj gönderilmiş`);
     
-    // 🔥 YENİ: AM/PM parse fonksiyonu - TÜM FORMATLARI DESTEKLER
+    // 🔥 FIXED: AM/PM parse - TÜM FORMATLARI DESTEKLER
     const parseTime = (timeString) => {
       if (!timeString) return { hours: 0, minutes: 0 };
       
       const cleanTime = timeString.trim();
       
-      // Format 1: "1/7/2026 07:00 AM" → sadece saat kısmını al
-      // Format 2: "07:00 AM" → direk kullan
+      // Format 1: "1/7/2026 07:00 AM" veya "1/7/2026 7:00 AM" → saat kısmını al
+      // Format 2: "07:00 AM" veya "7:00 AM" → direk kullan
       let timePart = cleanTime;
+      
+      // Eğer "/" varsa (tarih formatı), son iki kelimeyi al (HH:MM AM/PM)
       if (cleanTime.includes('/')) {
-        // Tarih varsa, boşluktan sonraki kısmı al (saat kısmı)
         const parts = cleanTime.split(' ');
+        // Son 2 parça: ["07:00", "AM"] veya ["7:00", "AM"]
         if (parts.length >= 2) {
-          timePart = parts.slice(1).join(' '); // "07:00 AM"
+          timePart = parts.slice(-2).join(' ');
         }
       }
       
@@ -88,9 +90,10 @@ Deno.serve(async (req) => {
       const timeOnly = timePart.replace(/\s*(am|pm)/gi, '').trim();
       const [hourStr, minStr] = timeOnly.split(':');
       
-      let hours = parseInt(hourStr, 10);
+      let hours = parseInt(hourStr, 10) || 0;
       const minutes = parseInt(minStr, 10) || 0;
       
+      // AM/PM dönüşümü
       if (isPM && hours !== 12) {
         hours += 12;
       } else if (isAM && hours === 12) {
