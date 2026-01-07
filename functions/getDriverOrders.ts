@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
         const driverId = url.searchParams.get('d');
         const orderDate = url.searchParams.get('t');
         
-        console.log('📱 İstek geldi - v3!');
+        console.log('📱 YENİ SİSTEM ÇALIŞIYOR - APPROVE/REJECT BUTONLARI AKTİF! v4');
         console.log('📍 Full URL:', req.url);
         console.log('🔍 Parsed params - Driver ID:', driverId, '| Date:', orderDate);
         
