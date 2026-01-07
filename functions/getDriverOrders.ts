@@ -1,4 +1,4 @@
-import { Base44Client } from 'npm:@base44/sdk@0.8.4';
+import { createBase44Client } from 'npm:@base44/sdk@0.8.4';
 
 // Driver orders with approve/reject functionality
 Deno.serve(async (req) => {
@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
         const driverId = url.searchParams.get('d');
         const orderDate = url.searchParams.get('t');
         
-        console.log('📱 İstek geldi - v2!');
+        console.log('📱 İstek geldi - v3!');
         console.log('📍 Full URL:', req.url);
         console.log('🔍 Parsed params - Driver ID:', driverId, '| Date:', orderDate);
         
@@ -26,9 +26,9 @@ Deno.serve(async (req) => {
             });
         }
         
-        // Public access için service role ile manuel client oluştur
+        // Public access için service role kullan
         const appId = Deno.env.get('BASE44_APP_ID');
-        const base44 = new Base44Client({
+        const base44 = createBase44Client({
             appId,
             useServiceRole: true
         });
