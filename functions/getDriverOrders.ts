@@ -32,7 +32,42 @@ Deno.serve(async (req) => {
             useServiceRole: true
         });
         
-        // Service role ile veri çek (auth olmadan)
+        // POST request - Onay/Red
+        if (req.method === 'POST') {
+            const body = await req.json();
+            const { response } = body; // "approve" veya "reject"
+            
+            console.log(`📝 Response alındı: ${response} (Driver: ${driverId}, Date: ${orderDate})`);
+            
+            // Siparişleri bul ve güncelle
+            const orders = await base44.entities.DailyOrder.filter({
+                driver_id: driverId,
+                order_date: orderDate
+            });
+            
+            const newStatus = response === 'approve' ? 'Sürücü Onayladı' : 'Sürücü Reddetti';
+            const responseText = response === 'approve' ? 'Evet' : 'Hayır';
+            
+            let updatedCount = 0;
+            for (const order of orders) {
+                await base44.entities.DailyOrder.update(order.id, {
+                    status: newStatus,
+                    driver_response: responseText,
+                    driver_response_at: new Date().toISOString()
+                });
+                updatedCount++;
+            }
+            
+            console.log(`✅ ${updatedCount} sipariş güncellendi: ${newStatus}`);
+            
+            return Response.json({ 
+                success: true, 
+                message: response === 'approve' ? 'Siparişler onaylandı!' : 'Siparişler reddedildi!',
+                updatedCount 
+            });
+        }
+        
+        // GET request - Siparişleri göster
         const drivers = await base44.entities.Driver.filter({ id: driverId });
         const orders = await base44.entities.DailyOrder.filter({
             driver_id: driverId,
