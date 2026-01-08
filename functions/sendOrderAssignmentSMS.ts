@@ -161,7 +161,17 @@ Deno.serve(async (req) => {
                 const driverLanguage = driver?.language || 'tr';
 
                 // Backend function URL'ini oluştur
-                const functionUrl = `https://close-pheasant-67-3wqqx8bg6thx.deno.dev/?d=${encodeURIComponent(order.driver_id)}&t=${encodeURIComponent(order.order_date)}`;
+                const baseUrl = Deno.env.get('DRIVER_ORDERS_FUNCTION_URL');
+                if (!baseUrl) {
+                    results.failed.push({
+                        orderId: order.ezcater_order_id,
+                        reason: 'DRIVER_ORDERS_FUNCTION_URL environment variable tanımlı değil'
+                    });
+                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Function URL eksik`);
+                    continue;
+                }
+                
+                const functionUrl = `${baseUrl}?d=${encodeURIComponent(order.driver_id)}&t=${encodeURIComponent(order.order_date)}`;
 
                 // SMS mesajı oluştur (sadece link)
                 const messages = {
