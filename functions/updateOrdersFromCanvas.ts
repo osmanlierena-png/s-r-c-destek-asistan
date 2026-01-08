@@ -32,9 +32,32 @@ Deno.serve(async (req) => {
 
     let updated = 0;
     let failed = 0;
+    let skipped = 0;
+    const skippedOrders: string[] = [];
 
     for (const assignment of assignments) {
       try {
+        // Siparişi önce oku (güvenlik kontrolü için)
+        const existingOrders = await base44.asServiceRole.entities.DailyOrder.filter({
+          id: assignment.orderId
+        }, null, 1);
+        
+        if (existingOrders.length === 0) {
+          failed++;
+          console.error(`Sipariş bulunamadı: ${assignment.orderNumber}`);
+          continue;
+        }
+        
+        const existingOrder = existingOrders[0];
+        
+        // 🔒 GÜVENLİK: "Sürücü Onayladı" olanları ATLAMA
+        if (existingOrder.status === 'Sürücü Onayladı') {
+          skipped++;
+          skippedOrders.push(assignment.orderNumber);
+          console.log(`⏭️ ATLANDI: ${assignment.orderNumber} - Sürücü zaten onayladı`);
+          continue;
+        }
+        
         // Sürücüyü isimle bul
         let driverId = null;
         let driverPhone = null;
@@ -69,9 +92,11 @@ Deno.serve(async (req) => {
 
     return Response.json({ 
       success: failed === 0, 
-      message: `${updated} sipariş güncellendi`,
+      message: `${updated} sipariş güncellendi, ${skipped} sipariş atlandı`,
       updated, 
-      failed 
+      failed,
+      skipped,
+      skippedOrders
     });
     
   } catch (error) {
