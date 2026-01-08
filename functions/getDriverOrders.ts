@@ -134,95 +134,101 @@ Deno.serve(async (req) => {
         const text = t[lang];
         
         const ordersHTML = orders.map((order, index) => `
-            <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(to right, #2563eb, #1d4ed8); color: white; padding: 16px;">
+            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; overflow: hidden; border: 1px solid #e2e8f0;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 18px; font-weight: 600;">📦 Sipariş #${order.ezcater_order_id}</span>
-                        <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 14px;">${index + 1}. Sipariş</span>
+                        <span style="font-size: 16px; font-weight: 700; letter-spacing: 0.5px;">📦 ${text.order.toUpperCase()} #${order.ezcater_order_id}</span>
+                        <span style="background: rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(10px);">#${index + 1}</span>
                     </div>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr; gap: 0;">
                     <!-- Pickup -->
-                    <div style="padding: 16px; background: #f0fdf4; border-bottom: 1px solid #e5e7eb;">
-                        <p style="font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase; margin: 0 0 8px 0;">🟢 ${text.pickupAddress}</p>
-                        <p style="font-size: 14px; color: #1f2937; margin: 0; font-weight: 500;">${order.pickup_address}</p>
+                    <div style="padding: 20px; background: #f0fdf4; border-bottom: 1px solid #d1fae5;">
+                        <p style="font-size: 10px; font-weight: 800; color: #065f46; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 0;">🟢 ${text.pickupAddress}</p>
+                        <p style="font-size: 15px; color: #1a202c; margin: 0; font-weight: 600; line-height: 1.5;">${order.pickup_address}</p>
                     </div>
 
                     <!-- Delivery -->
-                    <div style="padding: 16px; background: #fef2f2; border-bottom: 1px solid #e5e7eb;">
-                        <p style="font-size: 11px; font-weight: 700; color: #b91c1c; text-transform: uppercase; margin: 0 0 8px 0;">🔴 ${text.deliveryAddress}</p>
-                        <p style="font-size: 14px; color: #1f2937; margin: 0; font-weight: 500;">${order.dropoff_address}</p>
+                    <div style="padding: 20px; background: #fef2f2; border-bottom: 1px solid #fecaca;">
+                        <p style="font-size: 10px; font-weight: 800; color: #991b1b; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 0;">🔴 ${text.deliveryAddress}</p>
+                        <p style="font-size: 15px; color: #1a202c; margin: 0; font-weight: 600; line-height: 1.5;">${order.dropoff_address}</p>
                     </div>
 
                     <!-- Times -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-bottom: 1px solid #e5e7eb;">
-                        <div style="padding: 16px; background: #eff6ff; border-right: 1px solid #e5e7eb;">
-                            <p style="font-size: 11px; font-weight: 700; color: #1e40af; text-transform: uppercase; margin: 0 0 8px 0;">⏰ ${text.pickupTime}</p>
-                            <p style="font-size: 28px; color: #1f2937; margin: 0; font-weight: 700;">${order.pickup_time}</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-bottom: 1px solid #e2e8f0;">
+                        <div style="padding: 20px; background: #eff6ff; border-right: 1px solid #bfdbfe;">
+                            <p style="font-size: 10px; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 0;">⏰ ${text.pickupTime}</p>
+                            <p style="font-size: 32px; color: #1a202c; margin: 0; font-weight: 800; letter-spacing: -1px;">${order.pickup_time}</p>
                         </div>
-                        <div style="padding: 16px; background: #faf5ff;">
-                            <p style="font-size: 11px; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin: 0 0 4px 0;">🎯 ${text.deliveryTime}</p>
-                            <p style="font-size: 14px; color: #6b7280; margin: 0; font-weight: 600;">${order.order_date}</p>
-                            <p style="font-size: 28px; color: #1f2937; margin: 0; font-weight: 700;">${order.dropoff_time}</p>
+                        <div style="padding: 20px; background: #faf5ff;">
+                            <p style="font-size: 10px; font-weight: 800; color: #7c3aed; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">🎯 ${text.deliveryTime}</p>
+                            <p style="font-size: 13px; color: #718096; margin: 0 0 4px 0; font-weight: 600;">${order.order_date}</p>
+                            <p style="font-size: 32px; color: #1a202c; margin: 0; font-weight: 800; letter-spacing: -1px;">${order.dropoff_time}</p>
                         </div>
                     </div>
                 </div>
                 
                 ${order.customer_name ? `
-                    <div style="padding: 16px; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
-                        <p style="font-size: 14px; color: #475569; margin: 0;"><strong>${text.customer}:</strong> ${order.customer_name}</p>
+                    <div style="padding: 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                        <p style="font-size: 15px; color: #4a5568; margin: 0; font-weight: 600;"><strong style="color: #2d3748;">${text.customer}:</strong> ${order.customer_name}</p>
                     </div>
                 ` : ''}
 
                 ${order.ezcater_notes ? `
-                    <div style="padding: 16px; background: #fefce8;">
-                        <p style="font-size: 11px; font-weight: 700; color: #854d0e; text-transform: uppercase; margin: 0 0 4px 0;">📝 ${text.notes}:</p>
-                        <p style="font-size: 14px; color: #713f12; margin: 0;">${order.ezcater_notes}</p>
+                    <div style="padding: 20px; background: #fffbeb; border-left: 4px solid #f59e0b;">
+                        <p style="font-size: 10px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px 0;">📝 ${text.notes}</p>
+                        <p style="font-size: 15px; color: #78350f; margin: 0; line-height: 1.6; font-weight: 500;">${order.ezcater_notes}</p>
                     </div>
                 ` : ''}
             </div>
         `).join('');
         
         const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siparişleriniz</title>
-    <style>
-        * { box-sizing: border-box; }
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${text.todayOrders}</title>
+        <style>
+        * { 
+            box-sizing: border-box; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         body {
             margin: 0;
-            padding: 16px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: linear-gradient(to bottom right, #eff6ff, #f1f5f9);
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            line-height: 1.6;
         }
         .container {
-            max-width: 900px;
+            max-width: 680px;
             margin: 0 auto;
         }
         @media (max-width: 768px) {
+            body { padding: 12px; }
             .container { padding: 0; }
         }
-    </style>
-</head>
-<body>
+        </style>
+        </head>
+        <body>
     <div class="container">
         <!-- Header -->
-        <div style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <div style="width: 64px; height: 64px; background: #2563eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; font-weight: 700;">
-                    ${driver.name?.charAt(0) || '?'}
+        <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 36px; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
+                    ${driver.name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
-                <div>
-                    <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: #0f172a;">
+                <div style="flex: 1;">
+                    <h1 style="margin: 0 0 4px 0; font-size: 28px; font-weight: 700; color: #1a202c; letter-spacing: -0.5px;">
                         ${text.greeting} ${driver.name || 'Driver'}!
                     </h1>
-                    <p style="margin: 0; color: #64748b; font-size: 16px;">
-                        📅 ${text.todayOrders} (${orders.length})
+                    <p style="margin: 0; color: #718096; font-size: 16px; font-weight: 500;">
+                        📅 ${text.todayOrders} <span style="display: inline-block; background: #667eea; color: white; padding: 2px 10px; border-radius: 12px; font-size: 14px; font-weight: 600; margin-left: 8px;">${orders.length}</span>
                     </p>
                 </div>
             </div>
@@ -235,31 +241,35 @@ Deno.serve(async (req) => {
         ` : ordersHTML}
         
         <!-- Footer -->
-        <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 32px;">
-            <p style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #0f172a;">
+        <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px;">
+            <p style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: #1a202c; letter-spacing: -0.5px;">
                 ${text.totalOrders} ${orders.length} ${text.orders}
             </p>
-            <p style="margin: 0 0 20px 0; color: #64748b;">
+            <p style="margin: 0 0 28px 0; color: #718096; font-size: 16px; font-weight: 500;">
                 ${text.goodWork} 🚚
             </p>
 
             <!-- Onay Butonları -->
-            <div style="display: flex; gap: 12px; margin-top: 20px;">
+            <div style="display: flex; gap: 16px; margin-top: 24px;">
                 <button 
                     onclick="handleResponse('approve')" 
-                    style="flex: 1; padding: 16px 24px; background: linear-gradient(to right, #10b981, #059669); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);"
+                    style="flex: 1; padding: 18px 28px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35); transition: transform 0.2s, box-shadow 0.2s; letter-spacing: 0.5px;"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 32px rgba(16, 185, 129, 0.45)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(16, 185, 129, 0.35)';"
                 >
                     ${text.approveAll}
                 </button>
                 <button 
                     onclick="handleResponse('reject')" 
-                    style="flex: 1; padding: 16px 24px; background: linear-gradient(to right, #ef4444, #dc2626); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);"
+                    style="flex: 1; padding: 18px 28px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35); transition: transform 0.2s, box-shadow 0.2s; letter-spacing: 0.5px;"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 32px rgba(239, 68, 68, 0.45)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(239, 68, 68, 0.35)';"
                 >
                     ${text.rejectAll}
                 </button>
             </div>
-            
-            <div id="responseMessage" style="margin-top: 16px; padding: 12px; border-radius: 8px; display: none;"></div>
+
+            <div id="responseMessage" style="margin-top: 20px; padding: 16px; border-radius: 12px; display: none; font-weight: 600; font-size: 15px;"></div>
         </div>
     </div>
     
