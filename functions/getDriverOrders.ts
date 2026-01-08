@@ -74,13 +74,64 @@ Deno.serve(async (req) => {
             driver_id: driverId,
             order_date: orderDate
         }, 'pickup_time');
-        
+
         if (drivers.length === 0) {
             return Response.json({ error: 'Sürücü bulunamadı' }, { status: 404 });
         }
-        
+
         // HTML response oluştur
         const driver = drivers[0];
+        const lang = driver.language || 'tr';
+
+        // Çeviri metinleri
+        const t = {
+            tr: {
+                greeting: 'Merhaba',
+                todayOrders: 'Bugünkü Siparişleriniz',
+                order: 'Sipariş',
+                pickupAddress: 'PICKUP ADDRESS',
+                deliveryAddress: 'DELIVERY ADDRESS',
+                pickupTime: 'PICKUP TIME',
+                deliveryTime: 'DELIVERY TIME',
+                customer: 'Müşteri',
+                notes: 'NOTLAR',
+                totalOrders: 'Toplam',
+                orders: 'Sipariş',
+                goodWork: 'İyi çalışmalar!',
+                approveAll: '✅ HEPSİNİ ONAYLA',
+                rejectAll: '❌ HEPSİNİ REDDET',
+                processing: '⏳ İşleniyor...',
+                approved: '✅ Siparişler onaylandı!',
+                rejected: '✅ Siparişler reddedildi!',
+                error: '❌ Hata',
+                connectionError: '❌ Bağlantı hatası',
+                noOrders: 'Bugün için sipariş bulunamadı.'
+            },
+            en: {
+                greeting: 'Hello',
+                todayOrders: 'Today\'s Orders',
+                order: 'Order',
+                pickupAddress: 'PICKUP ADDRESS',
+                deliveryAddress: 'DELIVERY ADDRESS',
+                pickupTime: 'PICKUP TIME',
+                deliveryTime: 'DELIVERY TIME',
+                customer: 'Customer',
+                notes: 'NOTES',
+                totalOrders: 'Total',
+                orders: 'Orders',
+                goodWork: 'Good luck!',
+                approveAll: '✅ APPROVE ALL',
+                rejectAll: '❌ REJECT ALL',
+                processing: '⏳ Processing...',
+                approved: '✅ Orders approved!',
+                rejected: '✅ Orders rejected!',
+                error: '❌ Error',
+                connectionError: '❌ Connection error',
+                noOrders: 'No orders found for today.'
+            }
+        };
+
+        const text = t[lang];
         
         const ordersHTML = orders.map((order, index) => `
             <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden;">
@@ -94,24 +145,24 @@ Deno.serve(async (req) => {
                 <div style="display: grid; grid-template-columns: 1fr; gap: 0;">
                     <!-- Pickup -->
                     <div style="padding: 16px; background: #f0fdf4; border-bottom: 1px solid #e5e7eb;">
-                        <p style="font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase; margin: 0 0 8px 0;">🟢 PICKUP ADDRESS</p>
+                        <p style="font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase; margin: 0 0 8px 0;">🟢 ${text.pickupAddress}</p>
                         <p style="font-size: 14px; color: #1f2937; margin: 0; font-weight: 500;">${order.pickup_address}</p>
                     </div>
-                    
+
                     <!-- Delivery -->
                     <div style="padding: 16px; background: #fef2f2; border-bottom: 1px solid #e5e7eb;">
-                        <p style="font-size: 11px; font-weight: 700; color: #b91c1c; text-transform: uppercase; margin: 0 0 8px 0;">🔴 DELIVERY ADDRESS</p>
+                        <p style="font-size: 11px; font-weight: 700; color: #b91c1c; text-transform: uppercase; margin: 0 0 8px 0;">🔴 ${text.deliveryAddress}</p>
                         <p style="font-size: 14px; color: #1f2937; margin: 0; font-weight: 500;">${order.dropoff_address}</p>
                     </div>
-                    
+
                     <!-- Times -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-bottom: 1px solid #e5e7eb;">
                         <div style="padding: 16px; background: #eff6ff; border-right: 1px solid #e5e7eb;">
-                            <p style="font-size: 11px; font-weight: 700; color: #1e40af; text-transform: uppercase; margin: 0 0 8px 0;">⏰ PICKUP TIME</p>
+                            <p style="font-size: 11px; font-weight: 700; color: #1e40af; text-transform: uppercase; margin: 0 0 8px 0;">⏰ ${text.pickupTime}</p>
                             <p style="font-size: 28px; color: #1f2937; margin: 0; font-weight: 700;">${order.pickup_time}</p>
                         </div>
                         <div style="padding: 16px; background: #faf5ff;">
-                            <p style="font-size: 11px; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin: 0 0 4px 0;">🎯 DELIVERY TIME</p>
+                            <p style="font-size: 11px; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin: 0 0 4px 0;">🎯 ${text.deliveryTime}</p>
                             <p style="font-size: 14px; color: #6b7280; margin: 0; font-weight: 600;">${order.order_date}</p>
                             <p style="font-size: 28px; color: #1f2937; margin: 0; font-weight: 700;">${order.dropoff_time}</p>
                         </div>
@@ -120,13 +171,13 @@ Deno.serve(async (req) => {
                 
                 ${order.customer_name ? `
                     <div style="padding: 16px; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
-                        <p style="font-size: 14px; color: #475569; margin: 0;"><strong>Müşteri:</strong> ${order.customer_name}</p>
+                        <p style="font-size: 14px; color: #475569; margin: 0;"><strong>${text.customer}:</strong> ${order.customer_name}</p>
                     </div>
                 ` : ''}
-                
+
                 ${order.ezcater_notes ? `
                     <div style="padding: 16px; background: #fefce8;">
-                        <p style="font-size: 11px; font-weight: 700; color: #854d0e; text-transform: uppercase; margin: 0 0 4px 0;">📝 NOTLAR:</p>
+                        <p style="font-size: 11px; font-weight: 700; color: #854d0e; text-transform: uppercase; margin: 0 0 4px 0;">📝 ${text.notes}:</p>
                         <p style="font-size: 14px; color: #713f12; margin: 0;">${order.ezcater_notes}</p>
                     </div>
                 ` : ''}
@@ -168,10 +219,10 @@ Deno.serve(async (req) => {
                 </div>
                 <div>
                     <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: #0f172a;">
-                        Merhaba ${driver.name || 'Sürücü'}!
+                        ${text.greeting} ${driver.name || 'Driver'}!
                     </h1>
                     <p style="margin: 0; color: #64748b; font-size: 16px;">
-                        📅 Bugünkü Siparişleriniz (${orders.length})
+                        📅 ${text.todayOrders} (${orders.length})
                     </p>
                 </div>
             </div>
@@ -179,32 +230,32 @@ Deno.serve(async (req) => {
         
         ${orders.length === 0 ? `
             <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 48px; text-align: center;">
-                <p style="color: #64748b; margin: 0;">Bugün için sipariş bulunamadı.</p>
+                <p style="color: #64748b; margin: 0;">${text.noOrders}</p>
             </div>
         ` : ordersHTML}
         
         <!-- Footer -->
         <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 32px;">
             <p style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #0f172a;">
-                Toplam ${orders.length} Sipariş
+                ${text.totalOrders} ${orders.length} ${text.orders}
             </p>
             <p style="margin: 0 0 20px 0; color: #64748b;">
-                İyi çalışmalar! 🚚
+                ${text.goodWork} 🚚
             </p>
-            
+
             <!-- Onay Butonları -->
             <div style="display: flex; gap: 12px; margin-top: 20px;">
                 <button 
                     onclick="handleResponse('approve')" 
                     style="flex: 1; padding: 16px 24px; background: linear-gradient(to right, #10b981, #059669); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);"
                 >
-                    ✅ HEPSİNİ ONAYLA
+                    ${text.approveAll}
                 </button>
                 <button 
                     onclick="handleResponse('reject')" 
                     style="flex: 1; padding: 16px 24px; background: linear-gradient(to right, #ef4444, #dc2626); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);"
                 >
-                    ❌ HEPSİNİ REDDET
+                    ${text.rejectAll}
                 </button>
             </div>
             
@@ -215,36 +266,46 @@ Deno.serve(async (req) => {
     <script>
         async function handleResponse(response) {
             const btn = event.target;
+            const t = {
+                processing: '${text.processing}',
+                approved: '${text.approved}',
+                rejected: '${text.rejected}',
+                error: '${text.error}',
+                connectionError: '${text.connectionError}',
+                orders: '${text.orders}'
+            };
+
             const originalText = btn.innerHTML;
             btn.disabled = true;
             btn.style.opacity = '0.6';
-            btn.innerHTML = '⏳ İşleniyor...';
-            
+            btn.innerHTML = t.processing;
+
             try {
                 const res = await fetch(window.location.href, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ response })
                 });
-                
+
                 const data = await res.json();
-                
+
                 const messageDiv = document.getElementById('responseMessage');
                 messageDiv.style.display = 'block';
-                
+
                 if (data.success) {
                     messageDiv.style.background = '#dcfce7';
                     messageDiv.style.color = '#166534';
                     messageDiv.style.border = '2px solid #86efac';
-                    messageDiv.innerHTML = '✅ ' + data.message + ' (' + data.updatedCount + ' sipariş)';
-                    
+                    const msg = response === 'approve' ? t.approved : t.rejected;
+                    messageDiv.innerHTML = msg + ' (' + data.updatedCount + ' ' + t.orders + ')';
+
                     // Butonları gizle
                     document.querySelectorAll('button').forEach(b => b.style.display = 'none');
                 } else {
                     messageDiv.style.background = '#fee2e2';
                     messageDiv.style.color = '#991b1b';
                     messageDiv.style.border = '2px solid #fca5a5';
-                    messageDiv.innerHTML = '❌ Hata: ' + data.message;
+                    messageDiv.innerHTML = t.error + ': ' + data.message;
                     btn.disabled = false;
                     btn.style.opacity = '1';
                     btn.innerHTML = originalText;
@@ -254,7 +315,7 @@ Deno.serve(async (req) => {
                 messageDiv.style.display = 'block';
                 messageDiv.style.background = '#fee2e2';
                 messageDiv.style.color = '#991b1b';
-                messageDiv.innerHTML = '❌ Bağlantı hatası: ' + error.message;
+                messageDiv.innerHTML = t.connectionError + ': ' + error.message;
                 btn.disabled = false;
                 btn.style.opacity = '1';
                 btn.innerHTML = originalText;
