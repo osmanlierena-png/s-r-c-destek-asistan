@@ -97,33 +97,33 @@ Deno.serve(async (req) => {
         const text = t[lang];
         
         const ordersHTML = orders.map((order, index) => `
-            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; overflow: hidden; border: 1px solid #e2e8f0;">
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px;">
+            <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
+                <div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 16px; font-weight: 700;">📦 ${text.order.toUpperCase()} #${order.ezcater_order_id}</span>
-                        <span style="background: rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">#${index + 1}</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">${text.order.toUpperCase()} #${order.ezcater_order_id}</span>
+                        <span style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;">#${index + 1}</span>
                     </div>
                 </div>
-                <div style="padding: 20px; background: #f0fdf4; border-bottom: 1px solid #d1fae5;">
-                    <p style="font-size: 10px; font-weight: 800; color: #065f46; text-transform: uppercase; margin: 0 0 10px 0;">🟢 ${text.pickupAddress}</p>
-                    <p style="font-size: 15px; color: #1a202c; margin: 0; font-weight: 600;">${order.pickup_address}</p>
+                <div style="padding: 16px; background: #f0fdf4; border-bottom: 1px solid #e2e8f0;">
+                    <p style="font-size: 10px; font-weight: 600; color: #10b981; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Pickup</p>
+                    <p style="font-size: 14px; color: #334155; margin: 0; font-weight: 400; line-height: 1.5;">${order.pickup_address}</p>
                 </div>
-                <div style="padding: 20px; background: #fef2f2; border-bottom: 1px solid #fecaca;">
-                    <p style="font-size: 10px; font-weight: 800; color: #991b1b; text-transform: uppercase; margin: 0 0 10px 0;">🔴 ${text.deliveryAddress}</p>
-                    <p style="font-size: 15px; color: #1a202c; margin: 0; font-weight: 600;">${order.dropoff_address}</p>
+                <div style="padding: 16px; background: #fef2f2; border-bottom: 1px solid #e2e8f0;">
+                    <p style="font-size: 10px; font-weight: 600; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Delivery</p>
+                    <p style="font-size: 14px; color: #334155; margin: 0; font-weight: 400; line-height: 1.5;">${order.dropoff_address}</p>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0;">
-                    <div style="padding: 20px; background: #eff6ff; border-right: 1px solid #bfdbfe;">
-                        <p style="font-size: 10px; font-weight: 800; color: #1e40af; text-transform: uppercase; margin: 0 0 10px 0;">⏰ ${text.pickupTime}</p>
-                        <p style="font-size: 32px; color: #1a202c; margin: 0; font-weight: 800;">${order.pickup_time}</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-bottom: 1px solid #e2e8f0;">
+                    <div style="padding: 16px; background: #f8fafc; border-right: 1px solid #e2e8f0;">
+                        <p style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Pickup Time</p>
+                        <p style="font-size: 24px; color: #1e293b; margin: 0; font-weight: 600; letter-spacing: -0.5px;">${order.pickup_time}</p>
                     </div>
-                    <div style="padding: 20px; background: #faf5ff;">
-                        <p style="font-size: 10px; font-weight: 800; color: #7c3aed; text-transform: uppercase; margin: 0 0 6px 0;">🎯 ${text.deliveryTime}</p>
-                        <p style="font-size: 32px; color: #1a202c; margin: 0; font-weight: 800;">${order.dropoff_time}</p>
+                    <div style="padding: 16px; background: #f8fafc;">
+                        <p style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Delivery Time</p>
+                        <p style="font-size: 24px; color: #1e293b; margin: 0; font-weight: 600; letter-spacing: -0.5px;">${order.dropoff_time}</p>
                     </div>
                 </div>
-                ${order.customer_name ? `<div style="padding: 20px; background: #f8fafc;"><p style="font-size: 15px; margin: 0;"><strong>${text.customer}:</strong> ${order.customer_name}</p></div>` : ''}
-                ${order.ezcater_notes ? `<div style="padding: 20px; background: #fffbeb; border-left: 4px solid #f59e0b;"><p style="font-size: 10px; font-weight: 800; color: #92400e; text-transform: uppercase; margin: 0 0 8px 0;">📝 ${text.notes}</p><p style="font-size: 15px; color: #78350f; margin: 0;">${order.ezcater_notes}</p></div>` : ''}
+                ${order.customer_name ? `<div style="padding: 16px; background: white;"><p style="font-size: 13px; color: #334155; margin: 0; font-weight: 400;"><span style="color: #64748b;">Müşteri:</span> ${order.customer_name}</p></div>` : ''}
+                ${order.ezcater_notes ? `<div style="padding: 16px; background: #fffbeb; border-left: 3px solid #f59e0b;"><p style="font-size: 10px; font-weight: 600; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Notlar</p><p style="font-size: 13px; color: #78350f; margin: 0; line-height: 1.5; font-weight: 400;">${order.ezcater_notes}</p></div>` : ''}
             </div>
         `).join('');
         
@@ -135,21 +135,21 @@ Deno.serve(async (req) => {
 <title>${text.todayOrders}</title>
 <style>
 * { box-sizing: border-box; }
-body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-.container { max-width: 680px; margin: 0 auto; }
+body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f8fafc; min-height: 100vh; }
+.container { max-width: 640px; margin: 0 auto; }
 </style>
 </head>
 <body>
 <div class="container">
-<div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; margin-bottom: 24px;">
-<h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white;">${text.greeting} ${driver.name}!</h1>
-<p style="margin: 8px 0 0 0; color: white; font-size: 16px;">📅 ${text.todayOrders} (${orders.length})</p>
+<div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 28px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #1e293b; letter-spacing: -0.3px;">${text.greeting} ${driver.name}</h1>
+<p style="margin: 6px 0 0 0; color: #64748b; font-size: 14px; font-weight: 400;">${text.todayOrders} · ${orders.length} sipariş</p>
 </div>
 ${orders.length === 0 ? '<div style="background: white; border-radius: 12px; padding: 48px; text-align: center;"><p style="color: #64748b; margin: 0;">' + text.noOrders + '</p></div>' : ordersHTML}
-<div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px;">
-<button onclick="handleClick('approve')" style="width: 100%; padding: 20px; background: #10b981; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 16px;">${text.approveAll}</button>
-<button onclick="handleClick('reject')" style="width: 100%; padding: 20px; background: #ef4444; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;">${text.rejectAll}</button>
-<div id="msg" style="margin-top: 20px; padding: 16px; border-radius: 12px; display: none; font-weight: 600;"></div>
+<div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 20px; border: 1px solid #e2e8f0;">
+<button onclick="handleClick('approve')" style="width: 100%; padding: 16px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; letter-spacing: 0.3px;">${text.approveAll}</button>
+<button onclick="handleClick('reject')" style="width: 100%; padding: 16px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; letter-spacing: 0.3px;">${text.rejectAll}</button>
+<div id="msg" style="margin-top: 16px; padding: 14px; border-radius: 6px; display: none; font-weight: 500; font-size: 14px;"></div>
 </div>
 </div>
 <script>
