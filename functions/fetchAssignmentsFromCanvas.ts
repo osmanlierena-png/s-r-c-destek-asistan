@@ -81,11 +81,11 @@ Deno.serve(async (req) => {
 
         for (const assignment of assignments) {
             try {
-                console.log(`\n🔍 İşleniyor: ${assignment.orderId} → ${assignment.driverName}`);
+                console.log(`\n🔍 İşleniyor: ${assignment.orderNumber || assignment.orderId} → ${assignment.driverName}`);
                 
-                // Siparişi bul
+                // Siparişi orderNumber (ezcater_order_id) ile bul
                 const orders = await base44.asServiceRole.entities.DailyOrder.filter({
-                    id: assignment.orderId
+                    ezcater_order_id: assignment.orderNumber
                 }, null, 1);
 
                 if (orders.length === 0) {
@@ -128,10 +128,11 @@ Deno.serve(async (req) => {
                 
                 console.log(`   📝 Güncelleme verisi:`, JSON.stringify(updateData, null, 2));
                 
-                await base44.asServiceRole.entities.DailyOrder.update(assignment.orderId, updateData);
+                // Base44'teki gerçek ID ile güncelle
+                await base44.asServiceRole.entities.DailyOrder.update(order.id, updateData);
 
                 updated++;
-                console.log(`✅ BAŞARILI: ${assignment.orderId} → ${assignment.driverName || 'Atanmadı'} (Grup: ${assignment.groupId || 'N/A'})`);
+                console.log(`✅ BAŞARILI: ${assignment.orderNumber} → ${assignment.driverName || 'Atanmadı'} (Grup: ${assignment.groupId || 'N/A'})`);
 
             } catch (error) {
                 failed++;
