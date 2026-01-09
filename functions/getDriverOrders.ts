@@ -296,7 +296,7 @@ Deno.serve(async (req) => {
     </div>
     
     <script>
-        console.log('🔍 Script loaded! Orders count: ' + ${orders.length});
+        console.log('🔍 Script loaded! Orders count:', ${orders.length});
         console.log('📍 Buttons should be visible now!');
         console.log('🔍 Checking button elements:', document.querySelectorAll('button').length);
         
