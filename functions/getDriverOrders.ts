@@ -241,7 +241,7 @@ Deno.serve(async (req) => {
         ` : ordersHTML}
         
         <!-- Footer -->
-        <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px;">
+        <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px; margin-bottom: 40px;">
             <p style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: #1a202c; letter-spacing: -0.5px;">
                 ${text.totalOrders} ${orders.length} ${text.orders}
             </p>
@@ -249,21 +249,21 @@ Deno.serve(async (req) => {
                 ${text.goodWork} 🚚
             </p>
 
+            <!-- DEBUG: Orders length = ${orders.length} -->
+            
             <!-- Onay Butonları -->
-            <div style="display: flex; gap: 16px; margin-top: 24px;">
+            <div id="buttonContainer" style="display: flex; flex-direction: column; gap: 16px; margin-top: 24px; width: 100%;">
                 <button 
+                    id="approveBtn"
                     onclick="handleResponse('approve')" 
-                    style="flex: 1; padding: 18px 28px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35); transition: transform 0.2s, box-shadow 0.2s; letter-spacing: 0.5px;"
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 32px rgba(16, 185, 129, 0.45)';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(16, 185, 129, 0.35)';"
+                    style="width: 100%; padding: 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);"
                 >
                     ${text.approveAll}
                 </button>
                 <button 
+                    id="rejectBtn"
                     onclick="handleResponse('reject')" 
-                    style="flex: 1; padding: 18px 28px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35); transition: transform 0.2s, box-shadow 0.2s; letter-spacing: 0.5px;"
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 32px rgba(239, 68, 68, 0.45)';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(239, 68, 68, 0.35)';"
+                    style="width: 100%; padding: 20px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);"
                 >
                     ${text.rejectAll}
                 </button>
@@ -274,7 +274,12 @@ Deno.serve(async (req) => {
     </div>
     
     <script>
+        console.log('🔍 Script loaded! Buttons should be visible.');
+        console.log('🔍 Approve button exists:', document.getElementById('approveBtn'));
+        console.log('🔍 Reject button exists:', document.getElementById('rejectBtn'));
+        
         async function handleResponse(response) {
+            console.log('🔘 Button clicked:', response);
             const btn = event.target;
             const t = {
                 processing: '${text.processing}',
