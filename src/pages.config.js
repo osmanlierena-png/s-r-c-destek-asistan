@@ -5,7 +5,6 @@ import DriverManagement from './pages/DriverManagement';
 import DriverOrderView from './pages/DriverOrderView';
 import DriverRegionAnalysis from './pages/DriverRegionAnalysis';
 import Home from './pages/Home';
-import InteractiveAssignment from './pages/InteractiveAssignment';
 import LearningInsights from './pages/LearningInsights';
 import OrderManagement from './pages/OrderManagement';
 import RealAssignmentAnalysis from './pages/RealAssignmentAnalysis';
@@ -23,7 +22,6 @@ export const PAGES = {
     "DriverOrderView": DriverOrderView,
     "DriverRegionAnalysis": DriverRegionAnalysis,
     "Home": Home,
-    "InteractiveAssignment": InteractiveAssignment,
     "LearningInsights": LearningInsights,
     "OrderManagement": OrderManagement,
     "RealAssignmentAnalysis": RealAssignmentAnalysis,

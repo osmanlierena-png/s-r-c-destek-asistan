@@ -28,11 +28,6 @@ const navigationItems = [
     icon: Package,
   },
   {
-    title: "Manuel Atama",
-    url: createPageUrl("InteractiveAssignment"),
-    icon: SlidersHorizontal,
-  },
-  {
     title: "Sürücü Yönetimi",
     url: createPageUrl("DriverManagement"),
     icon: Users,
