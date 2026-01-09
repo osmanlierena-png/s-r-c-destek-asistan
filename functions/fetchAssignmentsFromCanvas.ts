@@ -32,6 +32,9 @@ Deno.serve(async (req) => {
         // Canvas'tan atamaları çek
         const canvasApiUrl = `${CANVAS_URL}/api/base44/assignments?date=${date}`;
         
+        console.log(`🔐 Secret durumu: ${CANVAS_API_SECRET ? 'VAR (' + CANVAS_API_SECRET.substring(0, 5) + '...)' : 'YOK'}`);
+        console.log(`🌐 API URL: ${canvasApiUrl}`);
+        
         const headers = {
             'Content-Type': 'application/json'
         };
@@ -39,6 +42,8 @@ Deno.serve(async (req) => {
         if (CANVAS_API_SECRET) {
             headers['X-API-Secret'] = CANVAS_API_SECRET;
         }
+        
+        console.log(`📤 Headers:`, JSON.stringify(headers, null, 2));
 
         const response = await fetch(canvasApiUrl, {
             method: 'GET',
