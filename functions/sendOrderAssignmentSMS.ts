@@ -34,13 +34,8 @@ Deno.serve(async (req) => {
         // Telefon numarasını temizle
         twilioFromNumber = twilioFromNumber.replace(/[^\d+]/g, '');
 
-        // TEST modu kontrolü
-        const testWhitelist = Deno.env.get('TEST_SMS_WHITELIST');
-        if (testWhitelist) {
-            console.log(`\n🧪 TEST MODU AKTIF - Sadece whitelist'teki numaralara gönderilecek: ${testWhitelist}`);
-        } else {
-            console.log(`\n🚀 PRODUCTION MODU - Tüm sürücülere SMS gönderilecek`);
-        }
+        // TEST modu KALDIRILDI - Tüm sürücülere SMS gönderilir
+        console.log(`\n🚀 PRODUCTION MODU - Tüm sürücülere SMS gönderilecek`);
 
         const results = {
             sent: [],
@@ -143,17 +138,7 @@ Deno.serve(async (req) => {
                     continue;
                 }
 
-                // 9. TEST modu whitelist kontrolü
-                if (testWhitelist && !testWhitelist.includes(toPhoneNumber)) {
-                    results.skipped.push({
-                        orderId: order.ezcater_order_id,
-                        driver: order.driver_name,
-                        phone: toPhoneNumber,
-                        reason: 'TEST modu - Whitelist dışı'
-                    });
-                    console.log(`🚫 ${order.ezcater_order_id} atlandı - TEST whitelist dışı: ${toPhoneNumber}`);
-                    continue;
-                }
+                // TEST modu kontrolü kaldırıldı - tüm numaralara gönderilir
 
                 // Sürücüyü getir (dil bilgisi için)
                 const drivers = await base44.asServiceRole.entities.Driver.filter({ id: order.driver_id });
