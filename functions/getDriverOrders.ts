@@ -57,6 +57,33 @@ Deno.serve(async (req) => {
                     driver_response_at: new Date().toISOString()
                 });
                 updatedCount++;
+                
+                // Canvas'a bildirim gönder
+                const CANVAS_URL = Deno.env.get("CANVAS_URL");
+                if (CANVAS_URL) {
+                    try {
+                        await fetch(`${CANVAS_URL}/api/base44/webhook`, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || ''
+                            },
+                            body: JSON.stringify({
+                                type: 'DRIVER_RESPONSE',
+                                orderId: order.id,
+                                orderNumber: order.ezcater_order_id,
+                                driverResponse: responseText,
+                                driverName: order.driver_name,
+                                responseTime: new Date().toISOString(),
+                                date: order.order_date,
+                                groupId: order.canvas_group_id || null
+                            })
+                        });
+                        console.log(`📡 Canvas'a bildirim gönderildi: ${order.ezcater_order_id}`);
+                    } catch (err) {
+                        console.error('⚠️ Canvas bildirimi başarısız:', err);
+                    }
+                }
             }
             
             console.log(`✅ ${updatedCount} sipariş güncellendi: ${newStatus}`);

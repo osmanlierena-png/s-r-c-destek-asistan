@@ -95,7 +95,10 @@ Deno.serve(async (req) => {
             if (order && order[0]) {
               await fetch(`${CANVAS_URL}/api/base44/webhook`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || ''
+                },
                 body: JSON.stringify({
                   type: 'DRIVER_RESPONSE',
                   orderId: order[0].id,

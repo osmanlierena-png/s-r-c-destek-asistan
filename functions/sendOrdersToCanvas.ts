@@ -41,7 +41,10 @@ Deno.serve(async (req) => {
         // 3. Canvas'a gönder
         const response = await fetch(`${CANVAS_URL}/api/base44/import`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || ''
+            },
             body: JSON.stringify({
                 date,
                 orders: orders.map(o => ({
