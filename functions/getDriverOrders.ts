@@ -21,23 +21,50 @@ Deno.serve(async (req) => {
         if (req.method === 'POST') {
             const body = await req.json();
             const { response } = body;
-            
+
             const orders = await base44.entities.DailyOrder.filter({
                 driver_id: driverId,
                 order_date: orderDate
             });
-            
+
             const newStatus = response === 'approve' ? 'Sürücü Onayladı' : 'Sürücü Reddetti';
             const responseText = response === 'approve' ? 'Evet' : 'Hayır';
-            
+
             for (const order of orders) {
                 await base44.entities.DailyOrder.update(order.id, {
                     status: newStatus,
                     driver_response: responseText,
                     driver_response_at: new Date().toISOString()
                 });
+
+                // Canvas'a bildir
+                const CANVAS_URL = Deno.env.get("CANVAS_URL");
+                if (CANVAS_URL) {
+                    try {
+                        await fetch(`${CANVAS_URL}/api/base44/webhook`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || ''
+                            },
+                            body: JSON.stringify({
+                                type: 'DRIVER_RESPONSE',
+                                orderId: order.id,
+                                orderNumber: order.ezcater_order_id,
+                                driverResponse: responseText,
+                                driverName: order.driver_name,
+                                responseTime: new Date().toISOString(),
+                                date: order.order_date,
+                                groupId: order.canvas_group_id || null
+                            })
+                        });
+                        console.log(`📡 Canvas'a bildirim gönderildi: ${order.ezcater_order_id} - ${responseText}`);
+                    } catch (err) {
+                        console.error('⚠️ Canvas bildirimi başarısız:', err);
+                    }
+                }
             }
-            
+
             return Response.json({ 
                 success: true, 
                 message: response === 'approve' ? 'Onaylandı!' : 'Reddedildi!',
