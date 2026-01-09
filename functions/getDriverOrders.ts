@@ -211,150 +211,63 @@ Deno.serve(async (req) => {
             </div>
         `).join('');
         
-        const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${text.todayOrders}</title>
-        <style>
-        * { 
-            box-sizing: border-box; 
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 680px;
-            margin: 0 auto;
-        }
-        @media (max-width: 768px) {
-            body { padding: 12px; }
-            .container { padding: 0; }
-        }
-        </style>
-        </head>
-        <body>
-    <div class="container">
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <div style="width: 72px; height: 72px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ff6b6b; font-size: 36px; font-weight: 700; box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);">
-                    ${driver.name?.charAt(0)?.toUpperCase() || '?'}
-                </div>
-                <div style="flex: 1;">
-                    <h1 style="margin: 0 0 4px 0; font-size: 28px; font-weight: 700; color: white; letter-spacing: -0.5px;">
-                        ${text.greeting} ${driver.name || 'Driver'}!
-                    </h1>
-                    <p style="margin: 0; color: white; font-size: 16px; font-weight: 500;">
-                        📅 ${text.todayOrders} <span style="display: inline-block; background: rgba(255,255,255,0.3); color: white; padding: 2px 10px; border-radius: 12px; font-size: 14px; font-weight: 600; margin-left: 8px;">${orders.length}</span>
-                    </p>
-                </div>
-            </div>
-        </div>
+        // HTML'i parçalara ayır - template literal problemini çöz
+        let html = '<!DOCTYPE html><html><head>';
+        html += '<meta charset="UTF-8">';
+        html += '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+        html += '<title>' + text.todayOrders + '</title>';
+        html += '<style>';
+        html += '* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }';
+        html += 'body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }';
+        html += '.container { max-width: 680px; margin: 0 auto; }';
+        html += '</style></head><body>';
+        html += '<div class="container">';
         
-        ${orders.length === 0 ? `
-            <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 48px; text-align: center;">
-                <p style="color: #64748b; margin: 0;">${text.noOrders}</p>
-            </div>
-        ` : ordersHTML}
+        // Header
+        html += '<div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; margin-bottom: 24px;">';
+        html += '<h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white;">' + text.greeting + ' ' + driver.name + '!</h1>';
+        html += '<p style="margin: 8px 0 0 0; color: white; font-size: 16px;">' + orders.length + ' ' + text.orders + '</p>';
+        html += '</div>';
         
-        <!-- BUTONLAR BURDA -->
-        <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px; margin-bottom: 40px;">
-            <button onclick="handleResponse('approve')" style="width: 100%; padding: 20px; background: #10b981; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 16px;">
-                ✅ ONAYLA
-            </button>
-            <button onclick="handleResponse('reject')" style="width: 100%; padding: 20px; background: #ef4444; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;">
-                ❌ REDDET
-            </button>
-            <div id="responseMessage" style="margin-top: 20px; padding: 16px; border-radius: 12px; display: none; font-weight: 600; font-size: 15px;"></div>
-        </div>
-    </div>
-    
-    <script>
-        console.log('🔍 Script loaded! Orders count:', ${orders.length});
-        console.log('📍 Buttons should be visible now!');
-        console.log('🔍 Checking button elements:', document.querySelectorAll('button').length);
-        
-        // Butonları görünür hale getir - zorla
-        setTimeout(() => {
-            const buttons = document.querySelectorAll('button');
-            console.log('🎯 Found', buttons.length, 'buttons');
-            buttons.forEach((btn, i) => {
-                console.log('Button', i, ':', btn.textContent.substring(0, 20));
-            });
-        }, 100);
-        
-        async function handleResponse(response) {
-            console.log('🔘 Button clicked:', response);
-            const btn = event.target;
-            const t = {
-                processing: '${text.processing.replace(/'/g, "\\'")}',
-                approved: '${text.approved.replace(/'/g, "\\'")}',
-                rejected: '${text.rejected.replace(/'/g, "\\'")}',
-                error: '${text.error.replace(/'/g, "\\'")}',
-                connectionError: '${text.connectionError.replace(/'/g, "\\'")}',
-                orders: '${text.orders.replace(/'/g, "\\'")}' 
-            };
-
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.style.opacity = '0.6';
-            btn.innerHTML = t.processing;
-
-            try {
-                const res = await fetch(window.location.href, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ response })
-                });
-
-                const data = await res.json();
-
-                const messageDiv = document.getElementById('responseMessage');
-                messageDiv.style.display = 'block';
-
-                if (data.success) {
-                    messageDiv.style.background = '#dcfce7';
-                    messageDiv.style.color = '#166534';
-                    messageDiv.style.border = '2px solid #86efac';
-                    const msg = response === 'approve' ? t.approved : t.rejected;
-                    messageDiv.innerHTML = msg + ' (' + data.updatedCount + ' ' + t.orders + ')';
-
-                    // Butonları gizle
-                    document.querySelectorAll('button').forEach(b => b.style.display = 'none');
-                } else {
-                    messageDiv.style.background = '#fee2e2';
-                    messageDiv.style.color = '#991b1b';
-                    messageDiv.style.border = '2px solid #fca5a5';
-                    messageDiv.innerHTML = t.error + ': ' + data.message;
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-                    btn.innerHTML = originalText;
-                }
-            } catch (error) {
-                const messageDiv = document.getElementById('responseMessage');
-                messageDiv.style.display = 'block';
-                messageDiv.style.background = '#fee2e2';
-                messageDiv.style.color = '#991b1b';
-                messageDiv.innerHTML = t.connectionError + ': ' + error.message;
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.innerHTML = originalText;
-            }
+        // Orders
+        if (orders.length === 0) {
+            html += '<div style="background: white; border-radius: 12px; padding: 48px; text-align: center;">';
+            html += '<p style="color: #64748b; margin: 0;">' + text.noOrders + '</p>';
+            html += '</div>';
+        } else {
+            html += ordersHTML;
         }
-    </script>
-</body>
-</html>
-        `;
+        
+        // BUTONLAR - DİREKT HTML
+        html += '<div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px; margin-bottom: 40px;">';
+        html += '<button onclick="handleResponse(\'approve\')" style="width: 100%; padding: 20px; background: #10b981; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 16px;">✅ ONAYLA</button>';
+        html += '<button onclick="handleResponse(\'reject\')" style="width: 100%; padding: 20px; background: #ef4444; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;">❌ REDDET</button>';
+        html += '<div id="responseMessage" style="margin-top: 20px; padding: 16px; border-radius: 12px; display: none; font-weight: 600; font-size: 15px;"></div>';
+        html += '</div>';
+        
+        html += '</div>'; // container
+        
+        // Script
+        html += '<script>';
+        html += 'console.log("Script loaded");';
+        html += 'console.log("Buttons:", document.querySelectorAll("button").length);';
+        html += 'async function handleResponse(response) {';
+        html += '  console.log("Button clicked:", response);';
+        html += '  const res = await fetch(window.location.href, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ response }) });';
+        html += '  const data = await res.json();';
+        html += '  const msg = document.getElementById("responseMessage");';
+        html += '  msg.style.display = "block";';
+        html += '  if (data.success) {';
+        html += '    msg.style.background = "#dcfce7"; msg.style.color = "#166534";';
+        html += '    msg.innerHTML = (response === "approve" ? "✅ Onaylandı!" : "❌ Reddedildi!") + " (" + data.updatedCount + " sipariş)";';
+        html += '    document.querySelectorAll("button").forEach(b => b.style.display = "none");';
+        html += '  } else {';
+        html += '    msg.style.background = "#fee2e2"; msg.style.color = "#991b1b";';
+        html += '    msg.innerHTML = "❌ Hata: " + data.message;';
+        html += '  }';
+        html += '}';
+        html += '</script>';
+        html += '</body></html>';
         
         return new Response(html, {
             headers: { 'Content-Type': 'text/html; charset=utf-8' }
