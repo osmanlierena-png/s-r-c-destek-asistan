@@ -297,6 +297,17 @@ Deno.serve(async (req) => {
     
     <script>
         console.log('🔍 Script loaded! Orders count: ${orders.length}');
+        console.log('📍 Buttons should be visible now!');
+        console.log('🔍 Checking button elements:', document.querySelectorAll('button').length);
+        
+        // Butonları görünür hale getir - zorla
+        setTimeout(() => {
+            const buttons = document.querySelectorAll('button');
+            console.log('🎯 Found', buttons.length, 'buttons');
+            buttons.forEach((btn, i) => {
+                console.log('Button', i, ':', btn.textContent.substring(0, 20));
+            });
+        }, 100);
         
         async function handleResponse(response) {
             console.log('🔘 Button clicked:', response);
