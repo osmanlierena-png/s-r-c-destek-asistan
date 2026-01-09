@@ -296,7 +296,7 @@ Deno.serve(async (req) => {
     </div>
     
     <script>
-        console.log('🔍 Script loaded! Orders count: ${orders.length}');
+        console.log('🔍 Script loaded! Orders count: ' + ${orders.length});
         console.log('📍 Buttons should be visible now!');
         console.log('🔍 Checking button elements:', document.querySelectorAll('button').length);
         
@@ -313,12 +313,12 @@ Deno.serve(async (req) => {
             console.log('🔘 Button clicked:', response);
             const btn = event.target;
             const t = {
-                processing: '${text.processing}',
-                approved: '${text.approved}',
-                rejected: '${text.rejected}',
-                error: '${text.error}',
-                connectionError: '${text.connectionError}',
-                orders: '${text.orders}'
+                processing: '${text.processing.replace(/'/g, "\\'")}',
+                approved: '${text.approved.replace(/'/g, "\\'")}',
+                rejected: '${text.rejected.replace(/'/g, "\\'")}',
+                error: '${text.error.replace(/'/g, "\\'")}',
+                connectionError: '${text.connectionError.replace(/'/g, "\\'")}',
+                orders: '${text.orders.replace(/'/g, "\\'")}' 
             };
 
             const originalText = btn.innerHTML;
