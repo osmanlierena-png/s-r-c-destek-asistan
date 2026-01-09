@@ -1431,21 +1431,13 @@ export default function OrderManagementPage() {
               </Button>
             )}
 
-            <Button
+            <button
               onClick={handleSendToCanvas}
               disabled={sendingToCanvas || !selectedDate}
-              size="sm"
-              className="bg-purple-600 hover:bg-purple-700"
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
             >
-              {sendingToCanvas ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Gönderiliyor...
-                </>
-              ) : (
-                '📤 Canvas\'a Gönder'
-              )}
-            </Button>
+              {sendingToCanvas ? '⏳ Gönderiliyor...' : '📤 Canvas\'a Gönder'}
+            </button>
           </div>
         </div>
 
