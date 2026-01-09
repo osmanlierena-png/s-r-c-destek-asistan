@@ -1,4 +1,4 @@
-import { createBase44Client } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
     try {
@@ -15,11 +15,7 @@ Deno.serve(async (req) => {
             });
         }
         
-        const appId = Deno.env.get('BASE44_APP_ID');
-        const base44 = createBase44Client({
-            appId,
-            useServiceRole: true
-        });
+        const base44 = createClientFromRequest(req);
         
         // POST - Handle approve/reject
         if (req.method === 'POST') {
