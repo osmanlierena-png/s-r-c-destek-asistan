@@ -109,12 +109,6 @@ Deno.serve(async (req) => {
         // HTML response oluştur
         const driver = drivers[0];
         const lang = driver.language || 'tr';
-        
-        // Siparişlerin durumunu kontrol et - zaten yanıtlanmış mı?
-        const alreadyResponded = orders.length > 0 && orders.every(o => 
-            o.status === 'Sürücü Onayladı' || o.status === 'Sürücü Reddetti'
-        );
-        const responseStatus = orders.length > 0 ? orders[0].status : null;
 
         // Çeviri metinleri
         const t = {
@@ -273,7 +267,7 @@ Deno.serve(async (req) => {
             </div>
         ` : ordersHTML}
         
-        <!-- Onay/Red Butonları veya Yanıt Durumu -->
+        <!-- Onay/Red Butonları - HER ZAMAN GÖSTER -->
         <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px; margin-bottom: 40px;">
             <p style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: #1a202c; letter-spacing: -0.5px;">
                 ${text.totalOrders} ${orders.length} ${text.orders}
@@ -282,28 +276,22 @@ Deno.serve(async (req) => {
                 ${text.goodWork} 🚚
             </p>
 
-            ${alreadyResponded ? `
-                <div style="background: ${responseStatus === 'Sürücü Onayladı' ? '#dcfce7' : '#fee2e2'}; border: 2px solid ${responseStatus === 'Sürücü Onayladı' ? '#86efac' : '#fca5a5'}; color: ${responseStatus === 'Sürücü Onayladı' ? '#166534' : '#991b1b'}; padding: 20px; border-radius: 12px; font-weight: 700; font-size: 16px;">
-                    ${responseStatus === 'Sürücü Onayladı' ? '✅ Bu siparişler zaten onaylandı!' : '❌ Bu siparişler reddedildi'}
-                </div>
-            ` : `
-                <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 24px; width: 100%;">
-                    <button 
-                        onclick="handleResponse('approve')" 
-                        style="width: 100%; padding: 20px; background: #10b981; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;"
-                    >
-                        ✅ ${text.approveAll}
-                    </button>
-                    <button 
-                        onclick="handleResponse('reject')" 
-                        style="width: 100%; padding: 20px; background: #ef4444; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;"
-                    >
-                        ❌ ${text.rejectAll}
-                    </button>
-                </div>
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 24px; width: 100%;">
+                <button 
+                    onclick="handleResponse('approve')" 
+                    style="width: 100%; padding: 20px; background: #10b981; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;"
+                >
+                    ✅ ${text.approveAll}
+                </button>
+                <button 
+                    onclick="handleResponse('reject')" 
+                    style="width: 100%; padding: 20px; background: #ef4444; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;"
+                >
+                    ❌ ${text.rejectAll}
+                </button>
+            </div>
 
-                <div id="responseMessage" style="margin-top: 20px; padding: 16px; border-radius: 12px; display: none; font-weight: 600; font-size: 15px;"></div>
-            `}
+            <div id="responseMessage" style="margin-top: 20px; padding: 16px; border-radius: 12px; display: none; font-weight: 600; font-size: 15px;"></div>
         </div>
     </div>
     
