@@ -267,30 +267,14 @@ Deno.serve(async (req) => {
             </div>
         ` : ordersHTML}
         
-        <!-- Onay/Red Butonları -->
+        <!-- BUTONLAR BURDA -->
         <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px; margin-bottom: 40px;">
-            <p style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: #1a202c; letter-spacing: -0.5px;">
-                ${text.totalOrders} ${orders.length} ${text.orders}
-            </p>
-            <p style="margin: 0 0 28px 0; color: #718096; font-size: 16px; font-weight: 500;">
-                ${text.goodWork} 🚚
-            </p>
-
-            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 24px; width: 100%;">
-                <button 
-                    onclick="handleResponse('approve')" 
-                    style="width: 100%; padding: 20px; background: #10b981; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;"
-                >
-                    ✅ ${text.approveAll}
-                </button>
-                <button 
-                    onclick="handleResponse('reject')" 
-                    style="width: 100%; padding: 20px; background: #ef4444; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;"
-                >
-                    ❌ ${text.rejectAll}
-                </button>
-            </div>
-
+            <button onclick="handleResponse('approve')" style="width: 100%; padding: 20px; background: #10b981; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 16px;">
+                ✅ ONAYLA
+            </button>
+            <button onclick="handleResponse('reject')" style="width: 100%; padding: 20px; background: #ef4444; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;">
+                ❌ REDDET
+            </button>
             <div id="responseMessage" style="margin-top: 20px; padding: 16px; border-radius: 12px; display: none; font-weight: 600; font-size: 15px;"></div>
         </div>
     </div>
