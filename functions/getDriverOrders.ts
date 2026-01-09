@@ -211,63 +211,29 @@ Deno.serve(async (req) => {
             </div>
         `).join('');
         
-        // HTML'i parçalara ayır - template literal problemini çöz
-        let html = '<!DOCTYPE html><html><head>';
-        html += '<meta charset="UTF-8">';
-        html += '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
-        html += '<title>' + text.todayOrders + '</title>';
-        html += '<style>';
-        html += '* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }';
-        html += 'body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }';
-        html += '.container { max-width: 680px; margin: 0 auto; }';
-        html += '</style></head><body>';
-        html += '<div class="container">';
-        
-        // Header
-        html += '<div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; margin-bottom: 24px;">';
-        html += '<h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white;">' + text.greeting + ' ' + driver.name + '!</h1>';
-        html += '<p style="margin: 8px 0 0 0; color: white; font-size: 16px;">' + orders.length + ' ' + text.orders + '</p>';
-        html += '</div>';
-        
-        // Orders
-        if (orders.length === 0) {
-            html += '<div style="background: white; border-radius: 12px; padding: 48px; text-align: center;">';
-            html += '<p style="color: #64748b; margin: 0;">' + text.noOrders + '</p>';
-            html += '</div>';
-        } else {
-            html += ordersHTML;
-        }
-        
-        // BUTONLAR - DİREKT HTML
-        html += '<div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px; margin-bottom: 40px;">';
-        html += '<button onclick="handleResponse(\'approve\')" style="width: 100%; padding: 20px; background: #10b981; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 16px;">✅ ONAYLA</button>';
-        html += '<button onclick="handleResponse(\'reject\')" style="width: 100%; padding: 20px; background: #ef4444; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;">❌ REDDET</button>';
-        html += '<div id="responseMessage" style="margin-top: 20px; padding: 16px; border-radius: 12px; display: none; font-weight: 600; font-size: 15px;"></div>';
-        html += '</div>';
-        
-        html += '</div>'; // container
-        
-        // Script
-        html += '<script>';
-        html += 'console.log("Script loaded");';
-        html += 'console.log("Buttons:", document.querySelectorAll("button").length);';
-        html += 'async function handleResponse(response) {';
-        html += '  console.log("Button clicked:", response);';
-        html += '  const res = await fetch(window.location.href, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ response }) });';
-        html += '  const data = await res.json();';
-        html += '  const msg = document.getElementById("responseMessage");';
-        html += '  msg.style.display = "block";';
-        html += '  if (data.success) {';
-        html += '    msg.style.background = "#dcfce7"; msg.style.color = "#166534";';
-        html += '    msg.innerHTML = (response === "approve" ? "✅ Onaylandı!" : "❌ Reddedildi!") + " (" + data.updatedCount + " sipariş)";';
-        html += '    document.querySelectorAll("button").forEach(b => b.style.display = "none");';
-        html += '  } else {';
-        html += '    msg.style.background = "#fee2e2"; msg.style.color = "#991b1b";';
-        html += '    msg.innerHTML = "❌ Hata: " + data.message;';
-        html += '  }';
-        html += '}';
-        html += '</script>';
-        html += '</body></html>';
+        const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST v99</title>
+</head>
+<body style="margin: 0; padding: 40px; background: #ff0000; font-family: sans-serif;">
+<div style="background: white; padding: 40px; border-radius: 16px; max-width: 600px; margin: 0 auto;">
+<h1 style="color: #ff0000; margin: 0 0 20px 0;">🔴 TEST v99 - DEPLOY TEST</h1>
+<p style="font-size: 18px; margin: 0 0 20px 0;">Driver: ${driver.name}</p>
+<p style="font-size: 18px; margin: 0 0 20px 0;">Orders: ${orders.length}</p>
+
+<button onclick="alert('BUTTON WORKS!')" style="width: 100%; padding: 20px; background: #10b981; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 16px;">
+✅ TEST ONAYLA BUTTON
+</button>
+
+<button onclick="alert('REJECT WORKS!')" style="width: 100%; padding: 20px; background: #ef4444; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;">
+❌ TEST REDDET BUTTON
+</button>
+</div>
+</body>
+</html>`;
         
         return new Response(html, {
             headers: { 'Content-Type': 'text/html; charset=utf-8' }
