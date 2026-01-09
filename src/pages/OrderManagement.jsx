@@ -1400,142 +1400,7 @@ export default function OrderManagementPage() {
               </Button>
             )}
 
-            <Button 
-              onClick={handleUpdateDriverRules}
-              disabled={isUpdatingRules}
-              size="sm"
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-              title="HTML'den sürücü kurallarını oku ve güncelle"
-            >
-              {isUpdatingRules ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Kurallar Güncelleniyor... {ruleUpdateProgress ? `${ruleUpdateProgress.current}/${ruleUpdateProgress.total}` : ''}
-                </>
-              ) : (
-                <>
-                  📋 Sürücü Kurallarını Güncelle (HTML)
-                </>
-              )}
-            </Button>
 
-
-
-            {orders.filter(o => !o.pickup_coords || !o.dropoff_coords).length > 0 && (
-              <Button 
-                onClick={handleFrontendGeocode}
-                disabled={isGeocodingOrders}
-                size="sm"
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {isGeocodingOrders ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Geocoding... {geocodingProgress}%
-                  </>
-                ) : (
-                  `🗺️ Koordinat Bul (${orders.filter(o => !o.pickup_coords || !o.dropoff_coords).length})`
-                )}
-              </Button>
-            )}
-
-
-
-            <Button 
-              onClick={handleCleanOldOrders}
-              disabled={isCleaningOldOrders}
-              size="sm"
-              variant="outline"
-              className="border-orange-300 text-orange-700 hover:bg-orange-50"
-              title="30 günden eski siparişleri sil (performans iyileştirme)"
-            >
-              {isCleaningOldOrders ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Temizleniyor...
-                </>
-              ) : (
-                '🗑️ Eski Siparişleri Temizle'
-              )}
-            </Button>
-
-            {orders.filter(o => o.status === 'Atandı').length > 0 && (
-              <Button 
-                onClick={handleResetAllAssignments}
-                disabled={isResettingAll}
-                size="sm"
-                variant="outline"
-                className="border-red-300 text-red-700 hover:bg-red-50"
-                title="Tüm atamaları temizle ve yeniden başla"
-              >
-                {isResettingAll ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sıfırlanıyor...
-                  </>
-                ) : (
-                  `🔄 Tüm Atamaları Sıfırla (${orders.filter(o => o.status === 'Atandı').length})`
-                )}
-              </Button>
-            )}
-
-            {orders.filter(o => o.status === 'Atandı').length > 0 && (
-              <Button 
-                onClick={handleResetAssignments}
-                disabled={isResetting}
-                size="sm"
-                variant="outline"
-                className="border-red-300 text-red-700 hover:bg-red-50"
-                title="Atanmış tüm siparişlerin atamasını geri alır"
-            >
-                {isResetting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Geri Alınıyor...
-                  </>
-                ) : (
-                  `Atamaları Geri Al (${orders.filter(o => o.status === 'Atandı').length})`
-                )}
-              </Button>
-            )}
-
-            <Button 
-              onClick={handleThreeLayerAssignment}
-              disabled={isAssigningThreeLayer || orders.filter(o => o.status === 'Çekildi').length === 0}
-              size="sm"
-              className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 ring-2 ring-blue-300 shadow-lg"
-              title="3 Katmanlı LLM Sistemi: Parse → Ata → Denetle"
-            >
-              {isAssigningThreeLayer ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  3 Katman Çalışıyor...
-                </>
-              ) : (
-                <>
-                  🎯 3 Seviyeli Akıllı Ata
-                </>
-              )}
-            </Button>
-
-            <Button 
-              onClick={handleGPTAssignment}
-              disabled={isAssigningGPT || orders.filter(o => o.status === 'Çekildi').length === 0}
-              size="sm"
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              title="GPT-4 ile manuel örneklerden öğrenerek ata"
-            >
-              {isAssigningGPT ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  GPT Çalışıyor...
-                </>
-              ) : (
-                <>
-                  🤖 AI ile Ata (GPT)
-                </>
-              )}
-            </Button>
             
             <Button 
               onClick={handleIntelligentAssignment}
@@ -1566,13 +1431,21 @@ export default function OrderManagementPage() {
               </Button>
             )}
 
-            <button
+            <Button
               onClick={handleSendToCanvas}
               disabled={sendingToCanvas || !selectedDate}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+              size="sm"
+              className="bg-purple-600 hover:bg-purple-700"
             >
-              {sendingToCanvas ? '⏳ Gönderiliyor...' : '📤 Canvas\'a Gönder'}
-            </button>
+              {sendingToCanvas ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Gönderiliyor...
+                </>
+              ) : (
+                '📤 Canvas\'a Gönder'
+              )}
+            </Button>
           </div>
         </div>
 
