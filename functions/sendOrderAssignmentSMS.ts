@@ -216,6 +216,32 @@ ${functionUrl}`
                         sms_sent_at: new Date().toISOString()
                     });
 
+                    // Canvas'a bildir
+                    const CANVAS_URL = Deno.env.get("CANVAS_URL");
+                    if (CANVAS_URL) {
+                        try {
+                            await fetch(`${CANVAS_URL}/api/base44/webhook`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || ''
+                                },
+                                body: JSON.stringify({
+                                    type: 'SMS_SENT',
+                                    orderId: order.id,
+                                    orderNumber: order.ezcater_order_id,
+                                    driverName: order.driver_name,
+                                    sentTime: new Date().toISOString(),
+                                    date: order.order_date,
+                                    groupId: order.canvas_group_id || null
+                                })
+                            });
+                            console.log(`📡 Canvas'a bildirim gönderildi: ${order.ezcater_order_id}`);
+                        } catch (err) {
+                            console.error('⚠️ Canvas bildirimi başarısız:', err);
+                        }
+                    }
+
                     results.sent.push({
                         orderId: order.ezcater_order_id,
                         driver: order.driver_name,
