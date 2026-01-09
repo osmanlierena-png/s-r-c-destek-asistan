@@ -38,6 +38,7 @@ import { resetAllAssignments } from "@/functions/resetAllAssignments";
 import { parseAndUpdateDriverRules } from "@/functions/parseAndUpdateDriverRules";
 import { sendOrderAssignmentSMS } from "@/functions/sendOrderAssignmentSMS";
 import { sendOrdersToCanvas } from "@/functions/sendOrdersToCanvas";
+import { fetchAssignmentsFromCanvas } from "@/functions/fetchAssignmentsFromCanvas";
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState([]);
@@ -73,6 +74,7 @@ export default function OrderManagementPage() {
   const [isPreviewingGroups, setIsPreviewingGroups] = useState(false);
   const [groupPreview, setGroupPreview] = useState(null);
   const [sendingToCanvas, setSendingToCanvas] = useState(false);
+  const [fetchingFromCanvas, setFetchingFromCanvas] = useState(false);
 
   const handleSendToCanvas = async () => {
     if (!selectedDate) {
@@ -94,6 +96,29 @@ export default function OrderManagementPage() {
       alert('❌ Canvas\'a gönderilemedi: ' + error.message);
     } finally {
       setSendingToCanvas(false);
+    }
+  };
+
+  const handleFetchFromCanvas = async () => {
+    if (!selectedDate) {
+      alert('Lütfen bir tarih seçin');
+      return;
+    }
+
+    setFetchingFromCanvas(true);
+    try {
+      const result = await fetchAssignmentsFromCanvas({ date: selectedDate });
+
+      if (result.data.success) {
+        alert(`✅ ${result.data.updated} sipariş Canvas'tan güncellendi!${result.data.failed > 0 ? `\n\n⚠️ ${result.data.failed} sipariş güncellenemedi.` : ''}\n\n📊 Toplam: ${result.data.total}`);
+        loadOrders();
+      } else {
+        alert('❌ Hata: ' + result.data.error);
+      }
+    } catch (error) {
+      alert('❌ Canvas\'tan çekilemedi: ' + error.message);
+    } finally {
+      setFetchingFromCanvas(false);
     }
   };
 
@@ -1568,6 +1593,14 @@ export default function OrderManagementPage() {
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
             >
               {sendingToCanvas ? '⏳ Gönderiliyor...' : '📤 Canvas\'a Gönder'}
+            </button>
+
+            <button
+              onClick={handleFetchFromCanvas}
+              disabled={fetchingFromCanvas || !selectedDate}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {fetchingFromCanvas ? '⏳ Çekiliyor...' : '📥 Canvas\'tan Atamaları Getir'}
             </button>
           </div>
         </div>
