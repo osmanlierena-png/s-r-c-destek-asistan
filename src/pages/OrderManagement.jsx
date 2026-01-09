@@ -1327,12 +1327,12 @@ export default function OrderManagementPage() {
     <div className="min-h-screen bg-slate-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-4">
         
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
             <p className="text-slate-600 text-sm">Siparişleri yönetin ve sürücülere atayın</p>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap justify-end">
             
             {orders.filter(o => o.status === 'Sürücü Onayladı').length > 0 && (
               <>
