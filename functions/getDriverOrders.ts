@@ -240,8 +240,7 @@ Deno.serve(async (req) => {
             </div>
         ` : ordersHTML}
         
-        ${orders.length > 0 ? `
-        <!-- Onay/Red Butonları -->
+        <!-- Onay/Red Butonları - HER ZAMAN GÖSTER -->
         <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px; margin-bottom: 40px;">
             <p style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: #1a202c; letter-spacing: -0.5px;">
                 ${text.totalOrders} ${orders.length} ${text.orders}
@@ -250,26 +249,23 @@ Deno.serve(async (req) => {
                 ${text.goodWork} 🚚
             </p>
 
-            <div id="buttonContainer" style="display: flex; flex-direction: column; gap: 16px; margin-top: 24px; width: 100%;">
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 24px; width: 100%;">
                 <button 
-                    id="approveBtn"
                     onclick="handleResponse('approve')" 
-                    style="width: 100%; padding: 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);"
+                    style="width: 100%; padding: 20px; background: #10b981; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;"
                 >
-                    ${text.approveAll}
+                    ✅ ${text.approveAll}
                 </button>
                 <button 
-                    id="rejectBtn"
                     onclick="handleResponse('reject')" 
-                    style="width: 100%; padding: 20px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);"
+                    style="width: 100%; padding: 20px; background: #ef4444; color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer;"
                 >
-                    ${text.rejectAll}
+                    ❌ ${text.rejectAll}
                 </button>
             </div>
 
             <div id="responseMessage" style="margin-top: 20px; padding: 16px; border-radius: 12px; display: none; font-weight: 600; font-size: 15px;"></div>
         </div>
-        ` : ''}
     </div>
     
     <script>
