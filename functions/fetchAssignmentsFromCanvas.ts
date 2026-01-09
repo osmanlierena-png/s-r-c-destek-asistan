@@ -81,16 +81,20 @@ Deno.serve(async (req) => {
 
         for (const assignment of assignments) {
             try {
+                console.log(`\n🔍 İşleniyor: ${assignment.orderId} → ${assignment.driverName}`);
+                
                 // Siparişi bul
                 const orders = await base44.asServiceRole.entities.DailyOrder.filter({
                     id: assignment.orderId
                 }, null, 1);
 
                 if (orders.length === 0) {
-                    console.error(`⚠️ Sipariş bulunamadı: ${assignment.orderNumber}`);
+                    console.error(`⚠️ Sipariş bulunamadı: ${assignment.orderId} (${assignment.orderNumber || 'N/A'})`);
                     failed++;
                     continue;
                 }
+                
+                console.log(`   ✓ Sipariş bulundu: ${orders[0].ezcater_order_id}`);
 
                 const order = orders[0];
 
@@ -106,25 +110,33 @@ Deno.serve(async (req) => {
                     if (drivers.length > 0) {
                         driverId = drivers[0].id;
                         driverPhone = drivers[0].phone;
+                        console.log(`   ✓ Sürücü bulundu: ${assignment.driverName} (${driverPhone})`);
+                    } else {
+                        console.warn(`   ⚠️ Sürücü bulunamadı: ${assignment.driverName}`);
                     }
                 }
 
                 // Siparişi güncelle
-                await base44.asServiceRole.entities.DailyOrder.update(assignment.orderId, {
+                const updateData = {
                     driver_id: driverId,
                     driver_name: assignment.driverName,
                     driver_phone: driverPhone,
                     status: assignment.driverName ? 'Atandı' : 'Çekildi',
                     canvas_group_id: assignment.groupId,
                     canvas_price: assignment.price
-                });
+                };
+                
+                console.log(`   📝 Güncelleme verisi:`, JSON.stringify(updateData, null, 2));
+                
+                await base44.asServiceRole.entities.DailyOrder.update(assignment.orderId, updateData);
 
                 updated++;
-                console.log(`✅ ${assignment.orderNumber} güncellendi → ${assignment.driverName || 'Atanmadı'}`);
+                console.log(`✅ BAŞARILI: ${assignment.orderId} → ${assignment.driverName || 'Atanmadı'} (Grup: ${assignment.groupId || 'N/A'})`);
 
             } catch (error) {
                 failed++;
-                console.error(`❌ Sipariş güncelleme hatası (${assignment.orderNumber}):`, error);
+                console.error(`❌ Sipariş güncelleme hatası (${assignment.orderId}):`, error.message);
+                console.error(`   Detay:`, error);
             }
         }
 
