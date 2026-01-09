@@ -267,7 +267,8 @@ Deno.serve(async (req) => {
             </div>
         ` : ordersHTML}
         
-        <!-- Onay/Red Butonları - HER ZAMAN GÖSTER -->
+        ${orders.length > 0 ? `
+        <!-- Onay/Red Butonları -->
         <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; text-align: center; margin-top: 32px; margin-bottom: 40px;">
             <p style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: #1a202c; letter-spacing: -0.5px;">
                 ${text.totalOrders} ${orders.length} ${text.orders}
@@ -293,6 +294,7 @@ Deno.serve(async (req) => {
 
             <div id="responseMessage" style="margin-top: 20px; padding: 16px; border-radius: 12px; display: none; font-weight: 600; font-size: 15px;"></div>
         </div>
+        ` : ''}
     </div>
     
     <script>
