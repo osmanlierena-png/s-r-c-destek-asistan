@@ -245,17 +245,17 @@ Deno.serve(async (req) => {
         <body>
     <div class="container">
         <!-- Header -->
-        <div style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; margin-bottom: 24px;">
+        <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 32px; margin-bottom: 24px;">
             <div style="display: flex; align-items: center; gap: 20px;">
-                <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 36px; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
+                <div style="width: 72px; height: 72px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ff6b6b; font-size: 36px; font-weight: 700; box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);">
                     ${driver.name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
                 <div style="flex: 1;">
-                    <h1 style="margin: 0 0 4px 0; font-size: 28px; font-weight: 700; color: #1a202c; letter-spacing: -0.5px;">
+                    <h1 style="margin: 0 0 4px 0; font-size: 28px; font-weight: 700; color: white; letter-spacing: -0.5px;">
                         ${text.greeting} ${driver.name || 'Driver'}!
                     </h1>
-                    <p style="margin: 0; color: #718096; font-size: 16px; font-weight: 500;">
-                        📅 ${text.todayOrders} <span style="display: inline-block; background: #667eea; color: white; padding: 2px 10px; border-radius: 12px; font-size: 14px; font-weight: 600; margin-left: 8px;">${orders.length}</span>
+                    <p style="margin: 0; color: white; font-size: 16px; font-weight: 500;">
+                        📅 ${text.todayOrders} <span style="display: inline-block; background: rgba(255,255,255,0.3); color: white; padding: 2px 10px; border-radius: 12px; font-size: 14px; font-weight: 600; margin-left: 8px;">${orders.length}</span>
                     </p>
                 </div>
             </div>
