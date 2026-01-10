@@ -34,8 +34,7 @@ Deno.serve(async (req) => {
         // Telefon numarasını temizle
         twilioFromNumber = twilioFromNumber.replace(/[^\d+]/g, '');
 
-        // TEST modu KALDIRILDI - Tüm sürücülere SMS gönderilir
-        console.log(`\n🚀 PRODUCTION MODU - Tüm sürücülere SMS gönderilecek`);
+        console.log(`\n🚀 PRODUCTION MODU - Sürücülere gruplu SMS gönderilecek`);
 
         const results = {
             sent: [],
@@ -43,10 +42,11 @@ Deno.serve(async (req) => {
             skipped: []
         };
 
-        // Her sipariş için SMS gönder
+        // Tüm siparişleri al ve sürücü+tarih bazında grupla
+        const ordersByDriverAndDate = {};
+
         for (const orderId of orderIds) {
             try {
-                // Siparişi getir
                 const orders = await base44.asServiceRole.entities.DailyOrder.filter({ id: orderId });
                 const order = orders[0];
 
@@ -58,114 +58,141 @@ Deno.serve(async (req) => {
                     continue;
                 }
 
-                // Kapsamlı telefon numarası doğrulaması
-                const phone = order.driver_phone;
-                
-                // 1. Temel kontroller
-                if (!order.driver_id || !phone || phone.trim() === '') {
+                if (!order.driver_id || !order.driver_phone || order.driver_phone.trim() === '') {
                     results.failed.push({
                         orderId: order.ezcater_order_id,
                         reason: 'Sürücü atanmamış veya telefon numarası eksik'
                     });
-                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Telefon numarası yok`);
                     continue;
                 }
 
-                // 2. MISSING kontrolü
+                // Sürücü+tarih bazında grupla
+                const groupKey = `${order.driver_id}_${order.order_date}`;
+                
+                if (!ordersByDriverAndDate[groupKey]) {
+                    ordersByDriverAndDate[groupKey] = {
+                        driver_id: order.driver_id,
+                        driver_name: order.driver_name,
+                        driver_phone: order.driver_phone,
+                        order_date: order.order_date,
+                        orders: []
+                    };
+                }
+
+                ordersByDriverAndDate[groupKey].orders.push(order);
+
+            } catch (error) {
+                results.failed.push({
+                    orderId,
+                    reason: error.message
+                });
+                console.error(`❌ Sipariş getirme hatası (${orderId}):`, error);
+            }
+        }
+
+        console.log(`\n👥 ${Object.keys(ordersByDriverAndDate).length} farklı sürücü+tarih kombinasyonu bulundu`);
+
+        // Her sürücü+tarih grubu için tek bir SMS gönder
+        for (const [groupKey, group] of Object.entries(ordersByDriverAndDate)) {
+            try {
+                const { driver_id, driver_name, driver_phone, order_date, orders } = group;
+
+                console.log(`\n📤 ${driver_name} için SMS hazırlanıyor (${orders.length} sipariş, ${order_date})`);
+
+                // Telefon numarası validasyonu
+                const phone = driver_phone;
+                
                 if (phone.toUpperCase().includes('MISSING')) {
-                    results.failed.push({
-                        orderId: order.ezcater_order_id,
-                        reason: 'Telefon numarası "MISSING" olarak işaretli'
+                    orders.forEach(order => {
+                        results.failed.push({
+                            orderId: order.ezcater_order_id,
+                            reason: 'Telefon numarası "MISSING" olarak işaretli'
+                        });
                     });
-                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - MISSING: ${phone}`);
+                    console.log(`⚠️ ${driver_name} atlandı - MISSING: ${phone}`);
                     continue;
                 }
 
-                // 3. Boşluk ve parantez kontrolü
                 if (phone.includes(' ') || phone.includes('(') || phone.includes(')')) {
-                    results.failed.push({
-                        orderId: order.ezcater_order_id,
-                        reason: 'Telefon numarası geçersiz karakterler içeriyor (boşluk/parantez)'
+                    orders.forEach(order => {
+                        results.failed.push({
+                            orderId: order.ezcater_order_id,
+                            reason: 'Telefon numarası geçersiz karakterler içeriyor'
+                        });
                     });
-                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Geçersiz format: ${phone}`);
+                    console.log(`⚠️ ${driver_name} atlandı - Geçersiz format: ${phone}`);
                     continue;
                 }
 
-                // 4. Telefon numarasını E.164 formatına çevir
                 let toPhoneNumber = phone.trim();
                 if (!toPhoneNumber.startsWith('+')) {
                     toPhoneNumber = '+' + toPhoneNumber.replace(/[^\d]/g, '');
                 }
 
-                // 5. ABD dışı numara kontrolü
                 if (!toPhoneNumber.startsWith('+1')) {
-                    results.failed.push({
-                        orderId: order.ezcater_order_id,
-                        reason: `ABD dışı numara tespit edildi: ${toPhoneNumber.substring(0, 4)}...`
+                    orders.forEach(order => {
+                        results.failed.push({
+                            orderId: order.ezcater_order_id,
+                            reason: `ABD dışı numara: ${toPhoneNumber.substring(0, 4)}...`
+                        });
                     });
-                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - ABD dışı numara: ${toPhoneNumber}`);
+                    console.log(`⚠️ ${driver_name} atlandı - ABD dışı numara: ${toPhoneNumber}`);
                     continue;
                 }
 
-                // 6. +1'den sonra rakam kontrolü
-                if (toPhoneNumber.match(/^\+1[^0-9]/)) {
-                    results.failed.push({
-                        orderId: order.ezcater_order_id,
-                        reason: '+1 sonrası geçersiz karakter'
-                    });
-                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - +1 sonrası geçersiz: ${toPhoneNumber}`);
-                    continue;
-                }
-
-                // 7. Uzunluk kontrolü (ABD için +1 + 10 digit = 12 karakter)
                 if (toPhoneNumber.length !== 12) {
-                    results.failed.push({
-                        orderId: order.ezcater_order_id,
-                        reason: `Geçersiz numara uzunluğu: ${toPhoneNumber.length} karakter (12 olmalı)`
+                    orders.forEach(order => {
+                        results.failed.push({
+                            orderId: order.ezcater_order_id,
+                            reason: `Geçersiz numara uzunluğu: ${toPhoneNumber.length} karakter`
+                        });
                     });
-                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Yanlış uzunluk: ${toPhoneNumber} (${toPhoneNumber.length} karakter)`);
+                    console.log(`⚠️ ${driver_name} atlandı - Yanlış uzunluk: ${toPhoneNumber}`);
                     continue;
                 }
 
-                // 8. Sadece rakam kontrolü (+1'den sonra)
                 const digitsOnly = toPhoneNumber.substring(2);
                 if (!/^\d{10}$/.test(digitsOnly)) {
-                    results.failed.push({
-                        orderId: order.ezcater_order_id,
-                        reason: 'Telefon numarası sadece rakam içermeli'
+                    orders.forEach(order => {
+                        results.failed.push({
+                            orderId: order.ezcater_order_id,
+                            reason: 'Telefon numarası sadece rakam içermeli'
+                        });
                     });
-                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Geçersiz karakter: ${toPhoneNumber}`);
+                    console.log(`⚠️ ${driver_name} atlandı - Geçersiz karakter: ${toPhoneNumber}`);
                     continue;
                 }
 
-                // TEST modu kontrolü kaldırıldı - tüm numaralara gönderilir
-
                 // Sürücüyü getir (dil bilgisi için)
-                const drivers = await base44.asServiceRole.entities.Driver.filter({ id: order.driver_id });
+                const drivers = await base44.asServiceRole.entities.Driver.filter({ id: driver_id });
                 const driver = drivers[0];
                 const driverLanguage = driver?.language || 'tr';
 
                 // Backend function URL'ini oluştur
                 const baseUrl = Deno.env.get('DRIVER_ORDERS_FUNCTION_URL');
                 if (!baseUrl) {
-                    results.failed.push({
-                        orderId: order.ezcater_order_id,
-                        reason: 'DRIVER_ORDERS_FUNCTION_URL environment variable tanımlı değil'
+                    orders.forEach(order => {
+                        results.failed.push({
+                            orderId: order.ezcater_order_id,
+                            reason: 'DRIVER_ORDERS_FUNCTION_URL environment variable tanımlı değil'
+                        });
                     });
-                    console.log(`⚠️ ${order.ezcater_order_id} atlandı - Function URL eksik`);
+                    console.log(`⚠️ ${driver_name} atlandı - Function URL eksik`);
                     continue;
                 }
                 
-                const functionUrl = `${baseUrl}?d=${encodeURIComponent(order.driver_id)}&t=${encodeURIComponent(order.order_date)}`;
+                const functionUrl = `${baseUrl}?d=${encodeURIComponent(driver_id)}&t=${encodeURIComponent(order_date)}`;
 
-                // SMS mesajı oluştur (sadece link)
+                // SMS mesajı oluştur
+                const orderCountText = orders.length === 1 ? 'Sipariş' : `${orders.length} Sipariş`;
+                
                 const messages = {
-                    tr: `🚚 Yeni Sipariş!
+                    tr: `🚚 Yeni ${orderCountText}!
 
 Sipariş detaylarını görmek için tıklayın:
 ${functionUrl}`,
                     
-                    en: `🚚 New Order!
+                    en: `🚚 New ${orders.length === 1 ? 'Order' : `${orders.length} Orders`}!
 
 Click to view order details:
 ${functionUrl}`
@@ -173,7 +200,7 @@ ${functionUrl}`
 
                 const message = messages[driverLanguage];
 
-                console.log(`📤 SMS gönderiliyor: ${order.driver_name} (${toPhoneNumber})`);
+                console.log(`📤 SMS gönderiliyor: ${driver_name} (${toPhoneNumber}) - ${orders.length} sipariş`);
 
                 // SMS gönder
                 const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
@@ -195,76 +222,82 @@ ${functionUrl}`
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Sipariş durumunu güncelle
-                    await base44.asServiceRole.entities.DailyOrder.update(order.id, {
-                        status: "Sürücü Onayı Bekleniyor",
-                        sms_sent_at: new Date().toISOString()
-                    });
+                    // Bu gruptaki TÜM siparişlerin durumunu güncelle
+                    for (const order of orders) {
+                        await base44.asServiceRole.entities.DailyOrder.update(order.id, {
+                            status: "Sürücü Onayı Bekleniyor",
+                            sms_sent_at: new Date().toISOString()
+                        });
 
-                    // Canvas'a bildir
-                    const CANVAS_URL = Deno.env.get("CANVAS_URL");
-                    if (CANVAS_URL) {
-                        try {
-                            await fetch(`${CANVAS_URL}/api/base44/webhook`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || ''
-                                },
-                                body: JSON.stringify({
-                                    type: 'SMS_SENT',
-                                    orderId: order.id,
-                                    orderNumber: order.ezcater_order_id,
-                                    driverName: order.driver_name,
-                                    sentTime: new Date().toISOString(),
-                                    date: order.order_date,
-                                    groupId: order.canvas_group_id || null
-                                })
-                            });
-                            console.log(`📡 Canvas'a bildirim gönderildi: ${order.ezcater_order_id}`);
-                        } catch (err) {
-                            console.error('⚠️ Canvas bildirimi başarısız:', err);
+                        // Canvas'a bildir
+                        const CANVAS_URL = Deno.env.get("CANVAS_URL");
+                        if (CANVAS_URL) {
+                            try {
+                                await fetch(`${CANVAS_URL}/api/base44/webhook`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || ''
+                                    },
+                                    body: JSON.stringify({
+                                        type: 'SMS_SENT',
+                                        orderId: order.id,
+                                        orderNumber: order.ezcater_order_id,
+                                        driverName: order.driver_name,
+                                        sentTime: new Date().toISOString(),
+                                        date: order.order_date,
+                                        groupId: order.canvas_group_id || null
+                                    })
+                                });
+                            } catch (err) {
+                                console.error('⚠️ Canvas bildirimi başarısız:', err);
+                            }
                         }
+
+                        results.sent.push({
+                            orderId: order.ezcater_order_id,
+                            driver: order.driver_name,
+                            phone: order.driver_phone,
+                            sid: data.sid
+                        });
                     }
 
-                    results.sent.push({
-                        orderId: order.ezcater_order_id,
-                        driver: order.driver_name,
-                        phone: order.driver_phone,
-                        sid: data.sid
-                    });
-
-                    console.log(`✅ ${order.ezcater_order_id} → ${order.driver_name} (${order.driver_phone})`);
+                    console.log(`✅ ${orders.length} sipariş için SMS gönderildi → ${driver_name} (${driver_phone})`);
                 } else {
                     const errorData = await response.json();
-                    results.failed.push({
-                        orderId: order.ezcater_order_id,
-                        reason: errorData.message || 'SMS gönderilemedi'
+                    
+                    orders.forEach(order => {
+                        results.failed.push({
+                            orderId: order.ezcater_order_id,
+                            reason: errorData.message || 'SMS gönderilemedi'
+                        });
                     });
                     
-                    console.error(`❌ ${order.ezcater_order_id} → Hata: ${errorData.message}`);
+                    console.error(`❌ ${driver_name} → Hata: ${errorData.message}`);
                 }
 
                 // Rate limiting
                 await new Promise(r => setTimeout(r, 1000));
 
             } catch (error) {
-                results.failed.push({
-                    orderId,
-                    reason: error.message
+                const group = ordersByDriverAndDate[groupKey];
+                group.orders.forEach(order => {
+                    results.failed.push({
+                        orderId: order.ezcater_order_id,
+                        reason: error.message
+                    });
                 });
-                console.error(`❌ Sipariş işleme hatası (${orderId}):`, error);
+                console.error(`❌ Grup işleme hatası (${groupKey}):`, error);
             }
         }
 
         console.log(`\n📊 Sonuç:`);
         console.log(`   ✅ Gönderilen: ${results.sent.length}`);
         console.log(`   ❌ Başarısız: ${results.failed.length}`);
-        console.log(`   🚫 Atlanan (TEST): ${results.skipped.length}`);
 
         return Response.json({
             success: true,
-            message: `${results.sent.length} sipariş için SMS gönderildi${results.skipped.length > 0 ? ` (${results.skipped.length} test modunda atlandı)` : ''}`,
+            message: `${Object.keys(ordersByDriverAndDate).length} sürücüye SMS gönderildi (toplam ${results.sent.length} sipariş)`,
             sent: results.sent,
             failed: results.failed,
             skipped: results.skipped
