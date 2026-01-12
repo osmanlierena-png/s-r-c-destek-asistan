@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
                 // Sürücüyü getir (dil bilgisi için)
                 const drivers = await base44.asServiceRole.entities.Driver.filter({ id: driver_id });
                 const driver = drivers[0];
-                const driverLanguage = driver?.language || 'tr';
+                const driverLanguage = driver?.language || 'en';
 
                 // Backend function URL'ini oluştur
                 const baseUrl = Deno.env.get('DRIVER_ORDERS_FUNCTION_URL');
