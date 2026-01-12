@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
 
             return Response.json({ 
                 success: true, 
-                message: response === 'approve' ? 'Onaylandı!' : 'Reddedildi!',
+                message: response === 'approve' ? 'Approved!' : 'Rejected!',
                 updatedCount: orders.length
             });
         }
@@ -126,8 +126,8 @@ Deno.serve(async (req) => {
                         <p style="font-size: 24px; color: #1e293b; margin: 0; font-weight: 600; letter-spacing: -0.5px;">${order.dropoff_time}</p>
                     </div>
                 </div>
-                ${order.customer_name ? `<div style="padding: 16px; background: white;"><p style="font-size: 13px; color: #334155; margin: 0; font-weight: 400;"><span style="color: #64748b;">Müşteri:</span> ${order.customer_name}</p></div>` : ''}
-                ${order.ezcater_notes ? `<div style="padding: 16px; background: #fffbeb; border-left: 3px solid #f59e0b;"><p style="font-size: 10px; font-weight: 600; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Notlar</p><p style="font-size: 13px; color: #78350f; margin: 0; line-height: 1.5; font-weight: 400;">${order.ezcater_notes}</p></div>` : ''}
+                ${order.customer_name ? `<div style="padding: 16px; background: white;"><p style="font-size: 13px; color: #334155; margin: 0; font-weight: 400;"><span style="color: #64748b;">Customer:</span> ${order.customer_name}</p></div>` : ''}
+                ${order.ezcater_notes ? `<div style="padding: 16px; background: #fffbeb; border-left: 3px solid #f59e0b;"><p style="font-size: 10px; font-weight: 600; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Notes</p><p style="font-size: 13px; color: #78350f; margin: 0; line-height: 1.5; font-weight: 400;">${order.ezcater_notes}</p></div>` : ''}
             </div>
         `).join('');
         
@@ -147,13 +147,13 @@ body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont,
 <div class="container">
 <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 28px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
 <h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #1e293b; letter-spacing: -0.3px;">${text.greeting} ${driver.name}</h1>
-<p style="margin: 6px 0 0 0; color: #64748b; font-size: 14px; font-weight: 400;">${text.todayOrders} · ${orders.length} sipariş</p>
+<p style="margin: 6px 0 0 0; color: #64748b; font-size: 14px; font-weight: 400;">${text.todayOrders} · ${orders.length} orders</p>
 </div>
 ${orders.length === 0 ? '<div style="background: white; border-radius: 12px; padding: 48px; text-align: center;"><p style="color: #64748b; margin: 0;">' + text.noOrders + '</p></div>' : ordersHTML}
 ${orders.length > 0 && (orders[0].status === 'Sürücü Onayladı' || orders[0].status === 'Sürücü Reddetti') ? `
 <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 20px; border: 1px solid ${orders[0].status === 'Sürücü Onayladı' ? '#10b981' : '#ef4444'};">
 <p style="margin: 0; font-size: 15px; font-weight: 600; color: ${orders[0].status === 'Sürücü Onayladı' ? '#16a34a' : '#dc2626'};">
-${orders[0].status === 'Sürücü Onayladı' ? text.approved : text.rejected} (${orders.length} sipariş)
+${orders[0].status === 'Sürücü Onayladı' ? text.approved : text.rejected} (${orders.length} orders)
 </p>
 </div>
 ` : `
@@ -168,24 +168,24 @@ ${orders[0].status === 'Sürücü Onayladı' ? text.approved : text.rejected} ($
 async function handleClick(response) {
     const msg = document.getElementById('msg');
     msg.style.display = 'block';
-    msg.textContent = '⏳ İşleniyor...';
+    msg.textContent = '⏳ Processing...';
     try {
         const res = await fetch(window.location.href, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ response }) });
         const data = await res.json();
         if (data.success) {
             msg.style.background = '#dcfce7';
             msg.style.color = '#166534';
-            msg.textContent = (response === 'approve' ? '${text.approved}' : '${text.rejected}') + ' (' + data.updatedCount + ' sipariş)';
+            msg.textContent = (response === 'approve' ? '${text.approved}' : '${text.rejected}') + ' (' + data.updatedCount + ' orders)';
             document.querySelectorAll('button').forEach(b => b.style.display = 'none');
         } else {
             msg.style.background = '#fee2e2';
             msg.style.color = '#991b1b';
-            msg.textContent = '❌ Hata: ' + data.message;
+            msg.textContent = '❌ Error: ' + data.message;
         }
     } catch (error) {
         msg.style.background = '#fee2e2';
         msg.style.color = '#991b1b';
-        msg.textContent = '❌ Hata: ' + error.message;
+        msg.textContent = '❌ Error: ' + error.message;
     }
 }
 </script>
