@@ -173,11 +173,19 @@ body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont,
 <p style="margin: 6px 0 0 0; color: #64748b; font-size: 14px; font-weight: 400;">${text.todayOrders} · ${orders.length} sipariş</p>
 </div>
 ${orders.length === 0 ? '<div style="background: white; border-radius: 12px; padding: 48px; text-align: center;"><p style="color: #64748b; margin: 0;">' + text.noOrders + '</p></div>' : ordersHTML}
+${orders.length > 0 && (orders[0].status === 'Sürücü Onayladı' || orders[0].status === 'Sürücü Reddetti') ? `
+<div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 20px; border: 1px solid ${orders[0].status === 'Sürücü Onayladı' ? '#10b981' : '#ef4444'};">
+<p style="margin: 0; font-size: 15px; font-weight: 600; color: ${orders[0].status === 'Sürücü Onayladı' ? '#16a34a' : '#dc2626'};">
+${orders[0].status === 'Sürücü Onayladı' ? text.approved : text.rejected} (${orders.length} sipariş)
+</p>
+</div>
+` : `
 <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 20px; border: 1px solid #e2e8f0;">
 <button onclick="handleClick('approve')" style="width: 100%; padding: 16px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; letter-spacing: 0.3px;">${text.approveAll}</button>
 <button onclick="handleClick('reject')" style="width: 100%; padding: 16px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; letter-spacing: 0.3px;">${text.rejectAll}</button>
 <div id="msg" style="margin-top: 16px; padding: 14px; border-radius: 6px; display: none; font-weight: 500; font-size: 14px;"></div>
 </div>
+`}
 </div>
 <script>
 async function handleClick(response) {
