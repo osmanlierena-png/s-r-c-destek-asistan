@@ -83,6 +83,8 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Driver not found' }, { status: 404 });
         }
 
+        const driver = drivers[0];
+
         const text = {
             greeting: 'Hello',
             todayOrders: 'Today\'s Orders',
