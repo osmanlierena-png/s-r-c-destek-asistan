@@ -163,11 +163,6 @@ Deno.serve(async (req) => {
                     continue;
                 }
 
-                // Sürücüyü getir (dil bilgisi için)
-                const drivers = await base44.asServiceRole.entities.Driver.filter({ id: driver_id });
-                const driver = drivers[0];
-                const driverLanguage = driver?.language || 'en';
-
                 // Backend function URL'ini oluştur
                 const baseUrl = Deno.env.get('DRIVER_ORDERS_FUNCTION_URL');
                 if (!baseUrl) {
@@ -184,21 +179,10 @@ Deno.serve(async (req) => {
                 const functionUrl = `${baseUrl}?d=${encodeURIComponent(driver_id)}&t=${encodeURIComponent(order_date)}`;
 
                 // SMS mesajı oluştur
-                const orderCountText = orders.length === 1 ? 'Sipariş' : `${orders.length} Sipariş`;
-                
-                const messages = {
-                    tr: `🚚 Yeni ${orderCountText}!
+                const message = `🚚 New ${orders.length === 1 ? 'Order' : `${orders.length} Orders`}!
 
-Sipariş detaylarını görmek için tıklayın:
-${functionUrl}`,
-                    
-                    en: `🚚 New ${orders.length === 1 ? 'Order' : `${orders.length} Orders`}!
-
-Click to view order details:
-${functionUrl}`
-                };
-
-                const message = messages[driverLanguage];
+                Click to view order details:
+                ${functionUrl}`;
 
                 console.log(`📤 SMS gönderiliyor: ${driver_name} (${toPhoneNumber}) - ${orders.length} sipariş`);
 

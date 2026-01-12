@@ -83,9 +83,6 @@ Deno.serve(async (req) => {
         }
       }
       
-      const driver = await base44.asServiceRole.entities.Driver.filter({ phone: from });
-      const driverLanguage = driver && driver[0] ? driver[0].language : 'tr';
-      
       // Canvas'a sürücü yanıtını bildir
       const CANVAS_URL = Deno.env.get("CANVAS_URL");
       if (CANVAS_URL) {
@@ -118,17 +115,12 @@ Deno.serve(async (req) => {
         }
       }
       
-      const confirmationMessages = {
-        tr: responseType === 'Onay' 
-          ? '✅ Teşekkürler! Siparişleriniz onaylandı. Pickup adresine ulaştığınızda Arrive\'a basmayı unutmayın!'
-          : '❌ Anlaşıldı. Siparişleriniz iptal edildi. Teşekkürler.',
-        en: responseType === 'Onay'
-          ? '✅ Thank you! Your orders are confirmed. Don\'t forget to press Arrive when you reach the pickup location!'
-          : '❌ Understood. Your orders have been cancelled. Thank you.'
-      };
+      const confirmationMessage = responseType === 'Onay'
+        ? '✅ Thank you! Your orders are confirmed. Don\'t forget to press Arrive when you reach the pickup location!'
+        : '❌ Understood. Your orders have been cancelled. Thank you.';
       
       return new Response(
-        `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${confirmationMessages[driverLanguage]}</Message></Response>`,
+        `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${confirmationMessage}</Message></Response>`,
         { headers: { 'Content-Type': 'text/xml' } }
       );
     }

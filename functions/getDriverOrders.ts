@@ -83,45 +83,22 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Driver not found' }, { status: 404 });
         }
 
-        const driver = drivers[0];
-        const lang = driver.language || 'tr';
-
-        const t = {
-            tr: {
-                greeting: 'Merhaba',
-                todayOrders: 'Bugünkü Siparişleriniz',
-                order: 'Sipariş',
-                pickupAddress: 'PICKUP ADDRESS',
-                deliveryAddress: 'DELIVERY ADDRESS',
-                pickupTime: 'PICKUP TIME',
-                deliveryTime: 'DELIVERY TIME',
-                customer: 'Müşteri',
-                notes: 'NOTLAR',
-                approveAll: '✅ HEPSİNİ ONAYLA',
-                rejectAll: '❌ HEPSİNİ REDDET',
-                approved: '✅ Siparişler onaylandı!',
-                rejected: '✅ Siparişler reddedildi!',
-                noOrders: 'Bugün için sipariş bulunamadı.'
-            },
-            en: {
-                greeting: 'Hello',
-                todayOrders: 'Today\'s Orders',
-                order: 'Order',
-                pickupAddress: 'PICKUP ADDRESS',
-                deliveryAddress: 'DELIVERY ADDRESS',
-                pickupTime: 'PICKUP TIME',
-                deliveryTime: 'DELIVERY TIME',
-                customer: 'Customer',
-                notes: 'NOTES',
-                approveAll: '✅ APPROVE ALL',
-                rejectAll: '❌ REJECT ALL',
-                approved: '✅ Orders approved!',
-                rejected: '✅ Orders rejected!',
-                noOrders: 'No orders found for today.'
-            }
+        const text = {
+            greeting: 'Hello',
+            todayOrders: 'Today\'s Orders',
+            order: 'Order',
+            pickupAddress: 'PICKUP ADDRESS',
+            deliveryAddress: 'DELIVERY ADDRESS',
+            pickupTime: 'PICKUP TIME',
+            deliveryTime: 'DELIVERY TIME',
+            customer: 'Customer',
+            notes: 'NOTES',
+            approveAll: '✅ APPROVE ALL',
+            rejectAll: '❌ REJECT ALL',
+            approved: '✅ Orders approved!',
+            rejected: '✅ Orders rejected!',
+            noOrders: 'No orders found for today.'
         };
-
-        const text = t[lang];
         
         const ordersHTML = orders.map((order, index) => `
             <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">

@@ -259,10 +259,6 @@ Deno.serve(async (req) => {
     for (const [driverId, driverOrders] of Object.entries(ordersByDriver)) {
       console.log(`\n👤 Sürücü ${driverId} - ${driverOrders.length} sipariş`);
       
-      const driver = await base44.asServiceRole.entities.Driver.filter({ id: driverId });
-      const driverData = driver && driver.length > 0 ? driver[0] : null;
-      const driverLanguage = driverData?.language || 'tr';
-      
       // 🔥 YENİ: AM/PM destekli sıralama
       const sortedOrders = driverOrders.sort((a, b) => {
         const timeA = parseTime(a.pickup_time || '00:00');
@@ -380,28 +376,24 @@ Deno.serve(async (req) => {
         let messageContent;
         
         if (isGrouped) {
-          const template = driverLanguage === 'en' 
-            ? config.grouped_message_template_en 
-            : config.grouped_message_template_tr;
+          const template = config.grouped_message_template_en;
           
           const orderList = group.map((order, idx) => {
             return `${idx + 1}. ⏰ ${order.pickup_time}\n   📍 ${order.pickup_address}`;
           }).join('\n\n');
           
           messageContent = template
-            .replace('{driver_name}', firstOrder.driver_name || 'Sürücü')
+            .replace('{driver_name}', firstOrder.driver_name || 'Driver')
             .replace('{order_count}', group.length.toString())
             .replace('{order_list}', orderList);
         } else {
-          const template = driverLanguage === 'en' 
-            ? config.message_template_en 
-            : config.message_template_tr;
+          const template = config.message_template_en;
           
           messageContent = template
-            .replace('{driver_name}', firstOrder.driver_name || 'Sürücü')
+            .replace('{driver_name}', firstOrder.driver_name || 'Driver')
             .replace('{minutes}', Math.round(minutesUntilPickup).toString())
             .replace('{pickup_time}', firstOrder.pickup_time)
-            .replace('{pickup_address}', firstOrder.pickup_address || 'Adres yok');
+            .replace('{pickup_address}', firstOrder.pickup_address || 'No address');
         }
         
         console.log(`📤 Mesaj gönderiliyor: ${firstOrder.driver_phone}`);
@@ -451,7 +443,7 @@ Deno.serve(async (req) => {
                 await base44.asServiceRole.entities.CheckMessage.create({
                   order_id: order.id,
                   driver_phone: order.driver_phone,
-                  driver_language: driverLanguage,
+                  driver_language: 'en',
                   message_type: '60dk_Kontrol',
                   message_content: messageContent,
                   message_status: 'sent',
@@ -497,7 +489,7 @@ Deno.serve(async (req) => {
               await base44.asServiceRole.entities.CheckMessage.create({
                 order_id: order.id,
                 driver_phone: order.driver_phone,
-                driver_language: driverLanguage,
+                driver_language: 'en',
                 message_type: '60dk_Kontrol',
                 message_content: messageContent,
                 message_status: 'failed',
@@ -524,7 +516,7 @@ Deno.serve(async (req) => {
             await base44.asServiceRole.entities.CheckMessage.create({
               order_id: order.id,
               driver_phone: order.driver_phone,
-              driver_language: driverLanguage,
+              driver_language: 'en',
               message_type: '60dk_Kontrol',
               message_content: messageContent,
               message_status: 'failed',
