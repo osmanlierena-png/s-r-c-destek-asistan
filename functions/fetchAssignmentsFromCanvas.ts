@@ -83,6 +83,7 @@ Deno.serve(async (req) => {
         // Her atama için DailyOrder'ı güncelle
         let updated = 0;
         let failed = 0;
+        let skipped = 0;
 
         for (const assignment of assignments) {
             try {
@@ -94,14 +95,32 @@ Deno.serve(async (req) => {
                 }, null, 1);
 
                 if (orders.length === 0) {
-                    console.error(`⚠️ Sipariş bulunamadı: ${assignment.orderId} (${assignment.orderNumber || 'N/A'})`);
+                    console.log(`⚠️ Sipariş bulunamadı: ${assignment.orderNumber || assignment.orderId}`);
                     failed++;
                     continue;
                 }
                 
-                console.log(`   ✓ Sipariş bulundu: ${orders[0].ezcater_order_id}`);
-
                 const order = orders[0];
+
+                // Sürücü etkileşimi olan siparişleri atla
+                const driverInteractedStatuses = [
+                    'Sürücü Onayı Bekleniyor',
+                    'Sürücü Onayladı',
+                    'Sürücü Reddetti',
+                    'Yeniden Atama Havuzu',
+                    'Sürücüye Gönderildi',
+                    'Yolda',
+                    'Tamamlandı',
+                    'Problem'
+                ];
+
+                if (driverInteractedStatuses.includes(order.status)) {
+                    console.log(`⏩ Atlandı: ${order.ezcater_order_id} - Durum: ${order.status}`);
+                    skipped++;
+                    continue;
+                }
+                
+                console.log(`   ✓ Sipariş bulundu: ${orders[0].ezcater_order_id} - Durum: ${order.status}`);
 
                 // Sürücüyü isimle bul
                 let driverId = null;
@@ -146,13 +165,14 @@ Deno.serve(async (req) => {
             }
         }
 
-        console.log(`\n📊 Sonuç: ${updated} güncellendi, ${failed} başarısız`);
+        console.log(`\n📊 Sonuç: ${updated} güncellendi, ${failed} başarısız, ${skipped} atlandı`);
 
         return Response.json({
-            success: failed === 0,
-            message: `${updated} sipariş güncellendi${failed > 0 ? `, ${failed} başarısız` : ''}`,
+            success: true,
+            message: `${updated} sipariş güncellendi${failed > 0 ? `, ${failed} başarısız` : ''}${skipped > 0 ? `, ${skipped} atlandı` : ''}`,
             updated,
             failed,
+            skipped,
             total: assignments.length
         });
 
