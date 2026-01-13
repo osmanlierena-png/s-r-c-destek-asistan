@@ -186,7 +186,7 @@ export default function DriverOrderViewPage() {
                   </div>
 
                   {/* Customer Info */}
-                  {order.customer_name && (
+                  {order.customer_name && order.customer_name !== 'Screenshot Upload' && (
                     <div className="p-4 bg-slate-50 border-t">
                       <p className="text-sm text-slate-600">
                         <span className="font-semibold">Müşteri:</span> {order.customer_name}

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -73,7 +72,7 @@ export default function OrderDetails({ order, onClose }) {
               Müşteri Bilgileri
             </h3>
             <div className="space-y-2">
-              <InfoRow label="Müşteri Adı" value={order.customer_name || 'Belirtilmemiş'} />
+              <InfoRow label="Müşteri Adı" value={order.customer_name === 'Screenshot Upload' ? 'Belirtilmemiş' : order.customer_name || 'Belirtilmemiş'} />
               <InfoRow label="Sipariş Tarihi" value={order.order_date} icon={<Calendar className="w-4 h-4 text-green-500" />} />
             </div>
           </div>
