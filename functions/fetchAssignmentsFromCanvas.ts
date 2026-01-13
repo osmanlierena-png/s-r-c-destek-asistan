@@ -102,7 +102,9 @@ Deno.serve(async (req) => {
                 
                 const order = orders[0];
 
-                // Sürücü etkileşimi olan siparişleri atla
+                // ⚠️ GÜNCEL KRİTİK KONTROLLER - Sürücü etkileşimi olan siparişleri koruma
+                
+                // 1. Status kontrolü - sürücü yanıt vermiş veya ilerleyen aşamadaysa atla
                 const driverInteractedStatuses = [
                     'Sürücü Onayı Bekleniyor',
                     'Sürücü Onayladı',
@@ -115,12 +117,26 @@ Deno.serve(async (req) => {
                 ];
 
                 if (driverInteractedStatuses.includes(order.status)) {
-                    console.log(`⏩ Atlandı: ${order.ezcater_order_id} - Durum: ${order.status}`);
+                    console.log(`⏩ Atlandı (Status): ${order.ezcater_order_id} - Durum: ${order.status}`);
                     skipped++;
                     continue;
                 }
                 
-                console.log(`   ✓ Sipariş bulundu: ${orders[0].ezcater_order_id} - Durum: ${order.status}`);
+                // 2. SMS gönderilmiş mi kontrolü - SMS gönderildiyse Canvas'tan güncelleme yapma
+                if (order.sms_sent_at) {
+                    console.log(`⏩ Atlandı (SMS): ${order.ezcater_order_id} - SMS gönderilmiş: ${order.sms_sent_at}`);
+                    skipped++;
+                    continue;
+                }
+                
+                // 3. Sürücü yanıtı var mı kontrolü - Yanıt varsa kesinlikle atla
+                if (order.driver_response) {
+                    console.log(`⏩ Atlandı (Yanıt): ${order.ezcater_order_id} - Yanıt: ${order.driver_response}`);
+                    skipped++;
+                    continue;
+                }
+                
+                console.log(`   ✓ Sipariş bulundu ve güncellenebilir: ${orders[0].ezcater_order_id} - Durum: ${order.status}`);
 
                 // Sürücüyü isimle bul
                 let driverId = null;
