@@ -78,11 +78,36 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
                 items: {
                   type: "object",
                   properties: {
-                    pickup_address: { type: "string" },
-                    dropoff_address: { type: "string" },
-                    pickup_time: { type: "string" },
-                    dropoff_time: { type: "string" }
-                  }
+                    order_no: { 
+                      type: "string",
+                      description: "Order number (e.g., EzMXFAUY). Do NOT extract Priority, Status, Region, or Suggested pickup time."
+                    },
+                    pickup_address: { 
+                      type: "string",
+                      description: "Full pickup address only"
+                    },
+                    dropoff_address: { 
+                      type: "string",
+                      description: "Full delivery address only"
+                    },
+                    pickup_time: { 
+                      type: "string",
+                      description: "Pickup time in HH:MM AM/PM format (e.g., 06:30 AM). Do NOT extract suggested pickup time."
+                    },
+                    dropoff_time: { 
+                      type: "string",
+                      description: "Delivery time in HH:MM AM/PM format (e.g., 07:00 AM)"
+                    },
+                    tip: { 
+                      type: "number",
+                      description: "Tip amount as a number (e.g., 10.5)"
+                    },
+                    price: { 
+                      type: "number",
+                      description: "Order price as a number (e.g., 59.97)"
+                    }
+                  },
+                  required: ["order_no", "pickup_address", "dropoff_address", "pickup_time", "dropoff_time"]
                 }
               }
             }
@@ -92,12 +117,14 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
         if (extractRes.status === 'success' && extractRes.output?.orders) {
           extractRes.output.orders.forEach((o, idx) => {
             allOrders.push({
-              order_id: `SS${Date.now()}_${i}_${idx}`,
+              order_id: o.order_no || `SS${Date.now()}_${i}_${idx}`,
               customer_name: 'Screenshot Upload',
               pickup_address: o.pickup_address,
               pickup_time: o.pickup_time,
               dropoff_address: o.dropoff_address,
-              dropoff_time: o.dropoff_time
+              dropoff_time: o.dropoff_time,
+              tip: o.tip,
+              price: o.price
             });
           });
         }
@@ -119,6 +146,8 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
             dropoff_address: o.dropoff_address,
             dropoff_time: o.dropoff_time,
             customer_name: o.customer_name,
+            tip: o.tip,
+            price: o.price,
             status: 'Çekildi'
           }));
 
