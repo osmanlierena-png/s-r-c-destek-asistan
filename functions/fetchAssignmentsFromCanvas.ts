@@ -87,11 +87,11 @@ Deno.serve(async (req) => {
 
         for (const assignment of assignments) {
             try {
-                console.log(`\n🔍 İşleniyor: ${assignment.orderNumber || assignment.orderId} → ${assignment.driverName}`);
-                
-                // Siparişi orderNumber (ezcater_order_id) ile bul
+                console.log(`\n🔍 İşleniyor: ${assignment.orderNumber || assignment.id} → ${assignment.driverName}`);
+
+                // Siparişi Base44 ID ile bul (en güvenilir yöntem)
                 const orders = await base44.asServiceRole.entities.DailyOrder.filter({
-                    ezcater_order_id: assignment.orderNumber
+                    id: assignment.id
                 }, null, 1);
 
                 if (orders.length === 0) {

@@ -50,6 +50,7 @@ Deno.serve(async (req) => {
                 orders: orders.map(o => ({
                     id: o.id,
                     orderNumber: o.ezcater_order_id || o.id,
+                    ezcaterOrderId: o.ezcater_order_id,
                     pickupTime: o.pickup_time,
                     pickupAddress: o.pickup_address,
                     dropoffTime: o.dropoff_time,
