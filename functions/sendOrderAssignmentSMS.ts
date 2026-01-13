@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
                 const functionUrl = `${baseUrl}?d=${encodeURIComponent(driver_id)}&t=${encodeURIComponent(order_date)}`;
 
                 // SMS mesajı oluştur
-                const message = `🚚 New ${orders.length === 1 ? 'Order' : `${orders.length} Orders`}!
+                const message = `🚚 New Orders!
 
                 Click to view order details:
                 ${functionUrl}`;
