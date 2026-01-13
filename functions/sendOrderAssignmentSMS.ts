@@ -66,6 +66,16 @@ Deno.serve(async (req) => {
                     continue;
                 }
 
+                // ⚠️ YENİ KONTROL: Sürücü zaten yanıt verdiyse atla
+                if (order.driver_response) {
+                    results.skipped.push({
+                        orderId: order.ezcater_order_id,
+                        reason: `Sürücü zaten yanıt verdi: ${order.driver_response}`
+                    });
+                    console.log(`⏩ Atlandı: ${order.ezcater_order_id} - Durum: ${order.status}, Yanıt: ${order.driver_response}`);
+                    continue;
+                }
+
                 // Sürücü+tarih bazında grupla
                 const groupKey = `${order.driver_id}_${order.order_date}`;
                 
@@ -181,8 +191,8 @@ Deno.serve(async (req) => {
                 // SMS mesajı oluştur
                 const message = `🚚 New Orders!
 
-                Click to view order details:
-                ${functionUrl}`;
+Click to view order details:
+${functionUrl}`;
 
                 console.log(`📤 SMS gönderiliyor: ${driver_name} (${toPhoneNumber}) - ${orders.length} sipariş`);
 
@@ -278,6 +288,7 @@ Deno.serve(async (req) => {
         console.log(`\n📊 Sonuç:`);
         console.log(`   ✅ Gönderilen: ${results.sent.length}`);
         console.log(`   ❌ Başarısız: ${results.failed.length}`);
+        console.log(`   ⏩ Atlanan: ${results.skipped.length}`);
 
         return Response.json({
             success: true,
