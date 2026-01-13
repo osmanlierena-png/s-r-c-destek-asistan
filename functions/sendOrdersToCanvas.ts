@@ -62,8 +62,8 @@ Deno.serve(async (req) => {
                     customerName: o.customer_name,
                     driverName: o.driver_name,
                     driverPhone: o.driver_phone,
-                    tip: o.tip,
-                    price: o.price
+                    tipAmount: parseFloat(o.tip) || 0,
+                    priceAmount: parseFloat(o.price) || 0
                 }))
             })
         });

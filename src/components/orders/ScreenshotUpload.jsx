@@ -123,8 +123,8 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
               pickup_time: o.pickup_time,
               dropoff_address: o.dropoff_address,
               dropoff_time: o.dropoff_time,
-              tip: o.tip,
-              price: o.price
+              tip: parseFloat(String(o.tip).replace(/[$,]/g, '')) || 0,
+              price: parseFloat(String(o.price).replace(/[$,]/g, '')) || 0
             });
           });
         }
