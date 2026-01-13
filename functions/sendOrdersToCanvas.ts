@@ -61,7 +61,9 @@ Deno.serve(async (req) => {
                     status: o.status,
                     customerName: o.customer_name,
                     driverName: o.driver_name,
-                    driverPhone: o.driver_phone
+                    driverPhone: o.driver_phone,
+                    tip: o.tip,
+                    price: o.price
                 }))
             })
         });
