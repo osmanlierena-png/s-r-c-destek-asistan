@@ -1,5 +1,21 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
+/**
+ * ⚠️ KRİTİK: Bu fonksiyon EzCater sipariş ekran görüntülerinden veri çeker
+ * 
+ * ÇEKİLMESİ ZORUNLU ALANLAR (Bu alanlar silinmemeli/unutulmamalı):
+ * - order_no (Order No/EzCater Order ID)
+ * - pickup_address (Pickup Address)
+ * - delivery_address (Delivery Address)
+ * - pickup_time (Pickup Time)
+ * - delivery_datetime (Delivery Date + Time)
+ * - price ($ işareti ile, örn: $276.00) ⚠️ ZORUNLU
+ * - tip ($ işareti ile, örn: $15.00) ⚠️ ZORUNLU
+ * 
+ * Bu fonksiyonda yapılacak değişiklikler test edilmelidir!
+ * Test için: testOCRParsing fonksiyonunu kullanın
+ */
+
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     
@@ -12,7 +28,8 @@ Deno.serve(async (req) => {
         
         console.log("📸 Screenshot parse ediliyor...");
         
-        // GPT ile tablo parse et
+        // ⚠️ KRİTİK: Bu prompt ve JSON şeması değiştirilirse MUTLAKA test edilmeli
+        // Price ve Tip alanları ZORUNLU olarak çekilmelidir
         const parseResult = await base44.integrations.Core.InvokeLLM({
             prompt: `Bu görsel bir EzCater sipariş tablosu. Her satırda şu bilgiler var:
 - Order No (sipariş numarası)
@@ -20,8 +37,8 @@ Deno.serve(async (req) => {
 - Delivery Address (teslimat adresi)  
 - Pickup Time (alış saati)
 - Delivery Time (teslimat tarihi + saati)
-- Price (fiyat - $ işareti ile, örn: $276.00)
-- Tip (bahşiş - $ işareti ile, örn: $15.00)
+- Price (fiyat - $ işareti ile, örn: $276.00) ⚠️ ZORUNLU ALAN
+- Tip (bahşiş - $ işareti ile, örn: $15.00) ⚠️ ZORUNLU ALAN
 
 ÖRNEKLER:
 Order No: "EzJ8EC02"
@@ -35,9 +52,11 @@ Tip: "$15.00"
 ÖNEMLİ: 
 - Price ve Tip'ten $ işaretini kaldırıp sadece sayı olarak döndür
 - Eğer bir alan boş/okunamazsa null döndür
+- ⚠️ PRICE VE TIP ALANLARI MUTLAKA ÇEKİLMELİ
 
 ÇIKAR: Tüm satırları JSON array olarak döndür.`,
             file_urls: [file_url],
+            // ⚠️ KRİTİK: Bu şema değiştirilirse price ve tip alanlarının korunduğundan emin olun
             response_json_schema: {
                 type: "object",
                 properties: {
@@ -51,8 +70,8 @@ Tip: "$15.00"
                                 delivery_address: { type: "string" },
                                 pickup_time: { type: "string" },
                                 delivery_datetime: { type: "string" },
-                                price: { type: ["number", "null"] },
-                                tip: { type: ["number", "null"] }
+                                price: { type: ["number", "null"] },  // ⚠️ ZORUNLU - Silinmemeli
+                                tip: { type: ["number", "null"] }      // ⚠️ ZORUNLU - Silinmemeli
                             },
                             required: ["pickup_address", "delivery_address", "pickup_time", "delivery_datetime"]
                         }
