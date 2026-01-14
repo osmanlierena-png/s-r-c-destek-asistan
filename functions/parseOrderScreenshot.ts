@@ -1,5 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
+/**
+ * ⚠️ KRİTİK FONKSİYON - OCR SCREENSHOT PARSER ⚠️
+ * 
+ * BU FONKSİYON SİSTEMİN TEMELİDİR VE MÜKEMMEL ÇALIŞMAKTADIR!
+ * 
+ * UYARI: Bu fonksiyonda değişiklik yapmadan önce:
+ * 1. Prompt'un TÜM alanları (Order No, Price, Tip, vs.) hala istediğinden emin olun
+ * 2. response_json_schema'nın DailyOrder entity'sindeki BÜTÜN önemli alanları içerdiğini doğrulayın
+ * 3. Özellikle 'price' ve 'tip' alanlarının şemada var olduğunu kontrol edin
+ * 4. Değişiklik sonrası mutlaka test edin - eksik veri kaybına sebep olmayın!
+ * 
+ * Son Güncelleme: 2026-01-14
+ * Durum: Stabil ve Doğrulanmış ✅
+ */
+
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     
@@ -13,6 +28,7 @@ Deno.serve(async (req) => {
         console.log("📸 Screenshot parse ediliyor...");
         
         // GPT ile tablo parse et
+        // ⚠️ UYARI: Bu prompt ve schema birlikte çalışır - ikisini de güncel tutun!
         const parseResult = await base44.integrations.Core.InvokeLLM({
             prompt: `Bu görsel bir EzCater sipariş tablosu. Her satırda şu bilgiler var:
 - Order No (sipariş numarası)
