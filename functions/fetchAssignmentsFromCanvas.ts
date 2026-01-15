@@ -152,9 +152,9 @@ Deno.serve(async (req) => {
                 // Eğer Canvas'ta yeni sürücü atanmışsa ve Base44'te reddedilmiş/havuzdaysa → GÜNCELLE
                 const isReassigned = rejectableStatuses.includes(order.status) && assignment.driverName;
 
-                // Final statuslarda veya SMS gönderilmiş "Sürücü Onayı Bekleniyor" durumunda → ATLA
-                if (!isReassigned && (finalStatuses.includes(order.status) || order.status === 'Sürücü Onayı Bekleniyor')) {
-                    console.log(`⏩ Atlandı (Status): ${order.ezcater_order_id} - Durum: ${order.status}`);
+                // Final statuslarda → ATLA
+                if (finalStatuses.includes(order.status)) {
+                    console.log(`⏩ Atlandı (Final Status): ${order.ezcater_order_id} - Durum: ${order.status}`);
                     skipped++;
                     skippedDetails.push({
                         orderId: order.ezcater_order_id,
@@ -163,29 +163,32 @@ Deno.serve(async (req) => {
                     });
                     continue;
                 }
-                
-                // 2. SMS gönderilmiş mi kontrolü - SMS gönderildiyse Canvas'tan güncelleme yapma
-                if (order.sms_sent_at) {
-                    console.log(`⏩ Atlandı (SMS): ${order.ezcater_order_id} - SMS gönderilmiş: ${order.sms_sent_at}`);
-                    skipped++;
-                    skippedDetails.push({
-                        orderId: order.ezcater_order_id,
-                        reason: 'SMS gönderilmiş',
-                        canvasDriver: assignment.driverName
-                    });
-                    continue;
-                }
-                
-                // 3. Sürücü yanıtı var mı kontrolü - Yanıt varsa kesinlikle atla
-                if (order.driver_response) {
-                    console.log(`⏩ Atlandı (Yanıt): ${order.ezcater_order_id} - Yanıt: ${order.driver_response}`);
-                    skipped++;
-                    skippedDetails.push({
-                        orderId: order.ezcater_order_id,
-                        reason: `Yanıt: ${order.driver_response}`,
-                        canvasDriver: assignment.driverName
-                    });
-                    continue;
+
+                // Yeniden atama DEĞİLSE - SMS ve yanıt kontrolü yap
+                if (!isReassigned) {
+                    // SMS gönderilmiş mi kontrolü
+                    if (order.sms_sent_at) {
+                        console.log(`⏩ Atlandı (SMS): ${order.ezcater_order_id} - SMS gönderilmiş: ${order.sms_sent_at}`);
+                        skipped++;
+                        skippedDetails.push({
+                            orderId: order.ezcater_order_id,
+                            reason: 'SMS gönderilmiş',
+                            canvasDriver: assignment.driverName
+                        });
+                        continue;
+                    }
+
+                    // Sürücü yanıtı var mı kontrolü
+                    if (order.driver_response) {
+                        console.log(`⏩ Atlandı (Yanıt): ${order.ezcater_order_id} - Yanıt: ${order.driver_response}`);
+                        skipped++;
+                        skippedDetails.push({
+                            orderId: order.ezcater_order_id,
+                            reason: `Yanıt: ${order.driver_response}`,
+                            canvasDriver: assignment.driverName
+                        });
+                        continue;
+                    }
                 }
                 
                 console.log(`   ✓ Sipariş bulundu ve güncellenebilir: ${orders[0].ezcater_order_id} - Durum: ${order.status}`);
