@@ -60,6 +60,8 @@ Deno.serve(async (req) => {
         }
 
         const canvasData = await response.json();
+        
+        console.log('🔍 Canvas Response:', JSON.stringify(canvasData, null, 2));
 
         if (!canvasData.success || !canvasData.assignments) {
             return Response.json({
@@ -70,6 +72,7 @@ Deno.serve(async (req) => {
 
         const assignments = canvasData.assignments;
         console.log(`📦 ${assignments.length} atama alındı`);
+        console.log('📋 İlk atama örneği:', JSON.stringify(assignments[0], null, 2));
 
         if (assignments.length === 0) {
             return Response.json({
