@@ -206,9 +206,13 @@ Deno.serve(async (req) => {
                 };
                 
                 console.log(`   📝 Güncelleme verisi:`, JSON.stringify(updateData, null, 2));
+                console.log(`   🆔 Base44 Order ID: ${order.id}`);
+                console.log(`   📊 Mevcut Status: ${order.status}`);
                 
                 // Base44'teki gerçek ID ile güncelle
-                await base44.asServiceRole.entities.DailyOrder.update(order.id, updateData);
+                const updateResult = await base44.asServiceRole.entities.DailyOrder.update(order.id, updateData);
+                
+                console.log(`   ✅ Update sonucu:`, JSON.stringify(updateResult, null, 2));
 
                 updated++;
                 console.log(`✅ BAŞARILI: ${assignment.orderNumber} → ${assignment.driverName || 'Atanmadı'} (Grup: ${assignment.groupId || 'N/A'})`);
@@ -216,7 +220,8 @@ Deno.serve(async (req) => {
             } catch (error) {
                 failed++;
                 console.error(`❌ Sipariş güncelleme hatası (${assignment.orderId}):`, error.message);
-                console.error(`   Detay:`, error);
+                console.error(`   📋 Full Error:`, JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+                console.error(`   🔍 Stack:`, error.stack);
             }
         }
 
