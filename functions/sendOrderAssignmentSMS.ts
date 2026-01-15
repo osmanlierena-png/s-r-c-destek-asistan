@@ -188,10 +188,24 @@ Deno.serve(async (req) => {
                 
                 const functionUrl = `${baseUrl}?d=${encodeURIComponent(driver_id)}&t=${encodeURIComponent(order_date)}`;
 
-                // SMS mesajı oluştur - siparişler ve toplam fiyat ile
-                const totalPrice = orders.reduce((sum, o) => sum + (o.canvas_price || o.price || 0), 0);
-                const ordersSummary = orders.slice(0, 3).map(o => `${o.ezcater_order_id} ($${(o.canvas_price || o.price || 0).toFixed(2)})`).join(', ');
-                const ordersTail = orders.length > 3 ? ` +${orders.length - 3} more` : '';
+                // SMS mesajı oluştur - grup ve tekli siparişleri doğru hesapla
+                const groupedByCanvasId = {};
+                orders.forEach(o => {
+                    const groupId = o.canvas_group_id || `single_${o.id}`;
+                    if (!groupedByCanvasId[groupId]) {
+                        groupedByCanvasId[groupId] = {
+                            ids: [],
+                            price: o.canvas_price || o.price || 0
+                        };
+                    }
+                    groupedByCanvasId[groupId].ids.push(o.ezcater_order_id);
+                });
+                
+                const totalPrice = Object.values(groupedByCanvasId).reduce((sum, g) => sum + g.price, 0);
+                const ordersSummary = Object.entries(groupedByCanvasId).slice(0, 3)
+                    .map(([_, g]) => `${g.ids.join('/')} ($${g.price.toFixed(2)})`)
+                    .join(', ');
+                const ordersTail = Object.keys(groupedByCanvasId).length > 3 ? ` +${Object.keys(groupedByCanvasId).length - 3} more` : '';
                 
                 const message = `🚚 New Orders! (${orders.length})
 
