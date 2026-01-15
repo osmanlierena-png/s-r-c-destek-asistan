@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
 
                 // Siparişi Base44 ID ile bul (en güvenilir yöntem)
                 const orders = await base44.asServiceRole.entities.DailyOrder.filter({
-                    id: assignment.id
+                    id: assignment.orderId
                 }, null, 1);
 
                 if (orders.length === 0) {
