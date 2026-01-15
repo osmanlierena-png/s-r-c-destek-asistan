@@ -94,6 +94,17 @@ Deno.serve(async (req) => {
         console.log(`📦 ${assignments.length} atama alındı`);
         console.log('📋 İlk atama örneği:', JSON.stringify(assignments[0], null, 2));
 
+        // 🔍 Canvas'tan gelen fiyat field'ını kontrol et
+        if (assignments.length > 0) {
+            const sample = assignments[0];
+            console.log(`💰 Fiyat Field Analizi:`);
+            console.log(`   - assignment.price: ${sample.price} (type: ${typeof sample.price})`);
+            console.log(`   - assignment.offer: ${sample.offer} (type: ${typeof sample.offer})`);
+            console.log(`   - assignment.payment: ${sample.payment} (type: ${typeof sample.payment})`);
+            console.log(`   - assignment.driverPayment: ${sample.driverPayment} (type: ${typeof sample.driverPayment})`);
+            console.log(`   - Tüm keys: ${Object.keys(sample).join(', ')}`);
+        }
+
         if (assignments.length === 0) {
             return Response.json({
                 success: true,
