@@ -31,24 +31,34 @@ Deno.serve(async (req) => {
 
         // Canvas'tan atamaları çek
         const canvasApiUrl = `${CANVAS_URL}/api/base44/assignments?date=${date}`;
-        
+
         console.log(`🔐 Secret durumu: ${CANVAS_API_SECRET ? 'VAR (' + CANVAS_API_SECRET.substring(0, 5) + '...)' : 'YOK'}`);
         console.log(`🌐 API URL: ${canvasApiUrl}`);
-        
+
         const headers = {
             'Content-Type': 'application/json'
         };
-        
+
         if (CANVAS_API_SECRET) {
             headers['X-API-Secret'] = CANVAS_API_SECRET;
         }
-        
-        console.log(`📤 Headers:`, JSON.stringify(headers, null, 2));
 
-        const response = await fetch(canvasApiUrl, {
-            method: 'GET',
-            headers
-        });
+        console.log(`📤 Request başlıyor...`);
+
+        let response;
+        try {
+            response = await fetch(canvasApiUrl, {
+                method: 'GET',
+                headers
+            });
+            console.log(`✅ Canvas response alındı: ${response.status}`);
+        } catch (fetchError) {
+            console.error(`❌ Canvas'a request atılamadı:`, fetchError);
+            return Response.json({
+                success: false,
+                error: `Canvas'a bağlanılamadı: ${fetchError.message}`
+            });
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -59,7 +69,17 @@ Deno.serve(async (req) => {
             });
         }
 
-        const canvasData = await response.json();
+        let canvasData;
+        try {
+            canvasData = await response.json();
+            console.log(`✅ JSON parse edildi`);
+        } catch (jsonError) {
+            console.error(`❌ JSON parse hatası:`, jsonError);
+            return Response.json({
+                success: false,
+                error: `Canvas response parse edilemedi: ${jsonError.message}`
+            });
+        }
         
         console.log('🔍 Canvas Response:', JSON.stringify(canvasData, null, 2));
 
@@ -197,9 +217,11 @@ Deno.serve(async (req) => {
 
     } catch (error) {
         console.error('❌ Canvas\'tan atama çekme hatası:', error);
+        console.error('❌ Stack trace:', error.stack);
         return Response.json({ 
             success: false,
-            error: error.message 
+            error: error.message,
+            stack: error.stack
         }, { status: 500 });
     }
 });
