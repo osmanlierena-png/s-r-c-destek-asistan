@@ -107,6 +107,7 @@ Deno.serve(async (req) => {
         let updated = 0;
         let failed = 0;
         let skipped = 0;
+        const skippedDetails = [];
 
         for (const assignment of assignments) {
             try {
@@ -142,6 +143,11 @@ Deno.serve(async (req) => {
                 if (driverInteractedStatuses.includes(order.status)) {
                     console.log(`⏩ Atlandı (Status): ${order.ezcater_order_id} - Durum: ${order.status}`);
                     skipped++;
+                    skippedDetails.push({
+                        orderId: order.ezcater_order_id,
+                        reason: `Status: ${order.status}`,
+                        canvasDriver: assignment.driverName
+                    });
                     continue;
                 }
                 
@@ -149,6 +155,11 @@ Deno.serve(async (req) => {
                 if (order.sms_sent_at) {
                     console.log(`⏩ Atlandı (SMS): ${order.ezcater_order_id} - SMS gönderilmiş: ${order.sms_sent_at}`);
                     skipped++;
+                    skippedDetails.push({
+                        orderId: order.ezcater_order_id,
+                        reason: 'SMS gönderilmiş',
+                        canvasDriver: assignment.driverName
+                    });
                     continue;
                 }
                 
@@ -156,6 +167,11 @@ Deno.serve(async (req) => {
                 if (order.driver_response) {
                     console.log(`⏩ Atlandı (Yanıt): ${order.ezcater_order_id} - Yanıt: ${order.driver_response}`);
                     skipped++;
+                    skippedDetails.push({
+                        orderId: order.ezcater_order_id,
+                        reason: `Yanıt: ${order.driver_response}`,
+                        canvasDriver: assignment.driverName
+                    });
                     continue;
                 }
                 
@@ -212,6 +228,7 @@ Deno.serve(async (req) => {
             updated,
             failed,
             skipped,
+            skippedDetails,
             total: assignments.length
         });
 
