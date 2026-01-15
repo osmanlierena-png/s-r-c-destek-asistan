@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
                 // Siparişi güncelle
                 // Canvas'tan fiyat sadece price veya priceAmount olarak gelir
                 const canvasPrice = assignment.price || assignment.priceAmount || 0;
-                
+
                 const updateData = {
                     driver_id: driverId,
                     driver_name: assignment.driverName,
@@ -232,6 +232,14 @@ Deno.serve(async (req) => {
                     canvas_group_id: assignment.groupId,
                     canvas_price: parseFloat(canvasPrice) || 0
                 };
+
+                // Eğer yeniden atama ise, sürücü yanıtlarını temizle
+                if (isReassigned) {
+                    updateData.driver_response = null;
+                    updateData.driver_response_at = null;
+                    updateData.sms_sent_at = null;
+                    console.log(`   🔄 Yeniden atama - yanıtlar temizleniyor`);
+                }
                 
                 console.log(`   📝 Güncelleme verisi:`, JSON.stringify(updateData, null, 2));
                 console.log(`   🆔 Base44 Order ID: ${order.id}`);
