@@ -219,8 +219,8 @@ Deno.serve(async (req) => {
                 }
 
                 // Siparişi güncelle
-                // Canvas'tan fiyat farklı field'larla gelebilir: price, priceAmount, offer, driverPayment
-                const canvasPrice = assignment.price || assignment.priceAmount || assignment.offer || assignment.driverPayment || 0;
+                // Canvas'tan fiyat sadece price veya priceAmount olarak gelir
+                const canvasPrice = assignment.price || assignment.priceAmount || 0;
                 
                 const updateData = {
                     driver_id: driverId,
