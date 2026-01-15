@@ -219,13 +219,16 @@ Deno.serve(async (req) => {
                 }
 
                 // Siparişi güncelle
+                // Canvas'tan fiyat farklı field'larla gelebilir: price, priceAmount, offer, driverPayment
+                const canvasPrice = assignment.price || assignment.priceAmount || assignment.offer || assignment.driverPayment || 0;
+                
                 const updateData = {
                     driver_id: driverId,
                     driver_name: assignment.driverName,
                     driver_phone: driverPhone,
                     status: assignment.driverName ? 'Atandı' : 'Çekildi',
                     canvas_group_id: assignment.groupId,
-                    canvas_price: parseFloat(assignment.price) || 0
+                    canvas_price: parseFloat(canvasPrice) || 0
                 };
                 
                 console.log(`   📝 Güncelleme verisi:`, JSON.stringify(updateData, null, 2));
