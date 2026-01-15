@@ -188,8 +188,15 @@ Deno.serve(async (req) => {
                 
                 const functionUrl = `${baseUrl}?d=${encodeURIComponent(driver_id)}&t=${encodeURIComponent(order_date)}`;
 
-                // SMS mesajı oluştur
-                const message = `🚚 New Orders!
+                // SMS mesajı oluştur - siparişler ve toplam fiyat ile
+                const totalPrice = orders.reduce((sum, o) => sum + (o.canvas_price || o.price || 0), 0);
+                const ordersSummary = orders.slice(0, 3).map(o => `${o.ezcater_order_id} ($${(o.canvas_price || o.price || 0).toFixed(2)})`).join(', ');
+                const ordersTail = orders.length > 3 ? ` +${orders.length - 3} more` : '';
+                
+                const message = `🚚 New Orders! (${orders.length})
+
+${ordersSummary}${ordersTail}
+Total: $${totalPrice.toFixed(2)}
 
 Click to view order details:
 ${functionUrl}`;
