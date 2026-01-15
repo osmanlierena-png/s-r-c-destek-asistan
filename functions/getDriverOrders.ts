@@ -85,6 +85,22 @@ Deno.serve(async (req) => {
 
         const driver = drivers[0];
 
+        // Grup siparişleri ayır ve toplam fiyatları hesapla
+        const groupMap = new Map();
+        orders.forEach(order => {
+            const groupId = order.canvas_group_id || `single_${order.id}`;
+            if (!groupMap.has(groupId)) {
+                groupMap.set(groupId, {
+                    orders: [],
+                    totalPrice: 0,
+                    groupId: order.canvas_group_id
+                });
+            }
+            const group = groupMap.get(groupId);
+            group.orders.push(order);
+            group.totalPrice += (order.canvas_price || 0);
+        });
+
         const text = {
             greeting: 'Hello',
             todayOrders: 'Today\'s Orders',
@@ -102,14 +118,32 @@ Deno.serve(async (req) => {
             noOrders: 'No orders found for today.'
         };
         
-        const ordersHTML = orders.map((order, index) => `
-            <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
-                <div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">
+        // HTML oluştur - grup bazında
+        let orderIndex = 0;
+        const ordersHTML = Array.from(groupMap.values()).map(group => {
+            const groupHeader = group.groupId && group.orders.length > 1 ? `
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">${text.order.toUpperCase()} #${order.ezcater_order_id}</span>
-                        <span style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;">#${index + 1}</span>
+                        <span style="color: white; font-size: 14px; font-weight: 600;">💰 Group Payment (${group.orders.length} orders)</span>
+                        <span style="background: rgba(255,255,255,0.25); color: white; padding: 6px 14px; border-radius: 6px; font-size: 16px; font-weight: 700;">$${group.totalPrice.toFixed(2)}</span>
                     </div>
                 </div>
+            ` : '';
+
+            const ordersInGroup = group.orders.map(order => {
+                orderIndex++;
+                const showPrice = !group.groupId || group.orders.length === 1;
+                return `
+                <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">${text.order.toUpperCase()} #${order.ezcater_order_id}</span>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                ${showPrice && order.canvas_price ? `<span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">$${order.canvas_price.toFixed(2)}</span>` : ''}
+                                <span style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;">#${orderIndex}</span>
+                            </div>
+                        </div>
+                    </div>
                 <div style="padding: 16px; background: #f0fdf4; border-bottom: 1px solid #e2e8f0;">
                     <p style="font-size: 10px; font-weight: 600; color: #10b981; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Pickup</p>
                     <p style="font-size: 14px; color: #334155; margin: 0; font-weight: 400; line-height: 1.5;">${order.pickup_address}</p>
@@ -128,10 +162,14 @@ Deno.serve(async (req) => {
                         <p style="font-size: 24px; color: #1e293b; margin: 0; font-weight: 600; letter-spacing: -0.5px;">${order.dropoff_time}</p>
                     </div>
                 </div>
-                ${order.customer_name ? `<div style="padding: 16px; background: white;"><p style="font-size: 13px; color: #334155; margin: 0; font-weight: 400;"><span style="color: #64748b;">Customer:</span> ${order.customer_name}</p></div>` : ''}
-                ${order.ezcater_notes ? `<div style="padding: 16px; background: #fffbeb; border-left: 3px solid #f59e0b;"><p style="font-size: 10px; font-weight: 600; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Notes</p><p style="font-size: 13px; color: #78350f; margin: 0; line-height: 1.5; font-weight: 400;">${order.ezcater_notes}</p></div>` : ''}
-            </div>
-        `).join('');
+                    ${order.customer_name ? `<div style="padding: 16px; background: white;"><p style="font-size: 13px; color: #334155; margin: 0; font-weight: 400;"><span style="color: #64748b;">Customer:</span> ${order.customer_name}</p></div>` : ''}
+                    ${order.ezcater_notes ? `<div style="padding: 16px; background: #fffbeb; border-left: 3px solid #f59e0b;"><p style="font-size: 10px; font-weight: 600; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Notes</p><p style="font-size: 13px; color: #78350f; margin: 0; line-height: 1.5; font-weight: 400;">${order.ezcater_notes}</p></div>` : ''}
+                </div>
+            `;
+            }).join('');
+
+            return groupHeader + ordersInGroup;
+        }).join('');
         
         const html = `<!DOCTYPE html>
 <html>
