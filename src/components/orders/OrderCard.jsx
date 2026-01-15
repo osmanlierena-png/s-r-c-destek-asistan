@@ -158,11 +158,11 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
             <Clock className="w-4 h-4 text-slate-400" />
             <span className="text-slate-600">{order.pickup_time} → {order.dropoff_time}</span>
           </div>
-          {(order.tip || order.price) && (
+          {(order.tip || order.price || order.canvas_price) && (
             <div className="flex items-center gap-3 pt-1 text-xs">
-              {order.price && (
-                <span className="text-slate-700">
-                  💵 ${order.price.toFixed(2)}
+              {(order.canvas_price || order.price) && (
+                <span className="text-slate-700 font-medium">
+                  💵 ${order.canvas_price ? order.canvas_price.toFixed(2) : (order.price ? order.price.toFixed(2) : '0.00')}
                 </span>
               )}
               {order.tip && (
