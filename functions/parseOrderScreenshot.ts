@@ -31,28 +31,20 @@ Deno.serve(async (req) => {
         // ⚠️ UYARI: Bu prompt ve schema birlikte çalışır - ikisini de güncel tutun!
         const parseResult = await base44.integrations.Core.InvokeLLM({
             prompt: `Bu görsel bir EzCater sipariş tablosu. Her satırda şu bilgiler var:
-- Order No (sipariş numarası)
+- Order No (sipariş numarası, örn: "EzX4550V")
 - Pickup Address (pickup adresi)
 - Delivery Address (teslimat adresi)  
-- Pickup Time (alış saati)
-- Delivery Time (teslimat tarihi + saati)
-- Price (fiyat - $ işareti ile, örn: $276.00)
-- Tip (bahşiş - $ işareti ile, örn: $15.00)
-
-ÖRNEKLER:
-Order No: "EzJ8EC02"
-Pickup: "1100 1st St NE Floor 12 Ste 12 Ste 12 SUITE 12, Washington, DC 20002"
-Delivery: "3301 Georgia Ave NW, Washington, DC 20010"
-Pickup Time: "07:46 AM"
-Delivery Time: "08/16 AM → 08:30"
-Price: "$276.00"
-Tip: "$15.00"
+- Pickup Time (alış saati, örn: "10:45 AM")
+- Delivery Time (teslimat tarihi + saati tek sütunda, örn: "1/15/2026 11:30:00 AM")
+- Price (fiyat, $ işareti olmadan, örn: 2191.00)
+- Tip (bahşiş, $ işareti sonda, örn: "200$" veya "22.86$")
 
 ÖNEMLİ: 
-- Price ve Tip'ten $ işaretini kaldırıp sadece sayı olarak döndür
-- Eğer bir alan boş/okunamazsa null döndür
+- Price zaten sayı formatında, olduğu gibi al
+- Tip'ten sondaki $ işaretini kaldırıp sadece sayı olarak döndür
+- Eğer bir alan boş veya okunamazsa null döndür
 
-ÇIKAR: Tüm satırları JSON array olarak döndür.`,
+Tüm satırları JSON array olarak döndür.`,
             file_urls: [file_url],
             response_json_schema: {
                 type: "object",
