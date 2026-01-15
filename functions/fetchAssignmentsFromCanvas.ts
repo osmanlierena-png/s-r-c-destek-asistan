@@ -214,7 +214,7 @@ Deno.serve(async (req) => {
                     driver_phone: driverPhone,
                     status: assignment.driverName ? 'Atandı' : 'Çekildi',
                     canvas_group_id: assignment.groupId,
-                    canvas_price: assignment.price
+                    canvas_price: parseFloat(assignment.price) || 0
                 };
                 
                 console.log(`   📝 Güncelleme verisi:`, JSON.stringify(updateData, null, 2));
