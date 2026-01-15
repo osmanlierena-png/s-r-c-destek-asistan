@@ -177,6 +177,18 @@ Deno.serve(async (req) => {
                 
                 console.log(`   ✓ Sipariş bulundu ve güncellenebilir: ${orders[0].ezcater_order_id} - Durum: ${order.status}`);
 
+                // Canvas'ta atanmamış siparişlere dokunma
+                if (!assignment.driverName) {
+                    console.log(`   ⏩ Atlandı: Canvas'ta sürücü yok, Base44'teki mevcut atamaya dokunmuyoruz`);
+                    skipped++;
+                    skippedDetails.push({
+                        orderId: order.ezcater_order_id,
+                        reason: 'Canvas\'ta atanmamış',
+                        currentDriver: order.driver_name || 'Yok'
+                    });
+                    continue;
+                }
+
                 // Sürücüyü isimle bul
                 let driverId = null;
                 let driverPhone = null;
