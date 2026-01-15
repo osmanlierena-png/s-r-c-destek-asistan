@@ -138,20 +138,22 @@ Deno.serve(async (req) => {
                 const order = orders[0];
 
                 // ⚠️ GÜNCEL KRİTİK KONTROLLER - Sürücü etkileşimi olan siparişleri koruma
-                
-                // 1. Status kontrolü - sürücü yanıt vermiş veya ilerleyen aşamadaysa atla
-                const driverInteractedStatuses = [
-                    'Sürücü Onayı Bekleniyor',
+
+                // 1. Status kontrolü - ANCAK yeniden atama yapılmışsa güncelle
+                const rejectableStatuses = ['Sürücü Reddetti', 'Yeniden Atama Havuzu'];
+                const finalStatuses = [
                     'Sürücü Onayladı',
-                    'Sürücü Reddetti',
-                    'Yeniden Atama Havuzu',
                     'Sürücüye Gönderildi',
                     'Yolda',
                     'Tamamlandı',
                     'Problem'
                 ];
 
-                if (driverInteractedStatuses.includes(order.status)) {
+                // Eğer Canvas'ta yeni sürücü atanmışsa ve Base44'te reddedilmiş/havuzdaysa → GÜNCELLE
+                const isReassigned = rejectableStatuses.includes(order.status) && assignment.driverName;
+
+                // Final statuslarda veya SMS gönderilmiş "Sürücü Onayı Bekleniyor" durumunda → ATLA
+                if (!isReassigned && (finalStatuses.includes(order.status) || order.status === 'Sürücü Onayı Bekleniyor')) {
                     console.log(`⏩ Atlandı (Status): ${order.ezcater_order_id} - Durum: ${order.status}`);
                     skipped++;
                     skippedDetails.push({
