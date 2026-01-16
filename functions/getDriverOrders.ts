@@ -187,7 +187,7 @@ body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont,
 <div class="container">
 <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 28px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
 <h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #1e293b; letter-spacing: -0.3px;">${text.greeting} ${driver.name}</h1>
-<p style="margin: 6px 0 0 0; color: #64748b; font-size: 14px; font-weight: 400;">${text.todayOrders} · ${orders.length} orders</p>
+<p style="margin: 6px 0 0 0; color: #64748b; font-size: 14px; font-weight: 400;">${orderDate} · ${orders.length} orders</p>
 </div>
 ${orders.length === 0 ? '<div style="background: white; border-radius: 12px; padding: 48px; text-align: center;"><p style="color: #64748b; margin: 0;">' + text.noOrders + '</p></div>' : ordersHTML}
 ${orders.length > 0 && (orders[0].status === 'Sürücü Onayladı' || orders[0].status === 'Sürücü Reddetti') ? `
