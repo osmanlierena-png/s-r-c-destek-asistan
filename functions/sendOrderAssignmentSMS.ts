@@ -248,7 +248,8 @@ ${functionUrl}`;
                     for (const order of orders) {
                         await base44.asServiceRole.entities.DailyOrder.update(order.id, {
                             status: "Sürücü Onayı Bekleniyor",
-                            sms_sent_at: new Date().toISOString()
+                            sms_sent_at: new Date().toISOString(),
+                            message_group_id: messageGroupId // Bu SMS'in unique ID'si
                         });
 
                         // Canvas'a bildir
