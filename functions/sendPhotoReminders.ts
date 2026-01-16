@@ -73,9 +73,9 @@ Deno.serve(async (req) => {
                 // Mesaj içeriği
                 let messageContent;
                 if (driverLanguage === 'en') {
-                    messageContent = `📸 REMINDER!\n\nYour delivery to ${order.dropoff_address} is in 5 minutes.\n\n⚠️ DON'T FORGET TO TAKE A PHOTO when you drop off!\n\nOrder: ${order.ezcater_order_id}`;
+                    messageContent = `📸 Don't forget to take a photo!`;
                 } else {
-                    messageContent = `📸 HATIRLATMA!\n\n${order.dropoff_address} adresine teslimatın 5 dakika sonra.\n\n⚠️ TESLİM EDERKEN FOTOĞRAF ÇEKMEYİ UNUTMA!\n\nSipariş: ${order.ezcater_order_id}`;
+                    messageContent = `📸 Fotoğraf çekmeyi unutma!`;
                 }
 
                 // Telefon numarası temizleme ve validasyon
