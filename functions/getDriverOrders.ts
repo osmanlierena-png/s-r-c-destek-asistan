@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">${text.order.toUpperCase()} #${order.ezcater_order_id}</span>
                             <div style="display: flex; gap: 8px; align-items: center;">
-                                ${showPrice && order.canvas_price ? `<span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">$${order.canvas_price.toFixed(2)}</span>` : ''}
+                                ${showPrice && safePrice > 0 ? `<span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">$${safePrice.toFixed(2)}</span>` : ''}
                                 <span style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;">#${orderIndex}</span>
                             </div>
                         </div>
