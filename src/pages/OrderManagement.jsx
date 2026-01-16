@@ -1317,12 +1317,30 @@ export default function OrderManagementPage() {
     // Zaman aralığı filtresi
     if (timeRangeFilter && order.pickup_time) {
       const now = new Date();
-      const [hours, minutes] = order.pickup_time.split(':').map(Number);
-      const pickupDate = new Date(order.order_date);
+      
+      // Pickup time'ı parse et (AM/PM desteği)
+      const timeStr = order.pickup_time.trim();
+      const isPM = timeStr.toLowerCase().includes('pm');
+      const isAM = timeStr.toLowerCase().includes('am');
+      const timePart = timeStr.replace(/\s*(am|pm)/gi, '').trim();
+      const [hourStr, minStr] = timePart.split(':');
+      let hours = parseInt(hourStr, 10);
+      const minutes = parseInt(minStr, 10) || 0;
+      
+      // AM/PM dönüşümü
+      if (isPM && hours !== 12) {
+        hours += 12;
+      } else if (isAM && hours === 12) {
+        hours = 0;
+      }
+      
+      // Pickup tarih-saat oluştur
+      const pickupDate = new Date(order.order_date + 'T00:00:00');
       pickupDate.setHours(hours, minutes, 0, 0);
       
       const diffMinutes = (pickupDate - now) / (1000 * 60);
       
+      // Geçmiş siparişleri dahil etme, sadece gelecek timeRangeFilter dakika içindekileri göster
       if (diffMinutes < 0 || diffMinutes > timeRangeFilter) {
         return false;
       }
