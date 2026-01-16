@@ -196,8 +196,8 @@ Deno.serve(async (req) => {
                 orders.forEach(o => {
                     const groupId = o.canvas_group_id || `single_${o.id}`;
                     if (!groupedByCanvasId[groupId]) {
-                        // İlk siparişteki fiyatı al - Canvas gruplar için her siparişte aynı toplam fiyatı gönderiyor
-                        const safePrice = parseFloat(o.canvas_price) || parseFloat(o.price) || 0;
+                        // Canvas'tan gelen teklif fiyatı - tek kaynak
+                        const safePrice = parseFloat(o.canvas_price) || 0;
                         groupedByCanvasId[groupId] = {
                             ids: [],
                             price: safePrice

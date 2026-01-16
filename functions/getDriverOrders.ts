@@ -115,9 +115,9 @@ Deno.serve(async (req) => {
         orders.forEach(order => {
             const groupId = order.canvas_group_id || `single_${order.id}`;
             if (!groupMap.has(groupId)) {
-                // GÜVENLIK: Fiyat validasyonu - canvas_price varsa kullan, yoksa price kullan, ikisi de yoksa 0
-                const safePrice = parseFloat(order.canvas_price) || parseFloat(order.price) || 0;
-                
+                // Canvas'tan gelen teklif fiyatı - tek kaynak
+                const safePrice = parseFloat(order.canvas_price) || 0;
+
                 groupMap.set(groupId, {
                     orders: [],
                     totalPrice: safePrice, // İlk siparişteki fiyat (Canvas gruplar için toplam fiyatı her sipariş için gönderiyor)
@@ -126,13 +126,13 @@ Deno.serve(async (req) => {
                 });
             }
             const group = groupMap.get(groupId);
-            
+
             // GÜVENLIK: Aynı gruptaki tüm siparişlerin fiyatlarının tutarlı olup olmadığını kontrol et
-            const currentPrice = parseFloat(order.canvas_price) || parseFloat(order.price) || 0;
+            const currentPrice = parseFloat(order.canvas_price) || 0;
             if (group.groupId && currentPrice !== group.firstOrderPrice && currentPrice > 0) {
                 console.warn(`⚠️ Grup ${group.groupId} içinde fiyat tutarsızlığı: ${group.firstOrderPrice} vs ${currentPrice}`);
             }
-            
+
             group.orders.push(order);
             // Grup fiyatı zaten ilk siparişten alındı, tekrar ekleme
         });
@@ -170,8 +170,8 @@ Deno.serve(async (req) => {
                 orderIndex++;
                 // GÜVENLIK: Tekli sipariş ise fiyat göster, grup siparişte gösterme (grup başlığında zaten var)
                 const showPrice = !group.groupId || group.orders.length === 1;
-                // GÜVENLIK: Fiyat validasyonu - canvas_price varsa kullan, yoksa price kullan
-                const safePrice = parseFloat(order.canvas_price) || parseFloat(order.price) || 0;
+                // Canvas'tan gelen teklif fiyatı - tek kaynak
+                const safePrice = parseFloat(order.canvas_price) || 0;
                 return `
                 <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">
