@@ -1814,22 +1814,22 @@ export default function OrderManagementPage() {
         </div>
 
         {(filterStatus || timeRangeFilter) && (
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-3">
+          <Card className="bg-gradient-to-r from-blue-500 to-indigo-600 border-0 shadow-xl">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   {filterStatus && (
-                    <span className="text-sm font-medium text-blue-900">
+                    <span className="text-lg font-bold text-white">
                       {getStatusLabel(filterStatus)}
                     </span>
                   )}
                   {timeRangeFilter && (
-                    <Badge className="bg-orange-500 text-white">
-                      {timeRangeFilter === 30 ? '⚡ Sonraki 30 dk' : '⏰ Sonraki 2 saat'}
+                    <Badge className="bg-white text-indigo-700 text-sm font-bold px-3 py-1">
+                      {timeRangeFilter === 30 ? '🔥 Sonraki 30 dakika' : '⏰ Sonraki 2 saat'}
                     </Badge>
                   )}
-                  <span className="text-sm text-blue-600">
-                    ({filteredOrders.length} sipariş)
+                  <span className="text-lg font-bold text-white">
+                    → {filteredOrders.length} sipariş gösteriliyor
                   </span>
                 </div>
                 <Button
@@ -1839,9 +1839,9 @@ export default function OrderManagementPage() {
                     setFilterStatus(null);
                     setTimeRangeFilter(null);
                   }}
-                  className="h-7 text-blue-700 hover:bg-blue-100"
+                  className="h-9 text-white hover:bg-white/20 font-bold"
                 >
-                  <X className="w-4 h-4 mr-1" />
+                  <X className="w-5 h-5 mr-1" />
                   Filtreyi Temizle
                 </Button>
               </div>
