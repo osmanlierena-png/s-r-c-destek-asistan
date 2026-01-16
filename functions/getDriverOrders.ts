@@ -90,13 +90,24 @@ Deno.serve(async (req) => {
         orders.forEach(order => {
             const groupId = order.canvas_group_id || `single_${order.id}`;
             if (!groupMap.has(groupId)) {
+                // GÜVENLIK: Fiyat validasyonu - canvas_price varsa kullan, yoksa price kullan, ikisi de yoksa 0
+                const safePrice = parseFloat(order.canvas_price) || parseFloat(order.price) || 0;
+                
                 groupMap.set(groupId, {
                     orders: [],
-                    totalPrice: order.canvas_price || 0, // İlk sipariş fiyatı (Canvas gruplar için toplam fiyatı her sipariş için gönderiyor)
-                    groupId: order.canvas_group_id
+                    totalPrice: safePrice, // İlk siparişteki fiyat (Canvas gruplar için toplam fiyatı her sipariş için gönderiyor)
+                    groupId: order.canvas_group_id,
+                    firstOrderPrice: safePrice // İlk fiyatı sakla - tutarlılık kontrolü için
                 });
             }
             const group = groupMap.get(groupId);
+            
+            // GÜVENLIK: Aynı gruptaki tüm siparişlerin fiyatlarının tutarlı olup olmadığını kontrol et
+            const currentPrice = parseFloat(order.canvas_price) || parseFloat(order.price) || 0;
+            if (group.groupId && currentPrice !== group.firstOrderPrice && currentPrice > 0) {
+                console.warn(`⚠️ Grup ${group.groupId} içinde fiyat tutarsızlığı: ${group.firstOrderPrice} vs ${currentPrice}`);
+            }
+            
             group.orders.push(order);
             // Grup fiyatı zaten ilk siparişten alındı, tekrar ekleme
         });
