@@ -186,7 +186,9 @@ Deno.serve(async (req) => {
                     continue;
                 }
                 
-                const functionUrl = `${baseUrl}?d=${encodeURIComponent(driver_id)}&t=${encodeURIComponent(order_date)}`;
+                // UNIQUE MESSAGE GROUP ID - Her SMS için benzersiz bir ID oluştur
+                const messageGroupId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const functionUrl = `${baseUrl}?d=${encodeURIComponent(driver_id)}&t=${encodeURIComponent(order_date)}&mg=${encodeURIComponent(messageGroupId)}`;
 
                 // SMS mesajı oluştur - grup ve tekli siparişleri doğru hesapla
                 // GÜVENLIK: Her canvas grup ID için sadece bir kez fiyat al (duble önleme)
