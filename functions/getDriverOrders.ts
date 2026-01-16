@@ -86,10 +86,23 @@ Deno.serve(async (req) => {
         
         // GET - Show orders
         const drivers = await base44.entities.Driver.filter({ id: driverId });
-        const orders = await base44.entities.DailyOrder.filter({
+
+        // GÜVENLIK: Sadece bu mesaj grubundaki siparişleri al
+        const filterQuery = {
             driver_id: driverId,
             order_date: orderDate
-        }, 'pickup_time');
+        };
+
+        // Eğer message_group_id varsa sadece o gruptaki siparişleri al
+        // Böylece aynı gün içinde gönderilen farklı SMS'ler karışmaz
+        if (messageGroupId) {
+            filterQuery.message_group_id = messageGroupId;
+        }
+
+        const orders = await base44.entities.DailyOrder.filter(filterQuery, 'pickup_time');
+
+        console.log(`📦 ${orders.length} sipariş gösteriliyor (Message Group: ${messageGroupId || 'NONE (old link)'})`);
+        console.log(`📋 Order IDs: ${orders.map(o => o.ezcater_order_id).join(', ')}`);
 
         if (drivers.length === 0) {
             return Response.json({ error: 'Driver not found' }, { status: 404 });
