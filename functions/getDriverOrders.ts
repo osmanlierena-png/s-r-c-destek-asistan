@@ -24,10 +24,20 @@ Deno.serve(async (req) => {
             const body = await req.json();
             const { response } = body;
 
-            const orders = await base44.entities.DailyOrder.filter({
+            // GÜVENLIK: Sadece bu mesaj grubundaki siparişleri al
+            const filterQuery = {
                 driver_id: driverId,
                 order_date: orderDate
-            });
+            };
+
+            // Eğer message_group_id varsa sadece o gruptaki siparişleri al
+            if (messageGroupId) {
+                filterQuery.message_group_id = messageGroupId;
+            }
+
+            const orders = await base44.entities.DailyOrder.filter(filterQuery);
+
+            console.log(`📝 Yanıt işleniyor: ${orders.length} sipariş (Message Group: ${messageGroupId || 'NONE'})`);
 
             const newStatus = response === 'approve' ? 'Sürücü Onayladı' : 'Sürücü Reddetti';
             const responseText = response === 'approve' ? 'Evet' : 'Hayır';
