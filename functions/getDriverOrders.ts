@@ -183,19 +183,12 @@ Deno.serve(async (req) => {
 
             const ordersInGroup = group.orders.map(order => {
                 orderIndex++;
-                // GÜVENLIK: Tekli sipariş ise fiyat göster, grup siparişte gösterme (grup başlığında zaten var)
                 const showPrice = !group.groupId || group.orders.length === 1;
-                // KRITIK: Fiyat kontrolü
-                let priceHTML = '';
-                if (group.priceError) {
-                    priceHTML = `<span style="background: #dc2626; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;">❌ FİYAT YOK</span>`;
-                } else if (showPrice && group.totalPrice > 0) {
-                    priceHTML = `<span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">$${group.totalPrice.toFixed(2)}</span>`;
-                }
+                const priceHTML = showPrice ? `<span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">$${group.totalPrice.toFixed(2)}${!group.hasCanvasPrice ? ' ⚠️' : ''}</span>` : '';
 
                 return `
-                <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid ${group.priceError ? '#dc2626' : '#e2e8f0'};">
-                    <div style="background: ${group.priceError ? '#fee2e2' : '#f8fafc'}; padding: 16px; border-bottom: 1px solid ${group.priceError ? '#fca5a5' : '#e2e8f0'};">
+                <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">${text.order.toUpperCase()} #${order.ezcater_order_id}</span>
                             <div style="display: flex; gap: 8px; align-items: center;">
