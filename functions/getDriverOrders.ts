@@ -92,13 +92,13 @@ Deno.serve(async (req) => {
             if (!groupMap.has(groupId)) {
                 groupMap.set(groupId, {
                     orders: [],
-                    totalPrice: 0,
+                    totalPrice: order.canvas_price || 0, // İlk sipariş fiyatı (Canvas gruplar için toplam fiyatı her sipariş için gönderiyor)
                     groupId: order.canvas_group_id
                 });
             }
             const group = groupMap.get(groupId);
             group.orders.push(order);
-            group.totalPrice += (order.canvas_price || 0);
+            // Grup fiyatı zaten ilk siparişten alındı, tekrar ekleme
         });
 
         const text = {
