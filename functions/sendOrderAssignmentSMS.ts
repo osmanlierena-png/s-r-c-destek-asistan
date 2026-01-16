@@ -189,21 +189,27 @@ Deno.serve(async (req) => {
                 const functionUrl = `${baseUrl}?d=${encodeURIComponent(driver_id)}&t=${encodeURIComponent(order_date)}`;
 
                 // SMS mesajı oluştur - grup ve tekli siparişleri doğru hesapla
+                // GÜVENLIK: Her canvas grup ID için sadece bir kez fiyat al (duble önleme)
                 const groupedByCanvasId = {};
                 orders.forEach(o => {
                     const groupId = o.canvas_group_id || `single_${o.id}`;
                     if (!groupedByCanvasId[groupId]) {
+                        // İlk siparişteki fiyatı al - Canvas gruplar için her siparişte aynı toplam fiyatı gönderiyor
+                        const safePrice = parseFloat(o.canvas_price) || parseFloat(o.price) || 0;
                         groupedByCanvasId[groupId] = {
                             ids: [],
-                            price: o.canvas_price || o.price || 0
+                            price: safePrice
                         };
                     }
                     groupedByCanvasId[groupId].ids.push(o.ezcater_order_id);
+                    // GÜVENLIK: Fiyat sadece ilk sipariş için alındı - tekrar ekleme yok
                 });
                 
-                const totalPrice = Object.values(groupedByCanvasId).reduce((sum, g) => sum + g.price, 0);
+                // GÜVENLIK: Total fiyat hesaplama - her grup için sadece bir kez fiyat
+                const totalPrice = Object.values(groupedByCanvasId).reduce((sum, g) => sum + (parseFloat(g.price) || 0), 0);
+                
                 const ordersSummary = Object.entries(groupedByCanvasId).slice(0, 3)
-                    .map(([_, g]) => `${g.ids.join('/')} ($${g.price.toFixed(2)})`)
+                    .map(([_, g]) => `${g.ids.join('/')} ($${parseFloat(g.price).toFixed(2)})`)
                     .join(', ');
                 const ordersTail = Object.keys(groupedByCanvasId).length > 3 ? ` +${Object.keys(groupedByCanvasId).length - 3} more` : '';
                 
