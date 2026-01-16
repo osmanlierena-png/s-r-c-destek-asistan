@@ -208,7 +208,6 @@ Deno.serve(async (req) => {
                 const ordersTail = Object.keys(groupedByCanvasId).length > 3 ? ` +${Object.keys(groupedByCanvasId).length - 3} more` : '';
                 
                 const message = `🚚 New Orders! (${orders.length})
-
 ${ordersSummary}${ordersTail}
 Total: $${totalPrice.toFixed(2)}
 
