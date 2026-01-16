@@ -143,7 +143,10 @@ Deno.serve(async (req) => {
 
             const ordersInGroup = group.orders.map(order => {
                 orderIndex++;
+                // GÜVENLIK: Tekli sipariş ise fiyat göster, grup siparişte gösterme (grup başlığında zaten var)
                 const showPrice = !group.groupId || group.orders.length === 1;
+                // GÜVENLIK: Fiyat validasyonu - canvas_price varsa kullan, yoksa price kullan
+                const safePrice = parseFloat(order.canvas_price) || parseFloat(order.price) || 0;
                 return `
                 <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">
