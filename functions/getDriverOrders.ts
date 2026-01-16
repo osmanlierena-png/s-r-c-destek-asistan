@@ -115,42 +115,42 @@ Deno.serve(async (req) => {
         orders.forEach(order => {
             const groupId = order.canvas_group_id || `single_${order.id}`;
             if (!groupMap.has(groupId)) {
-                // KRITIK KONTROL: Canvas_price kontrolü
+                // Canvas'tan gelen fiyat - yoksa $0
                 let safePrice = 0;
-                let priceError = null;
+                let hasCanvasPrice = false;
 
-                if (!order.canvas_price || order.canvas_price === null || order.canvas_price === undefined) {
-                    console.error(`❌ KRITIK: ${order.ezcater_order_id} için canvas_price eksik!`);
-                    priceError = 'CANVAS_PRICE_MISSING';
-                } else {
+                if (order.canvas_price && order.canvas_price !== null && order.canvas_price !== undefined) {
                     safePrice = parseFloat(order.canvas_price);
-                    if (isNaN(safePrice) || safePrice <= 0) {
-                        console.error(`❌ KRITIK: ${order.ezcater_order_id} için geçersiz fiyat: ${order.canvas_price}`);
-                        priceError = 'INVALID_PRICE';
+                    if (isNaN(safePrice) || safePrice < 0) {
+                        console.warn(`⚠️ ${order.ezcater_order_id} için geçersiz canvas_price: ${order.canvas_price}`);
                         safePrice = 0;
+                    } else {
+                        hasCanvasPrice = true;
                     }
+                } else {
+                    console.warn(`⚠️ ${order.ezcater_order_id} için canvas_price yok`);
                 }
 
-groupMap.set(groupId, {
-    orders: [],
-    totalPrice: safePrice,
-    groupId: order.canvas_group_id,
-    firstOrderPrice: safePrice,
-    priceError: priceError // Fiyat hatası varsa sakla
-});
-}
-const group = groupMap.get(groupId);
+                groupMap.set(groupId, {
+                    orders: [],
+                    totalPrice: safePrice,
+                    groupId: order.canvas_group_id,
+                    firstOrderPrice: safePrice,
+                    hasCanvasPrice: hasCanvasPrice
+                });
+            }
+            const group = groupMap.get(groupId);
 
-// Tutarlılık kontrolü - sadece hata yoksa
-if (!group.priceError) {
-const currentPrice = parseFloat(order.canvas_price) || 0;
-if (group.groupId && currentPrice !== group.firstOrderPrice && currentPrice > 0) {
-    console.warn(`⚠️ Grup ${group.groupId} içinde fiyat tutarsızlığı: ${group.firstOrderPrice} vs ${currentPrice}`);
-}
-}
+            // Tutarlılık kontrolü
+            if (group.hasCanvasPrice && order.canvas_price) {
+                const currentPrice = parseFloat(order.canvas_price) || 0;
+                if (group.groupId && currentPrice !== group.firstOrderPrice && currentPrice > 0) {
+                    console.warn(`⚠️ Grup ${group.groupId} içinde fiyat tutarsızlığı: ${group.firstOrderPrice} vs ${currentPrice}`);
+                }
+            }
 
-group.orders.push(order);
-});
+            group.orders.push(order);
+        });
 
         const text = {
             greeting: 'Hello',
@@ -172,22 +172,14 @@ group.orders.push(order);
         // HTML oluştur - grup bazında
         let orderIndex = 0;
         const ordersHTML = Array.from(groupMap.values()).map(group => {
-            // KRITIK: Fiyat hatası varsa kırmızı uyarı göster
-            const groupHeader = group.priceError ? `
-                <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: white; font-size: 14px; font-weight: 600;">❌ HATA: Fiyat bilgisi eksik!</span>
-                        <span style="background: rgba(255,255,255,0.25); color: white; padding: 6px 14px; border-radius: 6px; font-size: 14px; font-weight: 700;">Canvas'ta fiyat girilmemiş</span>
-                    </div>
-                </div>
-            ` : (group.groupId && group.orders.length > 1 ? `
+            const groupHeader = group.groupId && group.orders.length > 1 ? `
                     <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="color: white; font-size: 14px; font-weight: 600;">💰 Group Payment (${group.orders.length} orders)</span>
-                            <span style="background: rgba(255,255,255,0.25); color: white; padding: 6px 14px; border-radius: 6px; font-size: 16px; font-weight: 700;">$${group.totalPrice.toFixed(2)}</span>
+                            <span style="background: rgba(255,255,255,0.25); color: white; padding: 6px 14px; border-radius: 6px; font-size: 16px; font-weight: 700;">$${group.totalPrice.toFixed(2)}${!group.hasCanvasPrice ? ' ⚠️' : ''}</span>
                         </div>
                     </div>
-                ` : '');
+                    ` : '';
 
             const ordersInGroup = group.orders.map(order => {
                 orderIndex++;

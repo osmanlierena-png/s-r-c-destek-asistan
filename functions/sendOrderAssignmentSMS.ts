@@ -191,33 +191,22 @@ Deno.serve(async (req) => {
                 const functionUrl = `${baseUrl}?d=${encodeURIComponent(driver_id)}&t=${encodeURIComponent(order_date)}&mg=${encodeURIComponent(messageGroupId)}`;
 
                 // SMS mesajı oluştur - grup ve tekli siparişleri doğru hesapla
-                // KRITIK: Her canvas grup ID için sadece bir kez fiyat al (duble önleme)
+                // Canvas_price kullan - tek kaynak
                 const groupedByCanvasId = {};
                 orders.forEach(o => {
                     const groupId = o.canvas_group_id || `single_${o.id}`;
                     if (!groupedByCanvasId[groupId]) {
-                        // KRITIK KONTROL: Canvas_price OLMAK ZORUNDA
-                        if (!o.canvas_price || o.canvas_price === null || o.canvas_price === undefined) {
-                            console.error(`❌ KRITIK: ${o.ezcater_order_id} için canvas_price eksik!`);
-                            groupedByCanvasId[groupId] = {
-                                ids: [],
-                                price: null,
-                                error: 'CANVAS_PRICE_MISSING'
-                            };
-                            return;
-                        }
+                        // Canvas'tan gelen fiyat - yoksa $0
+                        let safePrice = 0;
 
-                        const safePrice = parseFloat(o.canvas_price);
-
-                        // KRITIK KONTROL: Fiyat pozitif olmak zorunda
-                        if (isNaN(safePrice) || safePrice <= 0) {
-                            console.error(`❌ KRITIK: ${o.ezcater_order_id} için geçersiz fiyat: ${o.canvas_price}`);
-                            groupedByCanvasId[groupId] = {
-                                ids: [],
-                                price: null,
-                                error: 'INVALID_PRICE'
-                            };
-                            return;
+                        if (o.canvas_price && o.canvas_price !== null && o.canvas_price !== undefined) {
+                            safePrice = parseFloat(o.canvas_price);
+                            if (isNaN(safePrice) || safePrice < 0) {
+                                console.warn(`⚠️ ${o.ezcater_order_id} için geçersiz canvas_price: ${o.canvas_price}, $0 kullanılacak`);
+                                safePrice = 0;
+                            }
+                        } else {
+                            console.warn(`⚠️ ${o.ezcater_order_id} için canvas_price yok, $0 kullanılacak`);
                         }
 
                         groupedByCanvasId[groupId] = {
@@ -228,32 +217,12 @@ Deno.serve(async (req) => {
                     groupedByCanvasId[groupId].ids.push(o.ezcater_order_id);
                 });
                 
-                // KRITIK KONTROL: Tüm gruplarda fiyat var mı?
-                const invalidGroups = Object.entries(groupedByCanvasId).filter(([_, g]) => g.error || g.price === null);
-                if (invalidGroups.length > 0) {
-                    orders.forEach(order => {
-                        results.failed.push({
-                            orderId: order.ezcater_order_id,
-                            reason: `❌ KRITIK: Canvas_price eksik veya geçersiz! SMS gönderilemez.`
-                        });
-                    });
-                    console.log(`❌ ${driver_name} → ATLANDI: Canvas_price eksik/geçersiz`);
-                    continue;
-                }
-
                 // Total fiyat hesaplama - her grup için sadece bir kez fiyat
-                const totalPrice = Object.values(groupedByCanvasId).reduce((sum, g) => sum + (g.price || 0), 0);
+                const totalPrice = Object.values(groupedByCanvasId).reduce((sum, g) => sum + g.price, 0);
 
-                // SON KONTROL: Toplam fiyat sıfır olamaz
-                if (totalPrice <= 0) {
-                    orders.forEach(order => {
-                        results.failed.push({
-                            orderId: order.ezcater_order_id,
-                            reason: `❌ KRITIK: Toplam fiyat $0! SMS gönderilemez.`
-                        });
-                    });
-                    console.log(`❌ ${driver_name} → ATLANDI: Toplam fiyat $0`);
-                    continue;
+                console.log(`💵 ${driver_name} → Total: $${totalPrice.toFixed(2)} (Canvas fiyat)`);
+                if (totalPrice === 0) {
+                    console.warn(`⚠️ ${driver_name} için toplam fiyat $0 - Canvas'ta fiyat girilmemiş olabilir`);
                 }
 
                 const ordersSummary = Object.entries(groupedByCanvasId).slice(0, 3)
