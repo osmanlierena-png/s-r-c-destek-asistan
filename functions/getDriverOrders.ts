@@ -5,16 +5,18 @@ Deno.serve(async (req) => {
         const url = new URL(req.url);
         const driverId = url.searchParams.get('d');
         const orderDate = url.searchParams.get('t');
-        
-        console.log('🚀 NEW DEPLOY v100 - SIMPLE TEST');
-        
+        const messageGroupId = url.searchParams.get('mg'); // Unique message group ID
+
+        console.log('🚀 DEPLOY v101 - UNIQUE MESSAGE GROUPS');
+        console.log(`📧 Message Group ID: ${messageGroupId || 'NONE (old link)'}`);
+
         if (!driverId || !orderDate) {
             return new Response('<html><body><h1>Invalid Link</h1></body></html>', {
                 status: 400,
                 headers: { 'Content-Type': 'text/html' }
             });
         }
-        
+
         const base44 = createClientFromRequest(req);
         
         // POST - Handle approve/reject
