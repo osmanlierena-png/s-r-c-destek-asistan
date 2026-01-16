@@ -162,7 +162,6 @@ Deno.serve(async (req) => {
                         <p style="font-size: 24px; color: #1e293b; margin: 0; font-weight: 600; letter-spacing: -0.5px;">${order.dropoff_time}</p>
                     </div>
                 </div>
-                    ${order.customer_name ? `<div style="padding: 16px; background: white;"><p style="font-size: 13px; color: #334155; margin: 0; font-weight: 400;"><span style="color: #64748b;">Customer:</span> ${order.customer_name}</p></div>` : ''}
                     ${order.ezcater_notes ? `<div style="padding: 16px; background: #fffbeb; border-left: 3px solid #f59e0b;"><p style="font-size: 10px; font-weight: 600; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Notes</p><p style="font-size: 13px; color: #78350f; margin: 0; line-height: 1.5; font-weight: 400;">${order.ezcater_notes}</p></div>` : ''}
                 </div>
             `;
