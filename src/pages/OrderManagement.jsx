@@ -68,6 +68,7 @@ export default function OrderManagementPage() {
   const [threeLayerResults, setThreeLayerResults] = useState(null);
   const [isSendingAssignmentSMS, setIsSendingAssignmentSMS] = useState(false);
   const [filterStatus, setFilterStatus] = useState(null);
+  const [timeRangeFilter, setTimeRangeFilter] = useState(null); // 30, 120, null
   const [isBulkApproving, setIsBulkApproving] = useState(false);
   const [isCheckingPhones, setIsCheckingPhones] = useState(false);
   const [missingPhones, setMissingPhones] = useState(null);
@@ -1313,6 +1314,20 @@ export default function OrderManagementPage() {
       }
     }
 
+    // Zaman aralığı filtresi
+    if (timeRangeFilter && order.pickup_time) {
+      const now = new Date();
+      const [hours, minutes] = order.pickup_time.split(':').map(Number);
+      const pickupDate = new Date(order.order_date);
+      pickupDate.setHours(hours, minutes, 0, 0);
+      
+      const diffMinutes = (pickupDate - now) / (1000 * 60);
+      
+      if (diffMinutes < 0 || diffMinutes > timeRangeFilter) {
+        return false;
+      }
+    }
+
     if (!searchTerm) return true;
     
     const search = searchTerm.toLowerCase();
@@ -1606,9 +1621,9 @@ export default function OrderManagementPage() {
         </div>
 
         {stats.driverApproved > 0 && (
-          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 border-0 shadow-xl animate-pulse">
+          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 border-0 shadow-xl animate-pulse col-span-2">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <div className="text-white">
                   <p className="text-sm font-bold mb-1 flex items-center gap-2">
                     <CheckCircle className="w-5 h-5" />
@@ -1617,13 +1632,38 @@ export default function OrderManagementPage() {
                   <p className="text-3xl font-black">{stats.driverApproved}</p>
                 </div>
               </div>
-              <Button
-                onClick={() => setFilterStatus('Sürücü Onayladı')}
-                size="sm"
-                className="w-full bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg mt-2"
-              >
-                🎯 HEMEN GÖSTER
-              </Button>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  onClick={() => {
+                    setFilterStatus('Sürücü Onayladı');
+                    setTimeRangeFilter(30);
+                  }}
+                  size="sm"
+                  className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
+                >
+                  🔥 30 dk
+                </Button>
+                <Button
+                  onClick={() => {
+                    setFilterStatus('Sürücü Onayladı');
+                    setTimeRangeFilter(120);
+                  }}
+                  size="sm"
+                  className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
+                >
+                  ⏰ 2 saat
+                </Button>
+                <Button
+                  onClick={() => {
+                    setFilterStatus('Sürücü Onayladı');
+                    setTimeRangeFilter(null);
+                  }}
+                  size="sm"
+                  className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
+                >
+                  📋 Tümü
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -1756,14 +1796,21 @@ export default function OrderManagementPage() {
           </Card>
         </div>
 
-        {filterStatus && (
+        {(filterStatus || timeRangeFilter) && (
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-blue-900">
-                    Filtreleniyor: {getStatusLabel(filterStatus)}
-                  </span>
+                  {filterStatus && (
+                    <span className="text-sm font-medium text-blue-900">
+                      {getStatusLabel(filterStatus)}
+                    </span>
+                  )}
+                  {timeRangeFilter && (
+                    <Badge className="bg-orange-500 text-white">
+                      {timeRangeFilter === 30 ? '⚡ Sonraki 30 dk' : '⏰ Sonraki 2 saat'}
+                    </Badge>
+                  )}
                   <span className="text-sm text-blue-600">
                     ({filteredOrders.length} sipariş)
                   </span>
@@ -1771,7 +1818,10 @@ export default function OrderManagementPage() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setFilterStatus(null)}
+                  onClick={() => {
+                    setFilterStatus(null);
+                    setTimeRangeFilter(null);
+                  }}
                   className="h-7 text-blue-700 hover:bg-blue-100"
                 >
                   <X className="w-4 h-4 mr-1" />
