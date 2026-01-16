@@ -115,41 +115,25 @@ Deno.serve(async (req) => {
         orders.forEach(order => {
             const groupId = order.canvas_group_id || `single_${order.id}`;
             if (!groupMap.has(groupId)) {
-                // Canvas'tan gelen fiyat - yoksa $0
-                let safePrice = 0;
-                let hasCanvasPrice = false;
-
-                if (order.canvas_price && order.canvas_price !== null && order.canvas_price !== undefined) {
-                    safePrice = parseFloat(order.canvas_price);
-                    if (isNaN(safePrice) || safePrice < 0) {
-                        console.warn(`⚠️ ${order.ezcater_order_id} için geçersiz canvas_price: ${order.canvas_price}`);
-                        safePrice = 0;
-                    } else {
-                        hasCanvasPrice = true;
-                    }
-                } else {
-                    console.warn(`⚠️ ${order.ezcater_order_id} için canvas_price yok`);
-                }
-
                 groupMap.set(groupId, {
                     orders: [],
-                    totalPrice: safePrice,
+                    totalPrice: 0,
                     groupId: order.canvas_group_id,
-                    firstOrderPrice: safePrice,
-                    hasCanvasPrice: hasCanvasPrice
+                    hasCanvasPrice: false
                 });
             }
             const group = groupMap.get(groupId);
+            group.orders.push(order);
 
-            // Tutarlılık kontrolü
-            if (group.hasCanvasPrice && order.canvas_price) {
-                const currentPrice = parseFloat(order.canvas_price) || 0;
-                if (group.groupId && currentPrice !== group.firstOrderPrice && currentPrice > 0) {
-                    console.warn(`⚠️ Grup ${group.groupId} içinde fiyat tutarsızlığı: ${group.firstOrderPrice} vs ${currentPrice}`);
+            // Canvas_price'ı topla - SADECE 0'dan büyük olanları
+            if (order.canvas_price && order.canvas_price !== null && order.canvas_price !== undefined) {
+                const price = parseFloat(order.canvas_price);
+                if (!isNaN(price) && price > 0) {
+                    group.totalPrice += price;
+                    group.hasCanvasPrice = true;
+                    console.log(`💵 ${order.ezcater_order_id}: +$${price} → Grup Total: $${group.totalPrice}`);
                 }
             }
-
-            group.orders.push(order);
         });
 
         const text = {
