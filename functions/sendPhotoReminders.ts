@@ -4,19 +4,13 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     try {
-        console.log('📸 Fotoğraf hatırlatma kontrolü başladı...');
-
         const now = new Date();
-        const results = { sent: [], skipped: [], failed: [] };
-
-        // Bugünün siparişlerini al - sadece "Sürücü Onayladı" statusünde olanlar
         const today = now.toISOString().split('T')[0];
+        
         const orders = await base44.asServiceRole.entities.DailyOrder.filter({
             order_date: today,
             status: 'Sürücü Onayladı'
         });
-
-        console.log(`✅ ${orders.length} onaylanmış sipariş bulundu`);
 
         // Twilio bilgilerini kontrol et
         const twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
@@ -36,13 +30,7 @@ Deno.serve(async (req) => {
 
         for (const order of orders) {
             try {
-                if (!order.dropoff_time || !order.driver_phone || !order.driver_id) {
-                    results.skipped.push({
-                        orderId: order.ezcater_order_id,
-                        reason: 'Dropoff time veya sürücü bilgisi eksik'
-                    });
-                    continue;
-                }
+                if (!order.dropoff_time || !order.driver_phone || !order.driver_id) continue;
 
                 // Dropoff time'ı parse et (AM/PM desteği)
                 const timeStr = order.dropoff_time.trim();
@@ -67,24 +55,14 @@ Deno.serve(async (req) => {
                 const fiveMinutesBefore = new Date(dropoffDate.getTime() - 5 * 60 * 1000);
                 const diffMinutes = (fiveMinutesBefore - now) / (1000 * 60);
 
-                // Tolerans: -1 ile +1 dakika arası (yani 4-6 dakika önce arası)
-                if (diffMinutes < -1 || diffMinutes > 1) {
-                    continue; // Henüz zamanı gelmedi veya geçti
-                }
+                if (diffMinutes < -1 || diffMinutes > 1) continue;
 
-                // Daha önce bu sipariş için fotoğraf hatırlatması gönderilmiş mi kontrol et
                 const existingMessages = await base44.asServiceRole.entities.CheckMessage.filter({
                     order_id: order.id,
                     message_type: '5dk_Fotograf_Hatirlatma'
                 });
 
-                if (existingMessages.length > 0) {
-                    results.skipped.push({
-                        orderId: order.ezcater_order_id,
-                        reason: 'Bu sipariş için zaten fotoğraf hatırlatması gönderilmiş'
-                    });
-                    continue;
-                }
+                if (existingMessages.length > 0) continue;
 
                 // Sürücü dilini al
                 const drivers = await base44.asServiceRole.entities.Driver.filter({
@@ -106,13 +84,7 @@ Deno.serve(async (req) => {
                     toPhoneNumber = '+' + toPhoneNumber.replace(/[^\d]/g, '');
                 }
 
-                if (!toPhoneNumber.startsWith('+1') || toPhoneNumber.length !== 12) {
-                    results.failed.push({
-                        orderId: order.ezcater_order_id,
-                        reason: `Geçersiz telefon numarası: ${toPhoneNumber}`
-                    });
-                    continue;
-                }
+                if (!toPhoneNumber.startsWith('+1') || toPhoneNumber.length !== 12) continue;
 
                 // SMS gönder
                 const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
@@ -132,8 +104,6 @@ Deno.serve(async (req) => {
 
                 if (response.ok) {
                     const data = await response.json();
-
-                    // CheckMessage'a kaydet
                     await base44.asServiceRole.entities.CheckMessage.create({
                         order_id: order.id,
                         driver_phone: order.driver_phone,
@@ -145,18 +115,8 @@ Deno.serve(async (req) => {
                         twilio_sid: data.sid,
                         alert_level: 'Normal'
                     });
-
-                    results.sent.push({
-                        orderId: order.ezcater_order_id,
-                        driver: order.driver_name,
-                        phone: order.driver_phone,
-                        dropoffTime: order.dropoff_time
-                    });
-
-                    console.log(`✅ Fotoğraf hatırlatması gönderildi: ${order.ezcater_order_id} → ${order.driver_name}`);
                 } else {
                     const errorData = await response.json();
-                    
                     await base44.asServiceRole.entities.CheckMessage.create({
                         order_id: order.id,
                         driver_phone: order.driver_phone,
@@ -168,43 +128,18 @@ Deno.serve(async (req) => {
                         failure_reason: errorData.message || 'SMS gönderilemedi',
                         alert_level: 'Uyarı'
                     });
-
-                    results.failed.push({
-                        orderId: order.ezcater_order_id,
-                        reason: errorData.message || 'SMS gönderilemedi'
-                    });
-
-                    console.error(`❌ SMS gönderilemedi: ${order.ezcater_order_id} - ${errorData.message}`);
                 }
 
-                // Rate limiting
                 await new Promise(r => setTimeout(r, 1000));
 
             } catch (error) {
-                results.failed.push({
-                    orderId: order.ezcater_order_id,
-                    reason: error.message
-                });
-                console.error(`❌ Hata: ${order.ezcater_order_id} - ${error.message}`);
+                console.error(`❌ ${order.ezcater_order_id}: ${error.message}`);
             }
         }
 
-        console.log(`\n📊 Fotoğraf Hatırlatma Sonuçları:`);
-        console.log(`   ✅ Gönderilen: ${results.sent.length}`);
-        console.log(`   ⏩ Atlanan: ${results.skipped.length}`);
-        console.log(`   ❌ Başarısız: ${results.failed.length}`);
-
-        return Response.json({
-            success: true,
-            message: `Fotoğraf hatırlatması kontrolü tamamlandı`,
-            results
-        });
+        return Response.json({ success: true });
 
     } catch (error) {
-        console.error('❌ Fotoğraf hatırlatma hatası:', error);
-        return Response.json({
-            success: false,
-            error: error.message
-        }, { status: 500 });
+        return Response.json({ success: false, error: error.message }, { status: 500 });
     }
 });
