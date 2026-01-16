@@ -1620,55 +1620,54 @@ export default function OrderManagementPage() {
           </div>
         </div>
 
-        {stats.driverApproved > 0 && (
-          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 border-0 shadow-xl animate-pulse col-span-2">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-white">
-                  <p className="text-sm font-bold mb-1 flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5" />
-                    ⚡ ONAYLANMIŞ SİPARİŞLER
-                  </p>
-                  <p className="text-3xl font-black">{stats.driverApproved}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  onClick={() => {
-                    setFilterStatus('Sürücü Onayladı');
-                    setTimeRangeFilter(30);
-                  }}
-                  size="sm"
-                  className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
-                >
-                  🔥 30 dk
-                </Button>
-                <Button
-                  onClick={() => {
-                    setFilterStatus('Sürücü Onayladı');
-                    setTimeRangeFilter(120);
-                  }}
-                  size="sm"
-                  className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
-                >
-                  ⏰ 2 saat
-                </Button>
-                <Button
-                  onClick={() => {
-                    setFilterStatus('Sürücü Onayladı');
-                    setTimeRangeFilter(null);
-                  }}
-                  size="sm"
-                  className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
-                >
-                  📋 Tümü
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
+          {stats.driverApproved > 0 && (
+            <Card className="bg-gradient-to-br from-green-500 to-emerald-600 border-0 shadow-xl col-span-2 md:col-span-8">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-white">
+                    <p className="text-sm font-bold mb-1 flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5" />
+                      ⚡ ONAYLANMIŞ SİPARİŞLER
+                    </p>
+                    <p className="text-3xl font-black">{stats.driverApproved}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    onClick={() => {
+                      setFilterStatus('Sürücü Onayladı');
+                      setTimeRangeFilter(30);
+                    }}
+                    size="sm"
+                    className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
+                  >
+                    🔥 30 dk
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setFilterStatus('Sürücü Onayladı');
+                      setTimeRangeFilter(120);
+                    }}
+                    size="sm"
+                    className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
+                  >
+                    ⏰ 2 saat
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setFilterStatus('Sürücü Onayladı');
+                      setTimeRangeFilter(null);
+                    }}
+                    size="sm"
+                    className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
+                  >
+                    📋 Tümü
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           <Card className="bg-white border-slate-200">
             <CardContent className="p-3">
               <label className="text-xs text-slate-600 block mb-2">Tarih</label>
