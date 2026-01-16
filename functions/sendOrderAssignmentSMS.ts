@@ -191,27 +191,73 @@ Deno.serve(async (req) => {
                 const functionUrl = `${baseUrl}?d=${encodeURIComponent(driver_id)}&t=${encodeURIComponent(order_date)}&mg=${encodeURIComponent(messageGroupId)}`;
 
                 // SMS mesajı oluştur - grup ve tekli siparişleri doğru hesapla
-                // GÜVENLIK: Her canvas grup ID için sadece bir kez fiyat al (duble önleme)
+                // KRITIK: Her canvas grup ID için sadece bir kez fiyat al (duble önleme)
                 const groupedByCanvasId = {};
                 orders.forEach(o => {
                     const groupId = o.canvas_group_id || `single_${o.id}`;
                     if (!groupedByCanvasId[groupId]) {
-                        // Canvas'tan gelen teklif fiyatı - tek kaynak
-                        const safePrice = parseFloat(o.canvas_price) || 0;
+                        // KRITIK KONTROL: Canvas_price OLMAK ZORUNDA
+                        if (!o.canvas_price || o.canvas_price === null || o.canvas_price === undefined) {
+                            console.error(`❌ KRITIK: ${o.ezcater_order_id} için canvas_price eksik!`);
+                            groupedByCanvasId[groupId] = {
+                                ids: [],
+                                price: null,
+                                error: 'CANVAS_PRICE_MISSING'
+                            };
+                            return;
+                        }
+
+                        const safePrice = parseFloat(o.canvas_price);
+
+                        // KRITIK KONTROL: Fiyat pozitif olmak zorunda
+                        if (isNaN(safePrice) || safePrice <= 0) {
+                            console.error(`❌ KRITIK: ${o.ezcater_order_id} için geçersiz fiyat: ${o.canvas_price}`);
+                            groupedByCanvasId[groupId] = {
+                                ids: [],
+                                price: null,
+                                error: 'INVALID_PRICE'
+                            };
+                            return;
+                        }
+
                         groupedByCanvasId[groupId] = {
                             ids: [],
                             price: safePrice
                         };
                     }
                     groupedByCanvasId[groupId].ids.push(o.ezcater_order_id);
-                    // GÜVENLIK: Fiyat sadece ilk sipariş için alındı - tekrar ekleme yok
                 });
                 
-                // GÜVENLIK: Total fiyat hesaplama - her grup için sadece bir kez fiyat
-                const totalPrice = Object.values(groupedByCanvasId).reduce((sum, g) => sum + (parseFloat(g.price) || 0), 0);
-                
+                // KRITIK KONTROL: Tüm gruplarda fiyat var mı?
+                const invalidGroups = Object.entries(groupedByCanvasId).filter(([_, g]) => g.error || g.price === null);
+                if (invalidGroups.length > 0) {
+                    orders.forEach(order => {
+                        results.failed.push({
+                            orderId: order.ezcater_order_id,
+                            reason: `❌ KRITIK: Canvas_price eksik veya geçersiz! SMS gönderilemez.`
+                        });
+                    });
+                    console.log(`❌ ${driver_name} → ATLANDI: Canvas_price eksik/geçersiz`);
+                    continue;
+                }
+
+                // Total fiyat hesaplama - her grup için sadece bir kez fiyat
+                const totalPrice = Object.values(groupedByCanvasId).reduce((sum, g) => sum + (g.price || 0), 0);
+
+                // SON KONTROL: Toplam fiyat sıfır olamaz
+                if (totalPrice <= 0) {
+                    orders.forEach(order => {
+                        results.failed.push({
+                            orderId: order.ezcater_order_id,
+                            reason: `❌ KRITIK: Toplam fiyat $0! SMS gönderilemez.`
+                        });
+                    });
+                    console.log(`❌ ${driver_name} → ATLANDI: Toplam fiyat $0`);
+                    continue;
+                }
+
                 const ordersSummary = Object.entries(groupedByCanvasId).slice(0, 3)
-                    .map(([_, g]) => `${g.ids.join('/')} ($${parseFloat(g.price).toFixed(2)})`)
+                    .map(([_, g]) => `${g.ids.join('/')} ($${g.price.toFixed(2)})`)
                     .join(', ');
                 const ordersTail = Object.keys(groupedByCanvasId).length > 3 ? ` +${Object.keys(groupedByCanvasId).length - 3} more` : '';
                 
