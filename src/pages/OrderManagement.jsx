@@ -1605,6 +1605,29 @@ export default function OrderManagementPage() {
           </div>
         </div>
 
+        {stats.driverApproved > 0 && (
+          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 border-0 shadow-xl animate-pulse">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-white">
+                  <p className="text-sm font-bold mb-1 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    ⚡ ONAYLANMIŞ SİPARİŞLER
+                  </p>
+                  <p className="text-3xl font-black">{stats.driverApproved}</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setFilterStatus('Sürücü Onayladı')}
+                size="sm"
+                className="w-full bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg mt-2"
+              >
+                🎯 HEMEN GÖSTER
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
           <Card className="bg-white border-slate-200">
             <CardContent className="p-3">
