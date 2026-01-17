@@ -87,6 +87,12 @@ Deno.serve(async (req) => {
                 // ±1 dakika tolerans
                 if (diffMinutes < -1 || diffMinutes > 1) continue;
 
+                // 🛡️ MALİYET KONTROLÜ: Dropoff geçmiş mi?
+                if (dropoffDate < now) {
+                    console.log(`⏩ Atlanan: ${order.ezcater_order_id} - Dropoff geçmiş (${order.dropoff_time})`);
+                    continue;
+                }
+
                 // 🔍 Daha önce mesaj gönderilmiş mi kontrol et
                 const existingMessages = await base44.asServiceRole.entities.CheckMessage.filter({
                     order_id: order.id,
@@ -98,19 +104,8 @@ Deno.serve(async (req) => {
                     continue;
                 }
 
-                // 🌐 Sürücü dilini al
-                const drivers = await base44.asServiceRole.entities.Driver.filter({
-                    id: order.driver_id
-                });
-                const driverLanguage = (drivers.length > 0 && drivers[0].language) ? drivers[0].language : 'tr';
-
-                // 💬 Mesaj içeriği (SADECE HATIRLATMA - CEVAP BEKLENMİYOR)
-                let messageContent;
-                if (driverLanguage === 'en') {
-                    messageContent = `📸 Don't forget to take a photo!`;
-                } else {
-                    messageContent = `📸 Fotoğraf çekmeyi unutma!`;
-                }
+                // 💬 Mesaj içeriği (SADECE İNGİLİZCE - CEVAP BEKLENMİYOR)
+                const messageContent = `📸 Don't forget to take a photo!`;
 
                 // 📞 Telefon numarası temizleme ve validasyon
                 let toPhoneNumber = order.driver_phone.trim();
@@ -125,7 +120,6 @@ Deno.serve(async (req) => {
                     await base44.asServiceRole.entities.CheckMessage.create({
                         order_id: order.id,
                         driver_phone: order.driver_phone,
-                        driver_language: driverLanguage,
                         message_type: '5dk_Fotograf_Hatirlatma',
                         message_content: messageContent,
                         sent_time: now.toISOString(),
@@ -137,7 +131,7 @@ Deno.serve(async (req) => {
                 }
 
                 // 📤 SMS gönder
-                console.log(`📤 ${order.ezcater_order_id} → ${order.driver_name} (${driverLanguage})`);
+                console.log(`📤 ${order.ezcater_order_id} → ${order.driver_name}`);
 
                 const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
                 const formData = new URLSearchParams();
@@ -159,7 +153,6 @@ Deno.serve(async (req) => {
                     await base44.asServiceRole.entities.CheckMessage.create({
                         order_id: order.id,
                         driver_phone: order.driver_phone,
-                        driver_language: driverLanguage,
                         message_type: '5dk_Fotograf_Hatirlatma',
                         message_content: messageContent,
                         sent_time: now.toISOString(),
@@ -168,13 +161,12 @@ Deno.serve(async (req) => {
                         twilio_sid: data.sid,
                         alert_level: 'Normal'
                     });
-                    console.log(`✅ ${order.ezcater_order_id}: Mesaj gönderildi (${driverLanguage})`);
+                    console.log(`✅ ${order.ezcater_order_id}: Mesaj gönderildi`);
                 } else {
                     const errorData = await response.json();
                     await base44.asServiceRole.entities.CheckMessage.create({
                         order_id: order.id,
                         driver_phone: order.driver_phone,
-                        driver_language: driverLanguage,
                         message_type: '5dk_Fotograf_Hatirlatma',
                         message_content: messageContent,
                         sent_time: now.toISOString(),
