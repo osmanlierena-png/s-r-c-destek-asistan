@@ -6,11 +6,14 @@ Deno.serve(async (req) => {
     try {
         const now = new Date();
         const today = now.toISOString().split('T')[0];
-        
+
+        // 📋 SADECE bugünkü ve onaylanmış siparişleri al
         const orders = await base44.asServiceRole.entities.DailyOrder.filter({
             order_date: today,
             status: 'Sürücü Onayladı'
         });
+
+        console.log(`📊 Toplam ${orders.length} onaylanmış sipariş bulundu (${today})`);
 
         // Twilio bilgilerini kontrol et
         const twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
@@ -108,7 +111,15 @@ Deno.serve(async (req) => {
                 const messageContent = `📸 Don't forget to take a photo!`;
 
                 // 📞 Telefon numarası temizleme ve validasyon
-                let toPhoneNumber = order.driver_phone.trim();
+                const rawPhone = order.driver_phone.trim();
+
+                // "MISSING" kontrolü
+                if (rawPhone.toUpperCase().includes('MISSING') || rawPhone === '' || rawPhone === '-') {
+                    console.log(`⏩ Atlanan: ${order.ezcater_order_id} - Telefon numarası eksik (${rawPhone})`);
+                    continue;
+                }
+
+                let toPhoneNumber = rawPhone;
                 if (!toPhoneNumber.startsWith('+')) {
                     toPhoneNumber = '+' + toPhoneNumber.replace(/[^\d]/g, '');
                 }
@@ -202,7 +213,10 @@ Deno.serve(async (req) => {
             }
         }
 
-        return Response.json({ success: true });
+        return Response.json({ 
+            success: true,
+            message: `Foto hatırlatma kontrolü tamamlandı - ${today}`
+        });
 
     } catch (error) {
         return Response.json({ success: false, error: error.message }, { status: 500 });
