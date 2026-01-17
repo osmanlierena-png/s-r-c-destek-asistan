@@ -55,8 +55,7 @@ Deno.serve(async (req) => {
                 const fiveMinutesBefore = new Date(dropoffDate.getTime() - 5 * 60 * 1000);
                 const diffMinutes = (fiveMinutesBefore - now) / (1000 * 60);
 
-                // Genişletilmiş zaman penceresi: 7 dakika önce ile 3 dakika önce arası
-                if (diffMinutes < -3 || diffMinutes > 2) continue;
+                if (diffMinutes < -1 || diffMinutes > 1) continue;
 
                 const existingMessages = await base44.asServiceRole.entities.CheckMessage.filter({
                     order_id: order.id,
@@ -65,8 +64,19 @@ Deno.serve(async (req) => {
 
                 if (existingMessages.length > 0) continue;
 
-                // Mesaj içeriği - sadece İngilizce
-                const messageContent = `📸 Don't forget to take a photo!`;
+                // Sürücü dilini al
+                const drivers = await base44.asServiceRole.entities.Driver.filter({
+                    id: order.driver_id
+                });
+                const driverLanguage = (drivers.length > 0 && drivers[0].language) ? drivers[0].language : 'tr';
+
+                // Mesaj içeriği
+                let messageContent;
+                if (driverLanguage === 'en') {
+                    messageContent = `📸 Don't forget to take a photo!`;
+                } else {
+                    messageContent = `📸 Fotoğraf çekmeyi unutma!`;
+                }
 
                 // Telefon numarası temizleme ve validasyon
                 let toPhoneNumber = order.driver_phone.trim();
@@ -97,7 +107,7 @@ Deno.serve(async (req) => {
                     await base44.asServiceRole.entities.CheckMessage.create({
                         order_id: order.id,
                         driver_phone: order.driver_phone,
-                        driver_language: 'en',
+                        driver_language: driverLanguage,
                         message_type: '5dk_Fotograf_Hatirlatma',
                         message_content: messageContent,
                         sent_time: now.toISOString(),
@@ -110,7 +120,7 @@ Deno.serve(async (req) => {
                     await base44.asServiceRole.entities.CheckMessage.create({
                         order_id: order.id,
                         driver_phone: order.driver_phone,
-                        driver_language: 'en',
+                        driver_language: driverLanguage,
                         message_type: '5dk_Fotograf_Hatirlatma',
                         message_content: messageContent,
                         sent_time: now.toISOString(),
