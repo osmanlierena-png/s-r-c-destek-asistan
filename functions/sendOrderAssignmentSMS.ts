@@ -196,24 +196,21 @@ Deno.serve(async (req) => {
                 orders.forEach(o => {
                     const groupId = o.canvas_group_id || `single_${o.id}`;
                     if (!groupedByCanvasId[groupId]) {
-                        // Canvas'tan gelen fiyat - yoksa $0
-                        let safePrice = 0;
-
-                        if (o.canvas_price && o.canvas_price !== null && o.canvas_price !== undefined) {
-                            safePrice = parseFloat(o.canvas_price);
-                            if (isNaN(safePrice) || safePrice < 0) {
-                                console.warn(`⚠️ ${o.ezcater_order_id} için geçersiz canvas_price: ${o.canvas_price}, $0 kullanılacak`);
-                                safePrice = 0;
-                            }
-                        } else {
-                            console.warn(`⚠️ ${o.ezcater_order_id} için canvas_price yok, $0 kullanılacak`);
-                        }
-
                         groupedByCanvasId[groupId] = {
                             ids: [],
-                            price: safePrice
+                            price: 0  // Başlangıçta 0, her siparişin fiyatı toplanacak
                         };
                     }
+
+                    // Canvas_price'ı topla - SADECE 0'dan büyük olanları
+                    if (o.canvas_price && o.canvas_price !== null && o.canvas_price !== undefined) {
+                        const price = parseFloat(o.canvas_price);
+                        if (!isNaN(price) && price > 0) {
+                            groupedByCanvasId[groupId].price += price;
+                            console.log(`💵 ${o.ezcater_order_id}: +$${price} → Grup Total: $${groupedByCanvasId[groupId].price}`);
+                        }
+                    }
+
                     groupedByCanvasId[groupId].ids.push(o.ezcater_order_id);
                 });
                 
