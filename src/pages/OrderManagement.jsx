@@ -117,8 +117,32 @@ export default function OrderManagementPage() {
 
       if (result.data.success) {
         alert(`✅ ${result.data.updated} sipariş Canvas'tan güncellendi!${result.data.failed > 0 ? `\n\n⚠️ ${result.data.failed} sipariş güncellenemedi.` : ''}\n\n📊 Toplam: ${result.data.total}`);
+        
         // Database'den güncel veriyi çek
         await loadOrders();
+        
+        // 🔍 DETAYLI LOG - Atanmış siparişlerin sürücü bilgilerini kontrol et
+        setTimeout(() => {
+          const atandiOrders = orders.filter(o => o.status === 'Atandı');
+          console.log(`\n🔍 CANVAS'TAN SONRA DURUM KONTROLÜ:`);
+          console.log(`📦 "Atandı" durumunda ${atandiOrders.length} sipariş var\n`);
+          
+          atandiOrders.forEach(o => {
+            console.log(`📋 ${o.ezcater_order_id}:`);
+            console.log(`   ✅ driver_id: ${o.driver_id || '❌ EKSIK'}`);
+            console.log(`   ✅ driver_name: ${o.driver_name || '❌ EKSIK'}`);
+            console.log(`   ✅ driver_phone: ${o.driver_phone || '❌ EKSIK'}`);
+            console.log(``);
+          });
+          
+          const eksikBilgiler = atandiOrders.filter(o => !o.driver_id || !o.driver_phone);
+          if (eksikBilgiler.length > 0) {
+            console.error(`⚠️ ${eksikBilgiler.length} siparişte driver_id veya driver_phone EKSIK!`);
+            console.error(`❌ Eksik siparişler:`, eksikBilgiler.map(o => o.ezcater_order_id));
+          } else {
+            console.log(`✅ Tüm siparişlerde driver_id ve driver_phone DOLU!`);
+          }
+        }, 1000);
       } else {
         alert('❌ Hata: ' + result.data.error);
       }
