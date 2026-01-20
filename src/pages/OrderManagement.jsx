@@ -1316,7 +1316,9 @@ export default function OrderManagementPage() {
 
     // Zaman aralığı filtresi
     if (timeRangeFilter && order.pickup_time) {
+      // ŞU AN - EST timezone
       const now = new Date();
+      const estDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
       
       // Pickup time'ı parse et (AM/PM desteği)
       const timeStr = order.pickup_time.trim();
@@ -1334,11 +1336,11 @@ export default function OrderManagementPage() {
         hours = 0;
       }
       
-      // Pickup tarih-saat oluştur
+      // Pickup tarih-saat oluştur (EST timezone)
       const pickupDate = new Date(order.order_date + 'T00:00:00');
       pickupDate.setHours(hours, minutes, 0, 0);
       
-      const diffMinutes = (pickupDate - now) / (1000 * 60);
+      const diffMinutes = (pickupDate - estDate) / (1000 * 60);
       
       // Geçmiş siparişleri dahil etme, sadece gelecek timeRangeFilter dakika içindekileri göster
       if (diffMinutes < 0 || diffMinutes > timeRangeFilter) {
