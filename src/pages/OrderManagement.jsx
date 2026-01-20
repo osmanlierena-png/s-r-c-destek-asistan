@@ -1235,38 +1235,47 @@ export default function OrderManagementPage() {
   };
 
   const handleSendAssignmentSMS = async () => {
-    const atandiOrders = orders.filter(o => o.status === 'Atandı');
-    
-    console.log('🔍 SMS GÖNDERİM KONTROLÜ:');
-    console.log(`📦 Toplam "Atandı" sipariş: ${atandiOrders.length}`);
-    
-    atandiOrders.forEach(o => {
-      console.log(`\n📋 ${o.ezcater_order_id}:`);
-      console.log(`   - driver_id: ${o.driver_id || '❌ EKSIK'}`);
-      console.log(`   - driver_name: ${o.driver_name || '❌ EKSIK'}`);
-      console.log(`   - driver_phone: ${o.driver_phone || '❌ EKSIK'}`);
-    });
-    
-    const assignedOrders = atandiOrders.filter(o => 
-      o.driver_id && 
-      o.driver_phone
-    );
-    
-    console.log(`\n✅ SMS için uygun sipariş: ${assignedOrders.length}`);
-    
-    if (assignedOrders.length === 0) {
-      alert('❌ "Atandı" durumunda sipariş yok veya sürücü bilgileri eksik!\n\nKontrol edin:\n- Siparişler "Atandı" durumunda mı?\n- driver_id ve driver_phone dolu mu?\n\nDetaylar için Console\'u (F12) kontrol edin.');
-      return;
-    }
-
-    const confirmMessage = `${assignedOrders.length} atanmış siparişi sürücülere onay için SMS göndermek istiyor musunuz?\n\nSürücüler EVET/HAYIR veya gecikme süresi ile yanıt verebilecek.`;
-    
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
     setIsSendingAssignmentSMS(true);
+    
     try {
+      // 🔥 FRESH DATA ÇEK - State'deki eski veri değil, database'deki güncel veriyi kullan
+      console.log('🔄 Fresh data çekiliyor...');
+      const freshOrders = await base44.entities.DailyOrder.filter({ 
+        order_date: selectedDate 
+      }, '-created_date', 200);
+      
+      const atandiOrders = freshOrders.filter(o => o.status === 'Atandı');
+      
+      console.log('🔍 SMS GÖNDERİM KONTROLÜ (FRESH DATA):');
+      console.log(`📦 Toplam "Atandı" sipariş: ${atandiOrders.length}`);
+      
+      atandiOrders.forEach(o => {
+        console.log(`\n📋 ${o.ezcater_order_id}:`);
+        console.log(`   - driver_id: ${o.driver_id || '❌ EKSIK'}`);
+        console.log(`   - driver_name: ${o.driver_name || '❌ EKSIK'}`);
+        console.log(`   - driver_phone: ${o.driver_phone || '❌ EKSIK'}`);
+      });
+      
+      const assignedOrders = atandiOrders.filter(o => 
+        o.driver_id && 
+        o.driver_phone
+      );
+      
+      console.log(`\n✅ SMS için uygun sipariş: ${assignedOrders.length}`);
+      
+      if (assignedOrders.length === 0) {
+        alert('❌ "Atandı" durumunda sipariş yok veya sürücü bilgileri eksik!\n\nKontrol edin:\n- Siparişler "Atandı" durumunda mı?\n- driver_id ve driver_phone dolu mu?\n\nDetaylar için Console\'u (F12) kontrol edin.');
+        setIsSendingAssignmentSMS(false);
+        return;
+      }
+
+      const confirmMessage = `${assignedOrders.length} atanmış siparişi sürücülere onay için SMS göndermek istiyor musunuz?\n\nSürücüler EVET/HAYIR veya gecikme süresi ile yanıt verebilecek.`;
+      
+      if (!window.confirm(confirmMessage)) {
+        setIsSendingAssignmentSMS(false);
+        return;
+      }
+
       const response = await sendOrderAssignmentSMS({ 
         orderIds: assignedOrders.map(o => o.id)
       });
