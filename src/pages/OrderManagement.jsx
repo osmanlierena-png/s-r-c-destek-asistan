@@ -1236,13 +1236,13 @@ export default function OrderManagementPage() {
 
   const handleSendAssignmentSMS = async () => {
     const assignedOrders = orders.filter(o => 
-      o.status === 'Atandı' && 
       o.driver_id && 
-      o.driver_phone
+      o.driver_phone &&
+      o.status === 'Atandı'
     );
     
     if (assignedOrders.length === 0) {
-      alert('Bu tarihte sürücüye atanmış sipariş yok!');
+      alert('❌ "Atandı" durumunda sipariş yok veya sürücü bilgileri eksik!\n\nKontrol edin:\n- Siparişler "Atandı" durumunda mı?\n- driver_id ve driver_phone dolu mu?');
       return;
     }
 
