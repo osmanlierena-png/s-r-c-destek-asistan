@@ -205,22 +205,20 @@ Deno.serve(async (req) => {
                     continue;
                 }
 
-                // Sürücüyü isimle bul
+                // 🔥 Sürücüyü isimle bul - driver_id ve driver_phone al
                 let driverId = null;
                 let driverPhone = null;
 
-                if (assignment.driverName) {
-                    const drivers = await base44.asServiceRole.entities.Driver.filter({
-                        name: assignment.driverName
-                    }, null, 1);
-                    
-                    if (drivers.length > 0) {
-                        driverId = drivers[0].id;
-                        driverPhone = drivers[0].phone;
-                        console.log(`   ✓ Sürücü bulundu: ${assignment.driverName} (${driverPhone})`);
-                    } else {
-                        console.warn(`   ⚠️ Sürücü bulunamadı: ${assignment.driverName}`);
-                    }
+                const drivers = await base44.asServiceRole.entities.Driver.filter({
+                    name: assignment.driverName
+                }, null, 1);
+                
+                if (drivers.length > 0) {
+                    driverId = drivers[0].id;
+                    driverPhone = drivers[0].phone;
+                    console.log(`   ✓ Sürücü bulundu: ${assignment.driverName} (ID: ${driverId}, Phone: ${driverPhone})`);
+                } else {
+                    console.warn(`   ⚠️ Sürücü bulunamadı database'de: ${assignment.driverName}`);
                 }
 
                 // Siparişi güncelle
