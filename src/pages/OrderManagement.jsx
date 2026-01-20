@@ -117,7 +117,8 @@ export default function OrderManagementPage() {
 
       if (result.data.success) {
         alert(`✅ ${result.data.updated} sipariş Canvas'tan güncellendi!${result.data.failed > 0 ? `\n\n⚠️ ${result.data.failed} sipariş güncellenemedi.` : ''}\n\n📊 Toplam: ${result.data.total}`);
-        loadOrders();
+        // Database'den güncel veriyi çek
+        await loadOrders();
       } else {
         alert('❌ Hata: ' + result.data.error);
       }
