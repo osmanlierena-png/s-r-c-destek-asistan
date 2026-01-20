@@ -23,10 +23,9 @@ Deno.serve(async (req) => {
 
         console.log(`📤 ${date} tarihindeki siparişler Canvas'a gönderiliyor...`);
 
-        // 1. Sadece atanmamış siparişleri çek (Service Role ile)
+        // 1. TÜM siparişleri çek (Service Role ile) - Canvas'ın merge yapabilmesi için
         const orders = await base44.asServiceRole.entities.DailyOrder.filter({
-            order_date: date,
-            status: 'Çekildi'
+            order_date: date
         }, '-created_date', 500);
 
         if (orders.length === 0) {
