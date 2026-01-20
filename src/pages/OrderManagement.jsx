@@ -85,16 +85,21 @@ export default function OrderManagementPage() {
 
     setSendingToCanvas(true);
     try {
+      console.log('🚀 Canvas\'a gönderiliyor...', { date: selectedDate });
       const result = await sendOrdersToCanvas({ date: selectedDate });
+      console.log('📦 Backend response:', result);
 
       if (result.data.success) {
         alert(`✅ ${result.data.ordersCount} sipariş Canvas'a gönderildi!\n\n📍 Canvas URL: ${result.data.canvasUrl}`);
         window.open(result.data.canvasUrl, '_blank');
       } else {
-        alert('❌ Hata: ' + result.data.error);
+        console.error('❌ Backend error:', result.data);
+        alert('❌ Hata: ' + (result.data.error || JSON.stringify(result.data)));
       }
     } catch (error) {
-      alert('❌ Canvas\'a gönderilemedi: ' + error.message);
+      console.error('❌ Full error:', error);
+      console.error('❌ Error response:', error.response);
+      alert('❌ Canvas\'a gönderilemedi: ' + error.message + '\n\nDetaylar için console\'u kontrol edin.');
     } finally {
       setSendingToCanvas(false);
     }
