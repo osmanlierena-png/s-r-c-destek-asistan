@@ -1295,12 +1295,13 @@ export default function OrderManagementPage() {
         loadOrders();
       } else {
         alert(`❌ Hata: ${response.data.error || response.data.message}`);
+        setIsSendingAssignmentSMS(false);
       }
     } catch (error) {
       console.error('SMS gönderim hatası:', error);
       alert(`❌ Bağlantı hatası: ${error.message}`);
+      setIsSendingAssignmentSMS(false);
     }
-    setIsSendingAssignmentSMS(false);
   };
 
   const toggleOrderSelection = (orderId) => {
