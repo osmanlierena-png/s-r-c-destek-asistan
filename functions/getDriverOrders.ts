@@ -234,7 +234,7 @@ ${orders[0].status === 'Sürücü Onayladı' ? text.approved : text.rejected} ($
 </div>
 ` : `
 <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 20px; border: 1px solid #e2e8f0;">
-<button onclick="handleClick('approve')" style="width: 100%; padding: 16px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; letter-spacing: 0.3px;">${text.approveAll}</button>
+<button onclick="handleClick('approve')" style="width: 100%; padding: 16px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; letter-spacing: 0.3px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">${text.approveAll}</button>
 <button onclick="handleClick('reject')" style="width: 100%; padding: 16px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; letter-spacing: 0.3px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">${text.rejectAll}</button>
 <div id="msg" style="margin-top: 16px; padding: 14px; border-radius: 6px; display: none; font-weight: 500; font-size: 14px;"></div>
 </div>
