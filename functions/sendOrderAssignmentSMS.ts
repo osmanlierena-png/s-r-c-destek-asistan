@@ -78,15 +78,16 @@ Deno.serve(async (req) => {
                     continue;
                 }
 
-                // ⚠️ YENİ KONTROL: Sürücü zaten yanıt verdiyse atla
-                if (order.driver_response) {
-                    console.log(`⏩ ATLANMA SEBEBİ: Sürücü zaten yanıt vermiş`);
-                    console.log(`   - driver_response: "${order.driver_response}"`);
-                    console.log(`   - driver_response_at: ${order.driver_response_at || 'YOK'}`);
-                    console.log(`   💡 NOT: Bu sipariş daha önce onaylanmış/reddedilmiş, tekrar SMS gönderilmeyecek`);
+                // ⚠️ YENİ KONTROL: Sürücü zaten yanıt verdiyse veya SMS gönderildiyse atla
+                if (order.status === 'Sürücü Onayladı' || order.status === 'Sürücü Reddetti' || order.status === 'Sürücü Onayı Bekleniyor') {
+                    console.log(`⏩ ATLANMA SEBEBİ: SMS zaten gönderilmiş veya yanıtlanmış`);
+                    console.log(`   - status: "${order.status}"`);
+                    console.log(`   - driver_response: "${order.driver_response || 'YOK'}"`);
+                    console.log(`   - sms_sent_at: ${order.sms_sent_at || 'YOK'}`);
+                    console.log(`   💡 NOT: Bu sipariş zaten SMS aşamasında veya sonrasında`);
                     results.skipped.push({
                         orderId: order.ezcater_order_id,
-                        reason: `Sürücü zaten yanıt verdi: ${order.driver_response}`
+                        reason: `SMS zaten gönderilmiş/yanıtlanmış (${order.status})`
                     });
                     continue;
                 }
