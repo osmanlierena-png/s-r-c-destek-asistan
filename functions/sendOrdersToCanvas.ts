@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
             body: JSON.stringify({
                 date,
                 orders: orders.map(o => ({
-                    orderId: o.id,
+                    id: o.id,
                     orderNumber: o.ezcater_order_id || o.id,
                     ezcaterOrderId: o.ezcater_order_id,
                     pickupTime: o.pickup_time,
