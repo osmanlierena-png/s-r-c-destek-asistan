@@ -209,16 +209,22 @@ Deno.serve(async (req) => {
                 let driverId = null;
                 let driverPhone = null;
 
-                const drivers = await base44.asServiceRole.entities.Driver.filter({
-                    name: assignment.driverName
-                }, null, 1);
+                // Tüm aktif sürücüleri çek ve case-insensitive karşılaştırma yap
+                const allDrivers = await base44.asServiceRole.entities.Driver.filter({
+                    status: 'Aktif'
+                });
                 
-                if (drivers.length > 0) {
-                    driverId = drivers[0].id;
-                    driverPhone = drivers[0].phone;
+                const matchedDriver = allDrivers.find(d => 
+                    d.name && d.name.trim().toLowerCase() === assignment.driverName.trim().toLowerCase()
+                );
+                
+                if (matchedDriver) {
+                    driverId = matchedDriver.id;
+                    driverPhone = matchedDriver.phone;
                     console.log(`   ✓ Sürücü bulundu: ${assignment.driverName} (ID: ${driverId}, Phone: ${driverPhone})`);
                 } else {
-                    console.warn(`   ⚠️ Sürücü bulunamadı database'de: ${assignment.driverName}`);
+                    console.error(`   ❌ Sürücü bulunamadı database'de: "${assignment.driverName}"`);
+                    console.error(`   📋 Aktif sürücüler (${allDrivers.length}): ${allDrivers.map(d => `"${d.name}"`).join(', ')}`);
                 }
 
                 // Siparişi güncelle
