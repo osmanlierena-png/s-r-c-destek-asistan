@@ -1235,14 +1235,27 @@ export default function OrderManagementPage() {
   };
 
   const handleSendAssignmentSMS = async () => {
-    const assignedOrders = orders.filter(o => 
+    const atandiOrders = orders.filter(o => o.status === 'Atandı');
+    
+    console.log('🔍 SMS GÖNDERİM KONTROLÜ:');
+    console.log(`📦 Toplam "Atandı" sipariş: ${atandiOrders.length}`);
+    
+    atandiOrders.forEach(o => {
+      console.log(`\n📋 ${o.ezcater_order_id}:`);
+      console.log(`   - driver_id: ${o.driver_id || '❌ EKSIK'}`);
+      console.log(`   - driver_name: ${o.driver_name || '❌ EKSIK'}`);
+      console.log(`   - driver_phone: ${o.driver_phone || '❌ EKSIK'}`);
+    });
+    
+    const assignedOrders = atandiOrders.filter(o => 
       o.driver_id && 
-      o.driver_phone &&
-      o.status === 'Atandı'
+      o.driver_phone
     );
     
+    console.log(`\n✅ SMS için uygun sipariş: ${assignedOrders.length}`);
+    
     if (assignedOrders.length === 0) {
-      alert('❌ "Atandı" durumunda sipariş yok veya sürücü bilgileri eksik!\n\nKontrol edin:\n- Siparişler "Atandı" durumunda mı?\n- driver_id ve driver_phone dolu mu?');
+      alert('❌ "Atandı" durumunda sipariş yok veya sürücü bilgileri eksik!\n\nKontrol edin:\n- Siparişler "Atandı" durumunda mı?\n- driver_id ve driver_phone dolu mu?\n\nDetaylar için Console\'u (F12) kontrol edin.');
       return;
     }
 
