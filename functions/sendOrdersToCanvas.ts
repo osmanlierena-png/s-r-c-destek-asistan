@@ -37,6 +37,8 @@ Deno.serve(async (req) => {
         }
 
         console.log(`📦 ${orders.length} sipariş Canvas'a gönderiliyor...`);
+        console.log(`🌐 Canvas URL: ${CANVAS_URL}/api/base44/import`);
+        console.log(`🔐 API Secret: ${Deno.env.get("CANVAS_API_SECRET") ? 'VAR' : 'YOK'}`);
 
         // 3. Canvas'a gönder
         const response = await fetch(`${CANVAS_URL}/api/base44/import`, {
@@ -136,9 +138,22 @@ Deno.serve(async (req) => {
 
     } catch (error) {
         console.error('❌ Canvas\'a gönderme hatası:', error);
+        console.error('❌ Error type:', error.name);
+        console.error('❌ Error stack:', error.stack);
+        
+        let errorMessage = error.message;
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            errorMessage = `Canvas'a bağlanılamadı. URL kontrol et: ${CANVAS_URL}`;
+        }
+        
         return Response.json({ 
             success: false,
-            error: error.message 
+            error: errorMessage,
+            details: {
+                errorName: error.name,
+                canvasUrl: CANVAS_URL,
+                hasSecret: !!Deno.env.get("CANVAS_API_SECRET")
+            }
         }, { status: 500 });
     }
 });
