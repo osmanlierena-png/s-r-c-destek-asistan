@@ -40,6 +40,37 @@ Deno.serve(async (req) => {
         console.log(`🌐 Canvas URL: ${CANVAS_URL}/api/base44/import`);
         console.log(`🔐 API Secret: ${Deno.env.get("CANVAS_API_SECRET") ? 'VAR' : 'YOK'}`);
 
+        // Request body'yi hazırla
+        const requestBody = {
+            date,
+            orders: orders.map(o => ({
+                id: o.id,
+                orderNumber: o.ezcater_order_id || o.id,
+                ezcaterOrderId: o.ezcater_order_id,
+                pickupTime: o.pickup_time,
+                pickupAddress: o.pickup_address,
+                dropoffTime: o.dropoff_time,
+                dropoffAddress: o.dropoff_address,
+                pickupLat: o.pickup_coords?.lat,
+                pickupLng: o.pickup_coords?.lng,
+                dropoffLat: o.dropoff_coords?.lat,
+                dropoffLng: o.dropoff_coords?.lng,
+                status: o.status,
+                customerName: o.customer_name,
+                driverName: o.driver_name,
+                driverPhone: o.driver_phone,
+                tipAmount: parseFloat(String(o.tip || '0').replace(/[$,]/g, '')) || 0,
+                priceAmount: parseFloat(String(o.price || '0').replace(/[$,]/g, '')) || 0
+            }))
+        };
+
+        // 🔍 DEBUG: Canvas'a gönderilen request body'yi logla
+        console.log('🔍 Canvas Request Body:', JSON.stringify({
+            date: requestBody.date,
+            ordersCount: requestBody.orders.length,
+            firstOrder: requestBody.orders[0]
+        }, null, 2));
+
         // 3. Canvas'a gönder
         const response = await fetch(`${CANVAS_URL}/api/base44/import`, {
             method: 'POST',
@@ -47,28 +78,7 @@ Deno.serve(async (req) => {
                 'Content-Type': 'application/json',
                 'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || ''
             },
-            body: JSON.stringify({
-                date,
-                orders: orders.map(o => ({
-                    id: o.id,
-                    orderNumber: o.ezcater_order_id || o.id,
-                    ezcaterOrderId: o.ezcater_order_id,
-                    pickupTime: o.pickup_time,
-                    pickupAddress: o.pickup_address,
-                    dropoffTime: o.dropoff_time,
-                    dropoffAddress: o.dropoff_address,
-                    pickupLat: o.pickup_coords?.lat,
-                    pickupLng: o.pickup_coords?.lng,
-                    dropoffLat: o.dropoff_coords?.lat,
-                    dropoffLng: o.dropoff_coords?.lng,
-                    status: o.status,
-                    customerName: o.customer_name,
-                    driverName: o.driver_name,
-                    driverPhone: o.driver_phone,
-                    tipAmount: parseFloat(String(o.tip || '0').replace(/[$,]/g, '')) || 0,
-                    priceAmount: parseFloat(String(o.price || '0').replace(/[$,]/g, '')) || 0
-                }))
-            })
+            body: JSON.stringify(requestBody)
         });
 
         // 4. Response kontrolü
