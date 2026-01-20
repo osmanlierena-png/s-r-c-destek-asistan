@@ -22,7 +22,8 @@ Deno.serve(async (req) => {
     
     const checkMessages = await base44.asServiceRole.entities.CheckMessage.filter({
       response_received: false,
-      sent_time: { $gte: cutoffTime.toISOString() }
+      sent_time: { $gte: cutoffTime.toISOString() },
+      message_type: '60dk_Kontrol'  // SADECE pickup öncesi mesajları kontrol et
     }, '-sent_time', 100);
     
     console.log(`📦 ${checkMessages.length} yanıtsız mesaj bulundu`);
