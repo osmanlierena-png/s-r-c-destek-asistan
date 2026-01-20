@@ -18,6 +18,7 @@ Deno.serve(async (req) => {
         }
 
         console.log(`\n📦 ${orderIds.length} sipariş için SMS gönderiliyor...`);
+        console.log(`📋 Order IDs:`, orderIds);
         
         // Twilio bilgilerini kontrol et
         const twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
@@ -47,10 +48,12 @@ Deno.serve(async (req) => {
 
         for (const orderId of orderIds) {
             try {
+                console.log(`\n🔍 Sipariş kontrol ediliyor: ${orderId}`);
                 const orders = await base44.asServiceRole.entities.DailyOrder.filter({ id: orderId });
                 const order = orders[0];
 
                 if (!order) {
+                    console.log(`❌ Sipariş bulunamadı: ${orderId}`);
                     results.failed.push({
                         orderId,
                         reason: 'Sipariş bulunamadı'
@@ -58,7 +61,16 @@ Deno.serve(async (req) => {
                     continue;
                 }
 
+                console.log(`✅ Sipariş bulundu: ${order.ezcater_order_id}`);
+                console.log(`   📊 Status: ${order.status}`);
+                console.log(`   👤 Driver: ${order.driver_name || 'YOK'} (ID: ${order.driver_id || 'YOK'})`);
+                console.log(`   📞 Phone: ${order.driver_phone || 'YOK'}`);
+                console.log(`   💬 Response: ${order.driver_response || 'YOK'}`);
+
                 if (!order.driver_id || !order.driver_phone || order.driver_phone.trim() === '') {
+                    console.log(`❌ ATLANMA SEBEBİ: Sürücü bilgisi eksik`);
+                    console.log(`   - driver_id: ${order.driver_id || 'EKSIK'}`);
+                    console.log(`   - driver_phone: ${order.driver_phone || 'EKSIK'}`);
                     results.failed.push({
                         orderId: order.ezcater_order_id,
                         reason: 'Sürücü atanmamış veya telefon numarası eksik'
@@ -68,13 +80,18 @@ Deno.serve(async (req) => {
 
                 // ⚠️ YENİ KONTROL: Sürücü zaten yanıt verdiyse atla
                 if (order.driver_response) {
+                    console.log(`⏩ ATLANMA SEBEBİ: Sürücü zaten yanıt vermiş`);
+                    console.log(`   - driver_response: "${order.driver_response}"`);
+                    console.log(`   - driver_response_at: ${order.driver_response_at || 'YOK'}`);
+                    console.log(`   💡 NOT: Bu sipariş daha önce onaylanmış/reddedilmiş, tekrar SMS gönderilmeyecek`);
                     results.skipped.push({
                         orderId: order.ezcater_order_id,
                         reason: `Sürücü zaten yanıt verdi: ${order.driver_response}`
                     });
-                    console.log(`⏩ Atlandı: ${order.ezcater_order_id} - Durum: ${order.status}, Yanıt: ${order.driver_response}`);
                     continue;
                 }
+
+                console.log(`✅ Sipariş SMS için uygun, gruplama işlemine alınıyor...`);
 
                 // Sürücü+tarih bazında grupla
                 const groupKey = `${order.driver_id}_${order.order_date}`;
@@ -101,6 +118,18 @@ Deno.serve(async (req) => {
         }
 
         console.log(`\n👥 ${Object.keys(ordersByDriverAndDate).length} farklı sürücü+tarih kombinasyonu bulundu`);
+
+        if (Object.keys(ordersByDriverAndDate).length === 0) {
+            console.log(`\n⚠️ UYARI: Hiçbir sipariş gruplandırılamadı!`);
+            console.log(`📊 Özet:`);
+            console.log(`   - Toplam gönderilmek istenen: ${orderIds.length}`);
+            console.log(`   - Başarısız: ${results.failed.length}`);
+            console.log(`   - Atlanan: ${results.skipped.length}`);
+            console.log(`\n💡 Muhtemel sebepler:`);
+            console.log(`   1. Tüm siparişlerde driver_response dolu (önceden yanıtlanmış)`);
+            console.log(`   2. Sürücü bilgileri eksik (driver_id, driver_phone)`);
+            console.log(`   3. Telefon numaraları geçersiz`);
+        }
 
         // Her sürücü+tarih grubu için tek bir SMS gönder
         for (const [groupKey, group] of Object.entries(ordersByDriverAndDate)) {
