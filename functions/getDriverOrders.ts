@@ -252,7 +252,7 @@ async function handleClick(response) {
             msg.style.background = '#dcfce7';
             msg.style.color = '#166534';
             msg.textContent = (response === 'approve' ? '${text.approved}' : '${text.rejected}') + ' (' + data.updatedCount + ' orders)';
-            document.querySelectorAll('button').forEach(b => b.style.display = 'none');
+            setTimeout(() => window.location.reload(), 1500);
         } else {
             msg.style.background = '#fee2e2';
             msg.style.color = '#991b1b';
