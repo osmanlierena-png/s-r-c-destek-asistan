@@ -18,8 +18,8 @@ Deno.serve(async (req) => {
     console.log('🔍 Yanıtsız mesajlar kontrol ediliyor...');
     
     const now = new Date();
-    const cutoffTime = new Date(now.getTime() - 60 * 60 * 1000);
-    
+    const cutoffTime = new Date(now.getTime() - 120 * 60 * 1000); // 2 saat
+
     const checkMessages = await base44.asServiceRole.entities.CheckMessage.filter({
       response_received: false,
       sent_time: { $gte: cutoffTime.toISOString() },
