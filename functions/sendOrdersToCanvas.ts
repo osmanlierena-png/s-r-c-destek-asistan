@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
                 date,
                 orders: orders.map(o => ({
                     id: o.id,
+                    orderId: o.id, // Canvas'ın beklediği field
                     orderNumber: o.ezcater_order_id || o.id,
                     ezcaterOrderId: o.ezcater_order_id,
                     pickupTime: o.pickup_time,
@@ -62,6 +63,7 @@ Deno.serve(async (req) => {
                     customerName: o.customer_name,
                     driverName: o.driver_name,
                     driverPhone: o.driver_phone,
+                    groupId: o.canvas_group_id, // Mevcut grup ID'sini gönder
                     tipAmount: parseFloat(String(o.tip || '0').replace(/[$,]/g, '')) || 0,
                     priceAmount: parseFloat(String(o.price || '0').replace(/[$,]/g, '')) || 0
                 }))
