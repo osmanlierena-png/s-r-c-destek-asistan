@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -118,10 +119,8 @@ export default function OrderManagementPage() {
       if (result.data.success) {
         alert(`✅ ${result.data.updated} sipariş Canvas'tan güncellendi!${result.data.failed > 0 ? `\n\n⚠️ ${result.data.failed} sipariş güncellenemedi.` : ''}\n\n📊 Toplam: ${result.data.total}`);
         
-        // Database'den güncel veriyi çek
         await loadOrders();
         
-        // 🔍 DETAYLI LOG - Atanmış siparişlerin sürücü bilgilerini kontrol et
         setTimeout(() => {
           const atandiOrders = orders.filter(o => o.status === 'Atandı');
           console.log(`\n🔍 CANVAS'TAN SONRA DURUM KONTROLÜ:`);
@@ -1367,44 +1366,38 @@ export default function OrderManagementPage() {
       }
     }
 
-    // Zaman aralığı filtresi
-    if (timeRangeFilter && order.pickup_time) {
-      // ŞU AN - EST timezone
-      const now = new Date();
-      const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-      const estNowYear = estNow.getFullYear();
-      const estNowMonth = (estNow.getMonth() + 1).toString().padStart(2, '0');
-      const estNowDay = estNow.getDate().toString().padStart(2, '0');
-      const estTodayStr = `${estNowYear}-${estNowMonth}-${estNowDay}`;
-      
-      // Pickup time'ı parse et (AM/PM desteği)
-      const timeStr = order.pickup_time.trim();
-      const isPM = timeStr.toLowerCase().includes('pm');
-      const isAM = timeStr.toLowerCase().includes('am');
-      const timePart = timeStr.replace(/\s*(am|pm)/gi, '').trim();
-      const [hourStr, minStr] = timePart.split(':');
-      let hours = parseInt(hourStr, 10);
-      const minutes = parseInt(minStr, 10) || 0;
-      
-      // AM/PM dönüşümü
-      if (isPM && hours !== 12) {
-        hours += 12;
-      } else if (isAM && hours === 12) {
-        hours = 0;
-      }
-      
-      // Farklı gün ise filtre dışı (30dk/120dk sadece bugün için geçerli)
-      if (order.order_date !== estTodayStr) {
+    // Zaman aralığı filtresi - driver_response_at'e göre en son onaylanmış siparişleri göster
+    if (timeRangeFilter) {
+      // Sadece "Sürücü Onayladı" durumundaki siparişler için çalış
+      if (order.status !== 'Sürücü Onayladı') {
         return false;
       }
-      
-      // Aynı gün - dakika cinsinden kıyasla
-      const nowMinutes = estNow.getHours() * 60 + estNow.getMinutes();
-      const pickupMinutes = hours * 60 + minutes;
-      const diffMinutes = pickupMinutes - nowMinutes;
-      
-      // Geçmiş siparişleri dahil etme, sadece gelecek timeRangeFilter dakika içindekileri göster
-      if (diffMinutes < 0 || diffMinutes > timeRangeFilter) {
+
+      // driver_response_at yoksa filtrele
+      if (!order.driver_response_at) {
+        return false;
+      }
+
+      // Seçili tarihteki TÜM onaylı siparişleri bul
+      const approvedOrdersOnDate = orders.filter(o => 
+        o.status === 'Sürücü Onayladı' &&
+        o.order_date === selectedDate &&
+        o.driver_response_at
+      );
+
+      if (approvedOrdersOnDate.length === 0) return false;
+
+      // En yüksek (en son) driver_response_at zamanını bul
+      const latestResponseTime = Math.max(...approvedOrdersOnDate.map(o => 
+        new Date(o.driver_response_at).getTime()
+      ));
+
+      // Bu siparişin driver_response_at'i ile en son zaman arasındaki farkı hesapla
+      const orderResponseTime = new Date(order.driver_response_at).getTime();
+      const diffMinutes = (latestResponseTime - orderResponseTime) / (1000 * 60);
+
+      // timeRangeFilter dakika içinde değilse false döndür
+      if (diffMinutes > timeRangeFilter) {
         return false;
       }
     }
@@ -1723,7 +1716,7 @@ export default function OrderManagementPage() {
                     size="sm"
                     className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
                   >
-                    🔥 30 dk
+                    🔥 Son 30 dk
                   </Button>
                   <Button
                     onClick={() => {
@@ -1733,7 +1726,7 @@ export default function OrderManagementPage() {
                     size="sm"
                     className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
                   >
-                    ⏰ 2 saat
+                    ⏰ Son 2 saat
                   </Button>
                   <Button
                     onClick={() => {
@@ -1888,7 +1881,7 @@ export default function OrderManagementPage() {
                   )}
                   {timeRangeFilter && (
                     <Badge className="bg-white text-indigo-700 text-sm font-bold px-3 py-1">
-                      {timeRangeFilter === 30 ? '🔥 Sonraki 30 dakika' : '⏰ Sonraki 2 saat'}
+                      {timeRangeFilter === 30 ? '🔥 Son 30 dakika' : '⏰ Son 2 saat'}
                     </Badge>
                   )}
                   <span className="text-lg font-bold text-white">
