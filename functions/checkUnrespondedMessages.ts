@@ -44,9 +44,8 @@ Deno.serve(async (req) => {
           
           const order = await base44.asServiceRole.entities.DailyOrder.filter({ id: msg.order_id });
           if (order && order[0]) {
-            await base44.asServiceRole.entities.DailyOrder.update(order[0].id, {
-              status: 'Problem'
-            });
+            // Sipariş statusü değiştirilmiyor - "Sürücü Onayladı" kalır
+            // Sadece Case oluştur ve CheckMessage güncelle
             
             let caseData = {
               sorun: `Sürücü ${Math.round(timeSinceSent)} dakikadır yanıt vermiyor`,
