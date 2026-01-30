@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1730,13 +1729,13 @@ export default function OrderManagementPage() {
                   </Button>
                   <Button
                     onClick={() => {
-                      setFilterStatus('Sürücü Onayladı');
+                      setFilterStatus(null);
                       setTimeRangeFilter(null);
                     }}
                     size="sm"
                     className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg"
                   >
-                    📋 Tümü
+                    📋 Tüm Siparişler
                   </Button>
                 </div>
               </CardContent>
