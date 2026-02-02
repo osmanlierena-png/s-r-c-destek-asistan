@@ -86,11 +86,25 @@ Deno.serve(async (req) => {
                 }
             }
 
+            // Onaylanan ve reddedilen sipariş ID'lerini topla
+            const approvedOrderNumbers = [];
+            const rejectedOrderNumbers = [];
+
+            for (const order of orders) {
+                if (selectedOrderIds.includes(order.id)) {
+                    approvedOrderNumbers.push(order.ezcater_order_id);
+                } else {
+                    rejectedOrderNumbers.push(order.ezcater_order_id);
+                }
+            }
+
             return Response.json({ 
                 success: true, 
                 approvedCount,
                 rejectedCount,
-                totalCount: orders.length
+                totalCount: orders.length,
+                approvedOrderNumbers,
+                rejectedOrderNumbers
             });
         }
         
@@ -162,6 +176,12 @@ Deno.serve(async (req) => {
             rejected: '✅ Orders rejected!',
             noOrders: 'No orders found for today.'
         };
+
+        // Sipariş ID'lerini maplemek için
+        const orderIdMap = {};
+        orders.forEach(order => {
+            orderIdMap[order.id] = order.ezcater_order_id;
+        });
         
         // HTML oluştur - grup bazında
         let orderIndex = 0;
@@ -257,6 +277,11 @@ ${orders[0].status === 'Sürücü Onayladı' ? text.approved : text.rejected} ($
 </div>
 `}
 </div>
+<style>
+.order-card { transition: all 0.2s; }
+.order-checkbox:not(:checked) ~ * { opacity: 0.5; }
+.order-card:has(.order-checkbox:not(:checked)) { border-color: #fca5a5 !important; background: #fef2f2 !important; }
+</style>
 <script>
 function selectAll() {
     document.querySelectorAll('.order-checkbox').forEach(cb => cb.checked = true);
@@ -281,6 +306,10 @@ async function handleConfirm() {
         return;
     }
 
+    // Butonları ve checkbox'ları devre dışı bırak
+    document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+    document.querySelectorAll('.order-checkbox').forEach(cb => cb.disabled = true);
+
     msg.style.display = 'block';
     msg.textContent = '⏳ Processing...';
     
@@ -295,17 +324,33 @@ async function handleConfirm() {
         if (data.success) {
             msg.style.background = '#dcfce7';
             msg.style.color = '#166534';
-            msg.textContent = '✅ Success! Approved: ' + data.approvedCount + ' | Rejected: ' + data.rejectedCount;
-            setTimeout(() => window.location.reload(), 1500);
+            
+            let message = '';
+            if (data.approvedCount > 0) {
+                message += '✅ Approved: ' + data.approvedOrderNumbers.join(', ');
+            }
+            if (data.rejectedCount > 0) {
+                if (message) message += '<br><br>';
+                message += '❌ Rejected: ' + data.rejectedOrderNumbers.join(', ');
+            }
+            
+            msg.innerHTML = message;
+            setTimeout(() => window.location.reload(), 2500);
         } else {
             msg.style.background = '#fee2e2';
             msg.style.color = '#991b1b';
             msg.textContent = '❌ Error: ' + (data.message || 'Unknown error');
+            // Hata durumunda butonları tekrar aktif et
+            document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+            document.querySelectorAll('.order-checkbox').forEach(cb => cb.disabled = false);
         }
     } catch (error) {
         msg.style.background = '#fee2e2';
         msg.style.color = '#991b1b';
         msg.textContent = '❌ Error: ' + error.message;
+        // Hata durumunda butonları tekrar aktif et
+        document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+        document.querySelectorAll('.order-checkbox').forEach(cb => cb.disabled = false);
     }
 }
 </script>
