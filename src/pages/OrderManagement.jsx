@@ -22,7 +22,9 @@ import {
   Check,
   Phone,
   MessageSquare,
-  BarChart3
+  BarChart3,
+  Download,
+  Calendar
 } from "lucide-react";
 import OrderCard from "../components/orders/OrderCard";
 import IntelligentAssignmentResults from "../components/orders/IntelligentAssignmentResults";
@@ -39,6 +41,7 @@ import { parseAndUpdateDriverRules } from "@/functions/parseAndUpdateDriverRules
 import { sendOrderAssignmentSMS } from "@/functions/sendOrderAssignmentSMS";
 import { sendOrdersToCanvas } from "@/functions/sendOrdersToCanvas";
 import { fetchAssignmentsFromCanvas } from "@/functions/fetchAssignmentsFromCanvas";
+import { exportOrdersToExcel } from "@/functions/exportOrdersToExcel";
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState([]);
@@ -76,6 +79,9 @@ export default function OrderManagementPage() {
   const [groupPreview, setGroupPreview] = useState(null);
   const [sendingToCanvas, setSendingToCanvas] = useState(false);
   const [fetchingFromCanvas, setFetchingFromCanvas] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportDateRange, setExportDateRange] = useState('7'); // 7, 14, 30 gün
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleSendToCanvas = async () => {
     if (!selectedDate) {
@@ -149,6 +155,46 @@ export default function OrderManagementPage() {
     } finally {
       setFetchingFromCanvas(false);
     }
+  };
+
+  const handleExportToExcel = async () => {
+    setIsExporting(true);
+    try {
+      const days = parseInt(exportDateRange);
+      const endDate = new Date(selectedDate + 'T12:00:00');
+      const startDate = new Date(endDate);
+      startDate.setDate(startDate.getDate() - days);
+
+      const startDateStr = startDate.toISOString().split('T')[0];
+      const endDateStr = endDate.toISOString().split('T')[0];
+
+      console.log(`📊 Excel export: ${startDateStr} - ${endDateStr}`);
+
+      const response = await exportOrdersToExcel({
+        startDate: startDateStr,
+        endDate: endDateStr
+      });
+
+      // Blob olarak al ve indir
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Siparisler_${startDateStr}_${endDateStr}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+
+      setShowExportModal(false);
+      alert(`✅ Excel dosyası başarıyla indirildi!\n\n📅 ${startDateStr} - ${endDateStr}\n📦 Sadece "Sürücü Onayladı" durumundaki siparişler`);
+    } catch (error) {
+      console.error('Excel export hatası:', error);
+      alert(`❌ Excel export hatası: ${error.message}`);
+    }
+    setIsExporting(false);
   };
 
   const loadOrders = useCallback(async () => {
@@ -1690,6 +1736,15 @@ export default function OrderManagementPage() {
             >
               {fetchingFromCanvas ? '⏳ Çekiliyor...' : '📥 Canvas\'tan Atamaları Getir'}
             </button>
+
+            <Button
+              onClick={() => setShowExportModal(true)}
+              size="sm"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Excel İndir
+            </Button>
           </div>
         </div>
 
@@ -2257,6 +2312,80 @@ export default function OrderManagementPage() {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">📊 Excel Export</h2>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Tarih Aralığı Seçin
+                </label>
+                <select
+                  value={exportDateRange}
+                  onChange={(e) => setExportDateRange(e.target.value)}
+                  className="w-full p-2 border rounded-lg"
+                >
+                  <option value="7">Son 1 Hafta</option>
+                  <option value="14">Son 14 Gün</option>
+                  <option value="30">Son 1 Ay</option>
+                </select>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-1">Export Bilgileri:</p>
+                    <ul className="space-y-1 text-xs">
+                      <li>• Sadece "Sürücü Onayladı" durumundaki siparişler</li>
+                      <li>• Sipariş Kodu, Tarih, Gün, Pickup/Dropoff Saatleri</li>
+                      <li>• Sürücü Adı, Canvas Ödeme Bilgisi</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowExportModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  İptal
+                </Button>
+                <Button
+                  onClick={handleExportToExcel}
+                  disabled={isExporting}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      İndiriliyor...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Excel İndir
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
