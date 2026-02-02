@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import * as XLSX from 'npm:xlsx';
 
 Deno.serve(async (req) => {
   try {
@@ -19,7 +18,7 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    console.log(`📊 Excel export başlatılıyor: ${startDate} - ${endDate}`);
+    console.log(`📊 CSV export başlatılıyor: ${startDate} - ${endDate}`);
 
     // Tarih aralığındaki tüm onaylanmış siparişleri çek
     const allOrders = await base44.asServiceRole.entities.DailyOrder.filter({
@@ -40,59 +39,51 @@ Deno.serve(async (req) => {
       }, { status: 404 });
     }
 
-    // Excel için veriyi hazırla
-    const excelData = filteredOrders.map(order => ({
-      'Sipariş Kodu': order.ezcater_order_id || '',
-      'Tarih': order.order_date || '',
-      'Gün': order.order_date ? new Date(order.order_date + 'T12:00:00').toLocaleDateString('tr-TR', { weekday: 'long' }) : '',
-      'Pickup Saati': order.pickup_time || '',
-      'Dropoff Saati': order.dropoff_time || '',
-      'Sürücü': order.driver_name || '',
-      'Ödeme (Canvas)': order.canvas_price || 0
-    }));
-
-    // Excel workbook oluştur
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    // CSV formatında veri hazırla
+    const headers = ['Sipariş Kodu', 'Tarih', 'Gün', 'Pickup Saati', 'Dropoff Saati', 'Sürücü', 'Ödeme (Canvas)'];
     
-    // Kolon genişliklerini ayarla
-    worksheet['!cols'] = [
-      { wch: 15 }, // Sipariş Kodu
-      { wch: 12 }, // Tarih
-      { wch: 12 }, // Gün
-      { wch: 12 }, // Pickup Saati
-      { wch: 12 }, // Dropoff Saati
-      { wch: 20 }, // Sürücü
-      { wch: 15 }  // Ödeme
-    ];
+    const rows = filteredOrders.map(order => [
+      order.ezcater_order_id || '',
+      order.order_date || '',
+      order.order_date ? new Date(order.order_date + 'T12:00:00').toLocaleDateString('tr-TR', { weekday: 'long' }) : '',
+      order.pickup_time || '',
+      order.dropoff_time || '',
+      order.driver_name || '',
+      order.canvas_price || 0
+    ]);
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Siparişler');
+    // CSV string oluştur
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => {
+        // Virgül veya tırnak içeren hücreleri escape et
+        const cellStr = String(cell);
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(','))
+    ].join('\n');
 
-    // Excel dosyasını array buffer olarak oluştur
-    const excelBuffer = XLSX.write(workbook, { 
-      type: 'array', 
-      bookType: 'xlsx' 
-    });
+    console.log(`📦 CSV dosyası oluşturuldu: ${csvContent.length} bytes`);
 
-    console.log(`📦 Excel dosyası oluşturuldu: ${excelBuffer.byteLength} bytes`);
+    // UTF-8 BOM ekle (Excel'in Türkçe karakterleri doğru göstermesi için)
+    const bom = '\uFEFF';
+    const csvWithBom = bom + csvContent;
 
     // Dosya adı oluştur
-    const fileName = `Siparisler_${startDate}_${endDate}.xlsx`;
+    const fileName = `Siparisler_${startDate}_${endDate}.csv`;
 
-    // Uint8Array'e çevir
-    const uint8Array = new Uint8Array(excelBuffer);
-
-    return new Response(uint8Array, {
+    return new Response(csvWithBom, {
       status: 200,
       headers: {
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-        'Content-Length': uint8Array.byteLength.toString()
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${fileName}"`
       }
     });
 
   } catch (error) {
-    console.error('❌ Excel export hatası:', error);
+    console.error('❌ CSV export hatası:', error);
     return Response.json({ 
       success: false, 
       error: error.message 

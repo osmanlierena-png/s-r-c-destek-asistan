@@ -176,17 +176,17 @@ export default function OrderManagementPage() {
         endDate: endDateStr
       });
 
-      // Binary data olarak gel
+      // CSV data olarak gel
       const blob = new Blob([response.data], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        type: 'text/csv; charset=utf-8' 
       });
 
-      console.log(`📦 Blob oluşturuldu: ${blob.size} bytes`);
+      console.log(`📦 CSV Blob oluşturuldu: ${blob.size} bytes`);
 
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Siparisler_${startDateStr}_${endDateStr}.xlsx`;
+      a.download = `Siparisler_${startDateStr}_${endDateStr}.csv`;
       document.body.appendChild(a);
       a.click();
 
@@ -196,7 +196,7 @@ export default function OrderManagementPage() {
       }, 100);
 
       setShowExportModal(false);
-      alert(`✅ Excel dosyası başarıyla indirildi!\n\n📅 ${startDateStr} - ${endDateStr}\n📦 Sadece "Sürücü Onayladı" durumundaki siparişler`);
+      alert(`✅ CSV dosyası başarıyla indirildi!\n\n📅 ${startDateStr} - ${endDateStr}\n📦 Sadece "Sürücü Onayladı" durumundaki siparişler\n\n💡 Excel ile açabilirsiniz`);
     } catch (error) {
       console.error('❌ Excel export hatası:', error);
       alert(`❌ Excel export hatası: ${error.message}`);
@@ -1750,7 +1750,7 @@ export default function OrderManagementPage() {
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
             >
               <Download className="w-4 h-4 mr-2" />
-              Excel İndir
+              CSV İndir
             </Button>
           </div>
         </div>
@@ -2328,7 +2328,7 @@ export default function OrderManagementPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">📊 Excel Export</h2>
+              <h2 className="text-xl font-bold">📊 CSV Export</h2>
               <button
                 onClick={() => setShowExportModal(false)}
                 className="text-slate-400 hover:text-slate-600"
@@ -2388,7 +2388,7 @@ export default function OrderManagementPage() {
                   ) : (
                     <>
                       <Download className="w-4 h-4 mr-2" />
-                      Excel İndir
+                      CSV İndir
                     </>
                   )}
                 </Button>
