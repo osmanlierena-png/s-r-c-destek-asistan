@@ -19,10 +19,10 @@ Deno.serve(async (req) => {
 
         const base44 = createClientFromRequest(req);
         
-        // POST - Handle approve/reject
+        // POST - Handle selective approve/reject
         if (req.method === 'POST') {
             const body = await req.json();
-            const { response } = body;
+            const { selectedOrderIds } = body;
 
             // GÜVENLIK: Sadece bu mesaj grubundaki siparişleri al
             const filterQuery = {
@@ -38,11 +38,20 @@ Deno.serve(async (req) => {
             const orders = await base44.entities.DailyOrder.filter(filterQuery);
 
             console.log(`📝 Yanıt işleniyor: ${orders.length} sipariş (Message Group: ${messageGroupId || 'NONE'})`);
+            console.log(`✅ Seçilen siparişler: ${selectedOrderIds.length}`);
+            console.log(`❌ Reddedilen siparişler: ${orders.length - selectedOrderIds.length}`);
 
-            const newStatus = response === 'approve' ? 'Sürücü Onayladı' : 'Sürücü Reddetti';
-            const responseText = response === 'approve' ? 'Evet' : 'Hayır';
+            let approvedCount = 0;
+            let rejectedCount = 0;
 
             for (const order of orders) {
+                const isApproved = selectedOrderIds.includes(order.id);
+                const newStatus = isApproved ? 'Sürücü Onayladı' : 'Sürücü Reddetti';
+                const responseText = isApproved ? 'Evet' : 'Hayır';
+
+                if (isApproved) approvedCount++;
+                else rejectedCount++;
+
                 await base44.entities.DailyOrder.update(order.id, {
                     status: newStatus,
                     driver_response: responseText,
@@ -79,8 +88,9 @@ Deno.serve(async (req) => {
 
             return Response.json({ 
                 success: true, 
-                message: response === 'approve' ? 'Approved!' : 'Rejected!',
-                updatedCount: orders.length
+                approvedCount,
+                rejectedCount,
+                totalCount: orders.length
             });
         }
         
@@ -171,10 +181,13 @@ Deno.serve(async (req) => {
                 const priceHTML = showPrice ? `<span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">$${group.totalPrice.toFixed(2)}${!group.hasCanvasPrice ? ' ⚠️' : ''}</span>` : '';
 
                 return `
-                <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
+                <div class="order-card" style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
                     <div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">${text.order.toUpperCase()} #${order.ezcater_order_id}</span>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <input type="checkbox" class="order-checkbox" data-order-id="${order.id}" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">${text.order.toUpperCase()} #${order.ezcater_order_id}</span>
+                            </div>
                             <div style="display: flex; gap: 8px; align-items: center;">
                                 ${priceHTML}
                                 <span style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;">#${orderIndex}</span>
@@ -234,29 +247,60 @@ ${orders[0].status === 'Sürücü Onayladı' ? text.approved : text.rejected} ($
 </div>
 ` : `
 <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 20px; border: 1px solid #e2e8f0;">
-<button onclick="handleClick('approve')" style="width: 100%; padding: 16px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; letter-spacing: 0.3px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">${text.approveAll}</button>
-<button onclick="handleClick('reject')" style="width: 100%; padding: 16px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; letter-spacing: 0.3px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">${text.rejectAll}</button>
+<div style="display: flex; gap: 8px; margin-bottom: 16px;">
+<button onclick="selectAll()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 0.3px;">✅ Select All</button>
+<button onclick="deselectAll()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 0.3px;">⬜ Deselect All</button>
+</div>
+<button onclick="handleConfirm()" style="width: 100%; padding: 18px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; letter-spacing: 0.3px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">✅ CONFIRM SELECTION</button>
+<p style="margin-top: 12px; font-size: 13px; color: #64748b;">Selected orders will be approved, unselected will be rejected</p>
 <div id="msg" style="margin-top: 16px; padding: 14px; border-radius: 6px; display: none; font-weight: 500; font-size: 14px;"></div>
 </div>
 `}
 </div>
 <script>
-async function handleClick(response) {
+function selectAll() {
+    document.querySelectorAll('.order-checkbox').forEach(cb => cb.checked = true);
+}
+
+function deselectAll() {
+    document.querySelectorAll('.order-checkbox').forEach(cb => cb.checked = false);
+}
+
+async function handleConfirm() {
     const msg = document.getElementById('msg');
+    const checkboxes = document.querySelectorAll('.order-checkbox');
+    const selectedOrderIds = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.getAttribute('data-order-id'));
+    
+    const selectedCount = selectedOrderIds.length;
+    const totalCount = checkboxes.length;
+    const rejectedCount = totalCount - selectedCount;
+
+    if (selectedCount === 0 && !confirm('No orders selected. This will reject ALL orders. Continue?')) {
+        return;
+    }
+
     msg.style.display = 'block';
     msg.textContent = '⏳ Processing...';
+    
     try {
-        const res = await fetch(window.location.href, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ response }) });
+        const res = await fetch(window.location.href, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ selectedOrderIds }) 
+        });
         const data = await res.json();
+        
         if (data.success) {
             msg.style.background = '#dcfce7';
             msg.style.color = '#166534';
-            msg.textContent = (response === 'approve' ? '${text.approved}' : '${text.rejected}') + ' (' + data.updatedCount + ' orders)';
+            msg.textContent = '✅ Success! Approved: ' + data.approvedCount + ' | Rejected: ' + data.rejectedCount;
             setTimeout(() => window.location.reload(), 1500);
         } else {
             msg.style.background = '#fee2e2';
             msg.style.color = '#991b1b';
-            msg.textContent = '❌ Error: ' + data.message;
+            msg.textContent = '❌ Error: ' + (data.message || 'Unknown error');
         }
     } catch (error) {
         msg.style.background = '#fee2e2';
