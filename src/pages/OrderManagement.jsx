@@ -170,29 +170,26 @@ export default function OrderManagementPage() {
 
       console.log(`📊 Excel export: ${startDateStr} - ${endDateStr}`);
 
-      // Backend'den binary response al
-      const { data } = await exportOrdersToExcel({
-        startDate: startDateStr,
-        endDate: endDateStr
+      // Direct fetch ile binary response al
+      const functionUrl = `/api/functions/exportOrdersToExcel`;
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startDate: startDateStr,
+          endDate: endDateStr
+        })
       });
 
-      // Binary veriyi Blob'a çevir
-      let blob;
-      if (data instanceof Blob) {
-        blob = data;
-      } else if (data instanceof ArrayBuffer) {
-        blob = new Blob([data], { 
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-        });
-      } else {
-        // Axios response ise
-        const arrayBuffer = typeof data === 'string' 
-          ? new TextEncoder().encode(data).buffer 
-          : data;
-        blob = new Blob([arrayBuffer], { 
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-        });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Export başarısız');
       }
+
+      // Binary blob olarak al
+      const blob = await response.blob();
 
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -200,8 +197,11 @@ export default function OrderManagementPage() {
       a.download = `Siparisler_${startDateStr}_${endDateStr}.xlsx`;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
+      
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      }, 100);
 
       setShowExportModal(false);
       alert(`✅ Excel dosyası başarıyla indirildi!\n\n📅 ${startDateStr} - ${endDateStr}\n📦 Sadece "Sürücü Onayladı" durumundaki siparişler`);
