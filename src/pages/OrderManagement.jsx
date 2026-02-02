@@ -214,7 +214,12 @@ export default function OrderManagementPage() {
       setShowExportModal(false);
       alert(`✅ Excel dosyası başarıyla indirildi!\n\n📅 ${startDateStr} - ${endDateStr}\n📦 Sadece "Sürücü Onayladı" durumundaki siparişler`);
     } catch (error) {
-      console.error('Excel export hatası:', error);
+      console.error('❌ Excel export hatası:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response
+      });
       alert(`❌ Excel export hatası: ${error.message}`);
     }
     setIsExporting(false);
