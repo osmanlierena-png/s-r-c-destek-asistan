@@ -316,20 +316,7 @@ async function handleConfirm() {
         const data = await res.json();
         
         if (data.success) {
-            msg.style.background = '#dcfce7';
-            msg.style.color = '#166534';
-            
-            let message = '';
-            if (data.approvedCount > 0) {
-                message += '✅ Approved: ' + data.approvedOrderNumbers.join(', ');
-            }
-            if (data.rejectedCount > 0) {
-                if (message) message += '<br><br>';
-                message += '❌ Rejected: ' + data.rejectedOrderNumbers.join(', ');
-            }
-            
-            msg.innerHTML = message;
-            setTimeout(() => window.location.reload(), 2500);
+            window.location.reload();
         } else {
             msg.style.background = '#fee2e2';
             msg.style.color = '#991b1b';
