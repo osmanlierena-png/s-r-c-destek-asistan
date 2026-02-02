@@ -68,9 +68,9 @@ Deno.serve(async (req) => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Siparişler');
 
-    // Excel dosyasını buffer olarak oluştur
+    // Excel dosyasını array buffer olarak oluştur
     const excelBuffer = XLSX.write(workbook, { 
-      type: 'buffer', 
+      type: 'array', 
       bookType: 'xlsx' 
     });
 
@@ -79,12 +79,15 @@ Deno.serve(async (req) => {
     // Dosya adı oluştur
     const fileName = `Siparisler_${startDate}_${endDate}.xlsx`;
 
-    return new Response(excelBuffer, {
+    // Uint8Array'e çevir
+    const uint8Array = new Uint8Array(excelBuffer);
+
+    return new Response(uint8Array, {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${fileName}"`,
-        'Content-Length': excelBuffer.byteLength.toString()
+        'Content-Length': uint8Array.byteLength.toString()
       }
     });
 

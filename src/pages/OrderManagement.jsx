@@ -170,15 +170,30 @@ export default function OrderManagementPage() {
 
       console.log(`📊 Excel export: ${startDateStr} - ${endDateStr}`);
 
-      const response = await exportOrdersToExcel({
+      // Backend'den binary response al
+      const { data } = await exportOrdersToExcel({
         startDate: startDateStr,
         endDate: endDateStr
       });
 
-      // Blob olarak al ve indir
-      const blob = new Blob([response.data], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-      });
+      // Binary veriyi Blob'a çevir
+      let blob;
+      if (data instanceof Blob) {
+        blob = data;
+      } else if (data instanceof ArrayBuffer) {
+        blob = new Blob([data], { 
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        });
+      } else {
+        // Axios response ise
+        const arrayBuffer = typeof data === 'string' 
+          ? new TextEncoder().encode(data).buffer 
+          : data;
+        blob = new Blob([arrayBuffer], { 
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        });
+      }
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
