@@ -36,6 +36,7 @@ import { intelligentOrderAssignment } from "@/functions/intelligentOrderAssignme
 import { gptAssignment } from "@/functions/gptAssignment";
 import { cleanOldOrders } from "@/functions/cleanOldOrders";
 import { resetAllAssignments } from "@/functions/resetAllAssignments";
+import { exportOrdersToExcel } from "@/functions/exportOrdersToExcel";
 
 import { parseAndUpdateDriverRules } from "@/functions/parseAndUpdateDriverRules";
 import { sendOrderAssignmentSMS } from "@/functions/sendOrderAssignmentSMS";
@@ -170,34 +171,18 @@ export default function OrderManagementPage() {
 
       console.log(`📊 Excel export: ${startDateStr} - ${endDateStr}`);
 
-      // Direct fetch ile binary response al
-      const functionUrl = `/api/functions/exportOrdersToExcel`;
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          startDate: startDateStr,
-          endDate: endDateStr
-        })
+      // Backend function'ı import ile çağır
+      const response = await exportOrdersToExcel({
+        startDate: startDateStr,
+        endDate: endDateStr
       });
 
-      if (!response.ok) {
-        // Hata durumunda JSON parse et
-        try {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Export başarısız');
-        } catch (jsonError) {
-          throw new Error(`Export başarısız: ${response.status} ${response.statusText}`);
-        }
-      }
+      // Binary data olarak gel
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
 
-      // Binary blob olarak al
-      const blob = await response.blob();
-      
-      // Blob'un Excel dosyası olduğunu kontrol et
-      console.log(`📦 Blob alındı: ${blob.size} bytes, type: ${blob.type}`);
+      console.log(`📦 Blob oluşturuldu: ${blob.size} bytes`);
 
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -205,7 +190,7 @@ export default function OrderManagementPage() {
       a.download = `Siparisler_${startDateStr}_${endDateStr}.xlsx`;
       document.body.appendChild(a);
       a.click();
-      
+
       setTimeout(() => {
         window.URL.revokeObjectURL(url);
         a.remove();
@@ -215,11 +200,6 @@ export default function OrderManagementPage() {
       alert(`✅ Excel dosyası başarıyla indirildi!\n\n📅 ${startDateStr} - ${endDateStr}\n📦 Sadece "Sürücü Onayladı" durumundaki siparişler`);
     } catch (error) {
       console.error('❌ Excel export hatası:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        response: error.response
-      });
       alert(`❌ Excel export hatası: ${error.message}`);
     }
     setIsExporting(false);
