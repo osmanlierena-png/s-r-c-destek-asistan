@@ -20,6 +20,8 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
   const [isLoadingDrivers, setIsLoadingDrivers] = React.useState(false);
   const [searchDriver, setSearchDriver] = React.useState("");
   const [isAssigning, setIsAssigning] = React.useState(false);
+  const [showPriceInput, setShowPriceInput] = React.useState(false);
+  const [canvasPriceInput, setCanvasPriceInput] = React.useState("");
 
   const handleDelete = async () => {
     if (!window.confirm(`${order.ezcater_order_id} numaralı siparişi silmek istediğinizden emin misiniz?`)) {
@@ -52,6 +54,26 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
   const handleOpenManualAssign = () => {
     setShowManualAssign(true);
     loadDrivers();
+  };
+
+  const handleCanvasPriceUpdate = async () => {
+    const newPrice = parseFloat(canvasPriceInput);
+    if (isNaN(newPrice) || newPrice <= 0) {
+      alert('Lütfen geçerli bir fiyat girin');
+      return;
+    }
+
+    try {
+      await base44.entities.DailyOrder.update(order.id, {
+        canvas_price: newPrice
+      });
+      setShowPriceInput(false);
+      setCanvasPriceInput("");
+      onUpdate();
+    } catch (error) {
+      console.error('Fiyat güncelleme hatası:', error);
+      alert('Fiyat güncellenemedi: ' + error.message);
+    }
   };
 
   const handleManualAssign = async (driver) => {
@@ -159,10 +181,45 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
             <span className="text-slate-600">{order.pickup_time} → {order.dropoff_time}</span>
           </div>
           <div className="flex items-center gap-3 pt-1 text-xs">
-            {order.canvas_price && (
+            {order.canvas_price ? (
               <span className="text-slate-700 font-medium">
                 💵 ${order.canvas_price.toFixed(2)}
               </span>
+            ) : (order.status === 'Atandı' || order.status === 'Çekildi') && (
+              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                {!showPriceInput ? (
+                  <button
+                    onClick={() => setShowPriceInput(true)}
+                    className="text-blue-600 hover:text-blue-700 text-xs font-medium flex items-center gap-1"
+                  >
+                    💵 Fiyat Ekle
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <span className="text-slate-600">💵</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={canvasPriceInput}
+                      onChange={(e) => setCanvasPriceInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleCanvasPriceUpdate();
+                        if (e.key === 'Escape') {
+                          setShowPriceInput(false);
+                          setCanvasPriceInput("");
+                        }
+                      }}
+                      onBlur={() => {
+                        if (canvasPriceInput) handleCanvasPriceUpdate();
+                        else setShowPriceInput(false);
+                      }}
+                      autoFocus
+                      className="w-20 h-6 p-1 text-xs"
+                    />
+                  </div>
+                )}
+              </div>
             )}
             {order.tip && (
               <span className="text-green-600 font-medium">
