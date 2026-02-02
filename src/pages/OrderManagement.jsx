@@ -184,12 +184,20 @@ export default function OrderManagementPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Export başarısız');
+        // Hata durumunda JSON parse et
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Export başarısız');
+        } catch (jsonError) {
+          throw new Error(`Export başarısız: ${response.status} ${response.statusText}`);
+        }
       }
 
       // Binary blob olarak al
       const blob = await response.blob();
+      
+      // Blob'un Excel dosyası olduğunu kontrol et
+      console.log(`📦 Blob alındı: ${blob.size} bytes, type: ${blob.type}`);
 
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
