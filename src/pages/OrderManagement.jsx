@@ -42,7 +42,6 @@ import { parseAndUpdateDriverRules } from "@/functions/parseAndUpdateDriverRules
 import { sendOrderAssignmentSMS } from "@/functions/sendOrderAssignmentSMS";
 import { sendOrdersToCanvas } from "@/functions/sendOrdersToCanvas";
 import { fetchAssignmentsFromCanvas } from "@/functions/fetchAssignmentsFromCanvas";
-import { exportOrdersToExcel } from "@/functions/exportOrdersToExcel";
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState([]);
