@@ -2347,6 +2347,7 @@ export default function OrderManagementPage() {
                   onChange={(e) => setExportDateRange(e.target.value)}
                   className="w-full p-2 border rounded-lg"
                 >
+                  <option value="0">Bugün</option>
                   <option value="7">Son 1 Hafta</option>
                   <option value="14">Son 14 Gün</option>
                   <option value="30">Son 1 Ay</option>
