@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Package,
   Clock,
@@ -71,7 +70,6 @@ export default function OrderManagementPage() {
   const [isAssigningThreeLayer, setIsAssigningThreeLayer] = useState(false);
   const [threeLayerResults, setThreeLayerResults] = useState(null);
   const [isSendingAssignmentSMS, setIsSendingAssignmentSMS] = useState(false);
-  const [smsRecipientFilter, setSmsRecipientFilter] = useState('approved_only');
   const [filterStatus, setFilterStatus] = useState(null);
   const [timeRangeFilter, setTimeRangeFilter] = useState(null); // 30, 120, null
   const [isBulkApproving, setIsBulkApproving] = useState(false);
@@ -1322,58 +1320,38 @@ export default function OrderManagementPage() {
     setIsSendingAssignmentSMS(true);
     
     try {
-      let targetOrders = [];
+      // 🔥 FRESH DATA ÇEK - State'deki eski veri değil, database'deki güncel veriyi kullan
+      console.log('🔄 Fresh data çekiliyor...');
+      const freshOrders = await base44.entities.DailyOrder.filter({ 
+        order_date: selectedDate 
+      }, '-created_date', 200);
       
-      if (smsRecipientFilter === 'approved_only') {
-        // Sadece "Sürücü Onayladı" durumundaki siparişler
-        console.log('📋 Sadece onaylanmış siparişlere SMS gönderiliyor...');
-        const freshOrders = await base44.entities.DailyOrder.filter({ 
-          order_date: selectedDate,
-          status: 'Sürücü Onayladı'
-        }, '-created_date', 200);
-        
-        targetOrders = freshOrders.filter(o => 
-          o.driver_id && 
-          o.driver_phone
-        );
-        
-        console.log(`✅ ${targetOrders.length} onaylanmış sipariş için SMS gönderilecek`);
-      } else {
-        // Tüm aktif sürücülere (telefon numarası olan)
-        console.log('📋 Tüm aktif sürücülere SMS gönderiliyor...');
-        const allDrivers = await base44.entities.Driver.filter({ 
-          status: 'Aktif'
-        });
-        
-        const driversWithPhone = allDrivers.filter(d => d.phone && d.phone.trim() !== '');
-        
-        console.log(`✅ ${driversWithPhone.length} aktif sürücüye SMS gönderilecek`);
-        
-        // Her sürücü için bir dummy order oluştur (SMS için gerekli bilgiler)
-        targetOrders = driversWithPhone.map(d => ({
-          id: `driver_${d.id}`,
-          driver_id: d.id,
-          driver_name: d.name,
-          driver_phone: d.phone,
-          order_date: selectedDate,
-          ezcater_order_id: 'GENEL_MESAJ'
-        }));
-      }
+      const atandiOrders = freshOrders.filter(o => o.status === 'Atandı');
       
-      if (targetOrders.length === 0) {
-        const filterText = smsRecipientFilter === 'approved_only' 
-          ? 'onaylanmış sipariş' 
-          : 'telefon numarası olan aktif sürücü';
-        alert(`❌ ${filterText} bulunamadı!`);
+      console.log('🔍 SMS GÖNDERİM KONTROLÜ (FRESH DATA):');
+      console.log(`📦 Toplam "Atandı" sipariş: ${atandiOrders.length}`);
+      
+      atandiOrders.forEach(o => {
+        console.log(`\n📋 ${o.ezcater_order_id}:`);
+        console.log(`   - driver_id: ${o.driver_id || '❌ EKSIK'}`);
+        console.log(`   - driver_name: ${o.driver_name || '❌ EKSIK'}`);
+        console.log(`   - driver_phone: ${o.driver_phone || '❌ EKSIK'}`);
+      });
+      
+      const assignedOrders = atandiOrders.filter(o => 
+        o.driver_id && 
+        o.driver_phone
+      );
+      
+      console.log(`\n✅ SMS için uygun sipariş: ${assignedOrders.length}`);
+      
+      if (assignedOrders.length === 0) {
+        alert('❌ "Atandı" durumunda sipariş yok veya sürücü bilgileri eksik!\n\nKontrol edin:\n- Siparişler "Atandı" durumunda mı?\n- driver_id ve driver_phone dolu mu?\n\nDetaylar için Console\'u (F12) kontrol edin.');
         setIsSendingAssignmentSMS(false);
         return;
       }
 
-      const filterText = smsRecipientFilter === 'approved_only' 
-        ? `${targetOrders.length} onaylanmış siparişi olan sürücülere`
-        : `${targetOrders.length} aktif sürücüye`;
-      
-      const confirmMessage = `${filterText} SMS göndermek istiyor musunuz?`;
+      const confirmMessage = `${assignedOrders.length} atanmış siparişi sürücülere onay için SMS göndermek istiyor musunuz?\n\nSürücüler EVET/HAYIR veya gecikme süresi ile yanıt verebilecek.`;
       
       if (!window.confirm(confirmMessage)) {
         setIsSendingAssignmentSMS(false);
@@ -1381,15 +1359,15 @@ export default function OrderManagementPage() {
       }
 
       const response = await sendOrderAssignmentSMS({ 
-        orderIds: targetOrders.map(o => o.id)
+        orderIds: assignedOrders.map(o => o.id)
       });
       
       if (response.data.success) {
         const { sent, failed } = response.data;
-        let message = `✅ ${sent.length} mesaj gönderildi!\n\n`;
+        let message = `✅ ${sent.length} siparişe SMS gönderildi!\n\n`;
         
         if (failed.length > 0) {
-          message += `⚠️ ${failed.length} mesaj gönderilemedi:\n`;
+          message += `⚠️ ${failed.length} sipariş gönderilemedi:\n`;
           failed.slice(0, 3).forEach(f => {
             message += `- ${f.orderId}: ${f.reason}\n`;
           });
@@ -1737,22 +1715,13 @@ export default function OrderManagementPage() {
               {isAssigning ? 'Atanıyor...' : 'Akıllı Ata'}
             </Button>
             
-            <div className="flex gap-2 items-center">
-              <Select value={smsRecipientFilter} onValueChange={setSmsRecipientFilter}>
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="approved_only">✅ Sadece Onaylananlar</SelectItem>
-                  <SelectItem value="all_active">📞 Tüm Aktif Sürücüler</SelectItem>
-                </SelectContent>
-              </Select>
-
+            {orders.filter(o => o.status === 'Atandı').length > 0 && (
               <Button 
                 onClick={handleSendAssignmentSMS}
                 disabled={isSendingAssignmentSMS}
                 size="sm"
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                title="Atanmış siparişler için onay SMS'i gönder"
               >
                 {isSendingAssignmentSMS ? (
                   <>
@@ -1760,13 +1729,10 @@ export default function OrderManagementPage() {
                     SMS Gönderiliyor...
                   </>
                 ) : (
-                  <>
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Toplu SMS Gönder
-                  </>
+                  `📲 Onay SMS Gönder (${orders.filter(o => o.status === 'Atandı').length})`
                 )}
               </Button>
-            </div>
+            )}
 
             <button
               onClick={handleSendToCanvas}
