@@ -32,8 +32,52 @@ export default function BulkMessagingPage() {
   const [driverCount, setDriverCount] = useState(null);
   const [isLoadingCount, setIsLoadingCount] = useState(false);
   const [recipientFilter, setRecipientFilter] = useState('approved_only');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedDriver, setSelectedDriver] = useState(null);
+
+  const searchDrivers = async (query) => {
+    if (!query || query.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      const allDrivers = await base44.entities.Driver.filter({ status: 'Aktif' });
+      const filtered = allDrivers.filter(d => 
+        d.name && d.name.toLowerCase().includes(query.toLowerCase()) && d.phone && d.phone.trim() !== ''
+      );
+      setSearchResults(filtered.slice(0, 10)); // İlk 10 sonuç
+    } catch (error) {
+      console.error('Sürücü arama hatası:', error);
+      setSearchResults([]);
+    }
+  };
+
+  const handleSelectDriver = (driver) => {
+    setSelectedDriver(driver);
+    setSearchQuery(driver.name);
+    setSearchResults([]);
+    setRecipientFilter('specific_driver');
+    setDriverCount({
+      drivers: 1,
+      orders: 0,
+      type: 'specific',
+      driverName: driver.name
+    });
+  };
 
   const loadDriverCount = async (date, filter) => {
+    if (filter === 'specific_driver' && selectedDriver) {
+      setDriverCount({
+        drivers: 1,
+        orders: 0,
+        type: 'specific',
+        driverName: selectedDriver.name
+      });
+      return;
+    }
+
     setIsLoadingCount(true);
     try {
       if (filter === 'approved_only') {
@@ -42,7 +86,6 @@ export default function BulkMessagingPage() {
           status: 'Sürücü Onayladı'
         });
 
-        // Benzersiz sürücüleri say
         const uniqueDrivers = new Set();
         orders.forEach(order => {
           if (order.driver_id) {
@@ -55,8 +98,7 @@ export default function BulkMessagingPage() {
           orders: orders.length,
           type: 'approved'
         });
-      } else {
-        // Tüm aktif sürücüler
+      } else if (filter === 'all_active') {
         const allDrivers = await base44.entities.Driver.filter({
           status: 'Aktif'
         });
@@ -87,6 +129,11 @@ export default function BulkMessagingPage() {
   const handleFilterChange = (filter) => {
     setRecipientFilter(filter);
     setResult(null);
+    if (filter !== 'specific_driver') {
+      setSelectedDriver(null);
+      setSearchQuery('');
+      setSearchResults([]);
+    }
     if (selectedDate) {
       loadDriverCount(selectedDate, filter);
     }
@@ -116,7 +163,8 @@ export default function BulkMessagingPage() {
       const response = await sendBulkMessages({
         targetDate: selectedDate,
         messageTemplate: messageTemplate,
-        messageType: recipientFilter
+        messageType: recipientFilter,
+        specificDriverId: recipientFilter === 'specific_driver' ? selectedDriver?.id : null
       });
 
       setResult(response.data);
@@ -177,10 +225,43 @@ export default function BulkMessagingPage() {
                   <SelectContent>
                     <SelectItem value="approved_only">✅ Sadece Onaylananlar</SelectItem>
                     <SelectItem value="all_active">📞 Tüm Aktif Sürücüler</SelectItem>
+                    <SelectItem value="specific_driver">🎯 Belirli Sürücü</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+
+            {/* Sürücü Arama */}
+            {recipientFilter === 'specific_driver' && (
+              <div className="relative">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Sürücü Ara
+                </label>
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    searchDrivers(e.target.value);
+                  }}
+                  placeholder="Sürücü adı yazın..."
+                  className="w-full"
+                />
+                {searchResults.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {searchResults.map((driver) => (
+                      <button
+                        key={driver.id}
+                        onClick={() => handleSelectDriver(driver)}
+                        className="w-full text-left px-4 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+                      >
+                        <div className="font-medium text-slate-900">{driver.name}</div>
+                        <div className="text-xs text-slate-500">{driver.phone}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Sürücü Sayısı Gösterimi */}
             {selectedDate && (
@@ -200,6 +281,8 @@ export default function BulkMessagingPage() {
                 <p className="text-xs text-blue-700 mt-1">
                   {driverCount?.type === 'approved' 
                     ? `"${selectedDate}" tarihindeki "Sürücü Onayladı" statusündeki siparişler`
+                    : driverCount?.type === 'specific'
+                    ? `Seçilen sürücü: ${driverCount.driverName}`
                     : 'Tüm aktif sürücüler (telefon numarası olanlar)'}
                 </p>
               </div>
@@ -230,7 +313,7 @@ export default function BulkMessagingPage() {
             {/* Gönder Butonu */}
             <Button 
               onClick={sendBulkMessages}
-              disabled={isSending || !messageTemplate.trim() || !driverCount?.drivers}
+              disabled={isSending || !messageTemplate.trim() || !driverCount?.drivers || (recipientFilter === 'specific_driver' && !selectedDriver)}
               className="w-full bg-blue-600 hover:bg-blue-700"
               size="lg"
             >
