@@ -314,7 +314,11 @@ async function handleConfirm() {
         const data = await res.json();
         
         if (data.success) {
-            window.location.reload();
+            msg.style.background = '#dcfce7';
+            msg.style.color = '#166534';
+            msg.textContent = '✅ Response recorded successfully!';
+            // Butonları ve checkbox'ları kalıcı olarak devre dışı bırak
+            document.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
         } else {
             msg.style.background = '#fee2e2';
             msg.style.color = '#991b1b';
