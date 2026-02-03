@@ -166,7 +166,7 @@ export default function BulkMessagingPage() {
         specificDriverId: recipientFilter === 'specific_driver' ? selectedDriver?.id : null
       });
 
-      setResult(response);
+      setResult(response.data);
       
       if (response.data.success) {
         // Mesaj başarılı gönderildiyse template'i temizle
