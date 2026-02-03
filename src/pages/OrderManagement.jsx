@@ -80,7 +80,8 @@ export default function OrderManagementPage() {
   const [sendingToCanvas, setSendingToCanvas] = useState(false);
   const [fetchingFromCanvas, setFetchingFromCanvas] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [exportDateRange, setExportDateRange] = useState('7'); // 7, 14, 30 gün
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
   const [isExporting, setIsExporting] = useState(false);
 
   const handleSendToCanvas = async () => {
@@ -158,23 +159,20 @@ export default function OrderManagementPage() {
   };
 
   const handleExportToExcel = async () => {
+    if (!exportStartDate || !exportEndDate) {
+      alert('Lütfen başlangıç ve bitiş tarihlerini seçin');
+      return;
+    }
+
+    if (exportStartDate > exportEndDate) {
+      alert('Başlangıç tarihi bitiş tarihinden sonra olamaz');
+      return;
+    }
+
     setIsExporting(true);
     try {
-      const days = parseInt(exportDateRange);
-      let startDateStr, endDateStr;
-
-      if (days === 0) {
-        // Sadece seçilen tarih
-        startDateStr = selectedDate;
-        endDateStr = selectedDate;
-      } else {
-        // Tarih aralığı
-        const endDate = new Date(selectedDate + 'T12:00:00');
-        const startDate = new Date(endDate);
-        startDate.setDate(startDate.getDate() - days);
-        startDateStr = startDate.toISOString().split('T')[0];
-        endDateStr = endDate.toISOString().split('T')[0];
-      }
+      const startDateStr = exportStartDate;
+      const endDateStr = exportEndDate;
 
       console.log(`📊 Excel export: ${startDateStr} - ${endDateStr}`);
 
@@ -2346,20 +2344,29 @@ export default function OrderManagementPage() {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Tarih Aralığı Seçin
-                </label>
-                <select
-                  value={exportDateRange}
-                  onChange={(e) => setExportDateRange(e.target.value)}
-                  className="w-full p-2 border rounded-lg"
-                >
-                  <option value="0">Seçilen Tarih</option>
-                  <option value="7">Son 1 Hafta</option>
-                  <option value="14">Son 14 Gün</option>
-                  <option value="30">Son 1 Ay</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Başlangıç Tarihi
+                  </label>
+                  <input
+                    type="date"
+                    value={exportStartDate}
+                    onChange={(e) => setExportStartDate(e.target.value)}
+                    className="w-full p-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Bitiş Tarihi
+                  </label>
+                  <input
+                    type="date"
+                    value={exportEndDate}
+                    onChange={(e) => setExportEndDate(e.target.value)}
+                    className="w-full p-2 border rounded-lg"
+                  />
+                </div>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
