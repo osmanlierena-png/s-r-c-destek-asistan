@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   CheckCircle, 
@@ -12,8 +13,11 @@ import {
   MessageSquare,
   RefreshCw,
   Phone,
-  MapPin
+  MapPin,
+  Send,
+  Loader2
 } from 'lucide-react';
+import { sendBulkMessages } from '@/functions/sendBulkMessages';
 
 export default function MessageMonitoring() {
   const [messages, setMessages] = useState([]);
@@ -22,6 +26,8 @@ export default function MessageMonitoring() {
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isSendingBulk, setIsSendingBulk] = useState(false);
+  const [bulkMessageType, setBulkMessageType] = useState('approved_only');
   const getESTDate = () => {
     const now = new Date();
     const estDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
@@ -256,6 +262,34 @@ export default function MessageMonitoring() {
     }
   };
 
+  const handleBulkSend = async () => {
+    const messageTypeText = bulkMessageType === 'approved_only' 
+      ? 'onaylanmış siparişleri olan sürücülere'
+      : 'aktif telefon numarası olan tüm sürücülere';
+
+    if (!window.confirm(`${messageTypeText} toplu mesaj göndermek istediğinizden emin misiniz?`)) {
+      return;
+    }
+
+    setIsSendingBulk(true);
+    try {
+      const response = await sendBulkMessages({
+        targetDate: selectedDate,
+        messageType: bulkMessageType
+      });
+
+      if (response.data.success) {
+        alert(`✅ ${response.data.sentCount} mesaj gönderildi!\n\nBaşarısız: ${response.data.failedCount}\nAtlanan: ${response.data.skippedCount}`);
+        loadMessages();
+      } else {
+        alert(`❌ Hata: ${response.data.error}`);
+      }
+    } catch (error) {
+      alert(`❌ Mesaj gönderim hatası: ${error.message}`);
+    }
+    setIsSendingBulk(false);
+  };
+
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-slate-200/50 shadow-lg">
       <CardHeader>
@@ -289,7 +323,7 @@ export default function MessageMonitoring() {
       <CardContent className="space-y-6">
         
         {/* 🔥 Tarih seçici ve Status filtresi yan yana */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <Input 
             type="date" 
             value={selectedDate}
@@ -298,7 +332,7 @@ export default function MessageMonitoring() {
           />
 
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="flex-1">
+            <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Durum filtrele" />
             </SelectTrigger>
             <SelectContent>
@@ -311,6 +345,36 @@ export default function MessageMonitoring() {
               <SelectItem value="failed">{getFilterLabel('failed')}</SelectItem>
             </SelectContent>
           </Select>
+
+          <div className="flex gap-2 ml-auto">
+            <Select value={bulkMessageType} onValueChange={setBulkMessageType}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="approved_only">✅ Sadece Onaylananlar</SelectItem>
+                <SelectItem value="all_active">📞 Tüm Aktif Sürücüler</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button
+              onClick={handleBulkSend}
+              disabled={isSendingBulk}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+            >
+              {isSendingBulk ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Gönderiliyor...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Toplu Mesaj Gönder
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
