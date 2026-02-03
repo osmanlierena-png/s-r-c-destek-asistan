@@ -159,15 +159,14 @@ export default function BulkMessagingPage() {
     setResult(null);
 
     try {
-      const { sendBulkMessages } = await import("@/functions/sendBulkMessages");
-      const response = await sendBulkMessages({
+      const response = await base44.functions.invoke('sendBulkMessages', {
         targetDate: selectedDate,
         messageTemplate: messageTemplate,
         messageType: recipientFilter,
         specificDriverId: recipientFilter === 'specific_driver' ? selectedDriver?.id : null
       });
 
-      setResult(response.data);
+      setResult(response);
       
       if (response.data.success) {
         // Mesaj başarılı gönderildiyse template'i temizle
