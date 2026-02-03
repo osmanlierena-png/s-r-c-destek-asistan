@@ -161,12 +161,20 @@ export default function OrderManagementPage() {
     setIsExporting(true);
     try {
       const days = parseInt(exportDateRange);
-      const endDate = new Date(selectedDate + 'T12:00:00');
-      const startDate = new Date(endDate);
-      startDate.setDate(startDate.getDate() - days);
+      let startDateStr, endDateStr;
 
-      const startDateStr = startDate.toISOString().split('T')[0];
-      const endDateStr = endDate.toISOString().split('T')[0];
+      if (days === 0) {
+        // Sadece seçilen tarih
+        startDateStr = selectedDate;
+        endDateStr = selectedDate;
+      } else {
+        // Tarih aralığı
+        const endDate = new Date(selectedDate + 'T12:00:00');
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - days);
+        startDateStr = startDate.toISOString().split('T')[0];
+        endDateStr = endDate.toISOString().split('T')[0];
+      }
 
       console.log(`📊 Excel export: ${startDateStr} - ${endDateStr}`);
 
@@ -2347,7 +2355,7 @@ export default function OrderManagementPage() {
                   onChange={(e) => setExportDateRange(e.target.value)}
                   className="w-full p-2 border rounded-lg"
                 >
-                  <option value="0">Bugün</option>
+                  <option value="0">Seçilen Tarih</option>
                   <option value="7">Son 1 Hafta</option>
                   <option value="14">Son 14 Gün</option>
                   <option value="30">Son 1 Ay</option>
