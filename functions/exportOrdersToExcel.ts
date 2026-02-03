@@ -40,14 +40,16 @@ Deno.serve(async (req) => {
     }
 
     // CSV formatında veri hazırla
-    const headers = ['Sipariş Kodu', 'Tarih', 'Gün', 'Pickup Saati', 'Dropoff Saati', 'Sürücü', 'Ödeme (Canvas)'];
+    const headers = ['Sipariş Kodu', 'Tarih', 'Gün', 'Pickup Saati', 'Pickup Adres', 'Dropoff Saati', 'Dropoff Adres', 'Sürücü', 'Ödeme (Canvas)'];
     
     const rows = filteredOrders.map(order => [
       order.ezcater_order_id || '',
       order.order_date || '',
       order.order_date ? new Date(order.order_date + 'T12:00:00').toLocaleDateString('tr-TR', { weekday: 'long' }) : '',
       order.pickup_time || '',
+      order.pickup_address || '',
       order.dropoff_time || '',
+      order.dropoff_address || '',
       order.driver_name || '',
       order.canvas_price || 0
     ]);
