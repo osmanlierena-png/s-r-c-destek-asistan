@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
         if (messageType === 'specific_driver' && specificDriverId) {
             // Belirli bir sürücüye gönder
             console.log(`🎯 Belirli sürücüye gönderim: ${specificDriverId}`);
-            const driver = await base44.asServiceRole.entities.Driver.get('Driver', specificDriverId);
+            const driver = await base44.asServiceRole.entities.Driver.get(specificDriverId);
             
             if (!driver || !driver.phone) {
                 return Response.json({
