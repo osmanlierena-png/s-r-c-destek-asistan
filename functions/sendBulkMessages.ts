@@ -8,46 +8,89 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { targetDate, messageTemplate } = await req.json();
+        const { targetDate, messageTemplate, messageType, specificDriverId } = await req.json();
         
-        if (!targetDate || !messageTemplate) {
+        if (!messageTemplate) {
             return Response.json({ 
                 success: false,
-                error: 'Tarih ve mesaj şablonu gerekli' 
+                error: 'Mesaj şablonu gerekli' 
             });
         }
 
-        console.log(`📤 ${targetDate} tarihine toplu mesaj gönderiliyor...`);
+        console.log(`📤 Toplu mesaj gönderiliyor... (Tip: ${messageType || 'approved_only'})`);
 
-        // O günün "Sürücü Onayladı" statusündeki siparişleri çek
-        const orders = await base44.asServiceRole.entities.DailyOrder.filter({
-            order_date: targetDate,
-            status: 'Sürücü Onayladı'
-        });
-
-        console.log(`📦 ${orders.length} onaylanmış sipariş bulundu`);
-
-        if (orders.length === 0) {
-            return Response.json({
-                success: true,
-                message: `${targetDate} tarihinde onaylanmış sipariş bulunamadı`,
-                sent: 0,
-                failed: 0
-            });
-        }
-
-        // Sürücülere göre grupla (aynı sürücüye birden fazla mesaj gönderilmesin)
         const driverMap = new Map();
-        for (const order of orders) {
-            if (order.driver_id && order.driver_phone && order.driver_name) {
-                if (!driverMap.has(order.driver_id)) {
-                    driverMap.set(order.driver_id, {
-                        name: order.driver_name,
-                        phone: order.driver_phone,
+
+        if (messageType === 'specific_driver' && specificDriverId) {
+            // Belirli bir sürücüye gönder
+            console.log(`🎯 Belirli sürücüye gönderim: ${specificDriverId}`);
+            const driver = await base44.asServiceRole.entities.Driver.get('Driver', specificDriverId);
+            
+            if (!driver || !driver.phone) {
+                return Response.json({
+                    success: false,
+                    error: 'Sürücü bulunamadı veya telefon numarası eksik'
+                });
+            }
+
+            driverMap.set(driver.id, {
+                name: driver.name,
+                phone: driver.phone,
+                orderCount: 0
+            });
+        } else if (messageType === 'all_active') {
+            // Tüm aktif sürücülere gönder
+            console.log(`📞 Tüm aktif sürücülere gönderim`);
+            const allDrivers = await base44.asServiceRole.entities.Driver.filter({
+                status: 'Aktif'
+            });
+
+            for (const driver of allDrivers) {
+                if (driver.phone && driver.phone.trim() !== '') {
+                    driverMap.set(driver.id, {
+                        name: driver.name,
+                        phone: driver.phone,
                         orderCount: 0
                     });
                 }
-                driverMap.get(order.driver_id).orderCount++;
+            }
+        } else {
+            // Onaylanmış siparişlerin sürücülerine gönder (varsayılan)
+            if (!targetDate) {
+                return Response.json({ 
+                    success: false,
+                    error: 'Tarih gerekli' 
+                });
+            }
+
+            console.log(`✅ ${targetDate} tarihindeki onaylı siparişlere gönderim`);
+            const orders = await base44.asServiceRole.entities.DailyOrder.filter({
+                order_date: targetDate,
+                status: 'Sürücü Onayladı'
+            });
+
+            console.log(`📦 ${orders.length} onaylanmış sipariş bulundu`);
+
+            if (orders.length === 0) {
+                return Response.json({
+                    success: true,
+                    message: `${targetDate} tarihinde onaylanmış sipariş bulunamadı`,
+                    sent: 0,
+                    failed: 0
+                });
+            }
+
+            for (const order of orders) {
+                if (order.driver_id && order.driver_phone && order.driver_name) {
+                    if (!driverMap.has(order.driver_id)) {
+                        driverMap.set(order.driver_id, {
+                            name: order.driver_name,
+                            phone: order.driver_phone,
+                            orderCount: 0
+                        });
+                    }
+                    driverMap.get(order.driver_id).orderCount++;
+                }
             }
         }
 
