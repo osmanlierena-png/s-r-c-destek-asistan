@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Send,
   Users,
@@ -30,27 +31,44 @@ export default function BulkMessagingPage() {
   const [result, setResult] = useState(null);
   const [driverCount, setDriverCount] = useState(null);
   const [isLoadingCount, setIsLoadingCount] = useState(false);
+  const [recipientFilter, setRecipientFilter] = useState('approved_only');
 
-  const loadDriverCount = async (date) => {
+  const loadDriverCount = async (date, filter) => {
     setIsLoadingCount(true);
     try {
-      const orders = await base44.entities.DailyOrder.filter({
-        order_date: date,
-        status: 'Sürücü Onayladı'
-      });
+      if (filter === 'approved_only') {
+        const orders = await base44.entities.DailyOrder.filter({
+          order_date: date,
+          status: 'Sürücü Onayladı'
+        });
 
-      // Benzersiz sürücüleri say
-      const uniqueDrivers = new Set();
-      orders.forEach(order => {
-        if (order.driver_id) {
-          uniqueDrivers.add(order.driver_id);
-        }
-      });
+        // Benzersiz sürücüleri say
+        const uniqueDrivers = new Set();
+        orders.forEach(order => {
+          if (order.driver_id) {
+            uniqueDrivers.add(order.driver_id);
+          }
+        });
 
-      setDriverCount({
-        drivers: uniqueDrivers.size,
-        orders: orders.length
-      });
+        setDriverCount({
+          drivers: uniqueDrivers.size,
+          orders: orders.length,
+          type: 'approved'
+        });
+      } else {
+        // Tüm aktif sürücüler
+        const allDrivers = await base44.entities.Driver.filter({
+          status: 'Aktif'
+        });
+
+        const driversWithPhone = allDrivers.filter(d => d.phone && d.phone.trim() !== '');
+
+        setDriverCount({
+          drivers: driversWithPhone.length,
+          orders: 0,
+          type: 'all_active'
+        });
+      }
     } catch (error) {
       console.error('Sürücü sayısı yüklenirken hata:', error);
       setDriverCount(null);
@@ -62,7 +80,15 @@ export default function BulkMessagingPage() {
     setSelectedDate(date);
     setResult(null);
     if (date) {
-      loadDriverCount(date);
+      loadDriverCount(date, recipientFilter);
+    }
+  };
+
+  const handleFilterChange = (filter) => {
+    setRecipientFilter(filter);
+    setResult(null);
+    if (selectedDate) {
+      loadDriverCount(selectedDate, filter);
     }
   };
 
@@ -89,7 +115,8 @@ export default function BulkMessagingPage() {
       const { sendBulkMessages } = await import("@/functions/sendBulkMessages");
       const response = await sendBulkMessages({
         targetDate: selectedDate,
-        messageTemplate: messageTemplate
+        messageTemplate: messageTemplate,
+        messageType: recipientFilter
       });
 
       setResult(response.data);
@@ -110,7 +137,7 @@ export default function BulkMessagingPage() {
 
   // Sayfa yüklendiğinde bugünün sürücülerini yükle
   React.useEffect(() => {
-    loadDriverCount(selectedDate);
+    loadDriverCount(selectedDate, recipientFilter);
   }, []);
 
   return (
@@ -126,17 +153,33 @@ export default function BulkMessagingPage() {
             <CardTitle className="text-lg">Mesaj Ayarları</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Tarih Seçici */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Sipariş Tarihi
-              </label>
-              <Input 
-                type="date" 
-                value={selectedDate}
-                onChange={(e) => handleDateChange(e.target.value)}
-                className="w-full"
-              />
+            {/* Tarih Seçici ve Filtre */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Sipariş Tarihi
+                </label>
+                <Input 
+                  type="date" 
+                  value={selectedDate}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Alıcı Filtresi
+                </label>
+                <Select value={recipientFilter} onValueChange={handleFilterChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="approved_only">✅ Sadece Onaylananlar</SelectItem>
+                    <SelectItem value="all_active">📞 Tüm Aktif Sürücüler</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Sürücü Sayısı Gösterimi */}
@@ -155,7 +198,9 @@ export default function BulkMessagingPage() {
                   </span>
                 </div>
                 <p className="text-xs text-blue-700 mt-1">
-                  "{selectedDate}" tarihindeki "Sürücü Onayladı" statusündeki siparişler
+                  {driverCount?.type === 'approved' 
+                    ? `"${selectedDate}" tarihindeki "Sürücü Onayladı" statusündeki siparişler`
+                    : 'Tüm aktif sürücüler (telefon numarası olanlar)'}
                 </p>
               </div>
             )}
