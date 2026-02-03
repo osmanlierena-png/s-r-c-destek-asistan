@@ -316,7 +316,19 @@ async function handleConfirm() {
         if (data.success) {
             msg.style.background = '#dcfce7';
             msg.style.color = '#166534';
-            msg.textContent = '✅ Response recorded successfully!';
+            
+            let message = '✅ Response Recorded!<br><br>';
+            if (data.approvedOrderNumbers && data.approvedOrderNumbers.length > 0) {
+                message += '<strong>Approved:</strong> ' + data.approvedOrderNumbers.join(', ');
+            }
+            if (data.rejectedOrderNumbers && data.rejectedOrderNumbers.length > 0) {
+                if (data.approvedOrderNumbers && data.approvedOrderNumbers.length > 0) {
+                    message += '<br><br>';
+                }
+                message += '<strong>Rejected:</strong> ' + data.rejectedOrderNumbers.join(', ');
+            }
+            
+            msg.innerHTML = message;
             // Butonları ve checkbox'ları kalıcı olarak devre dışı bırak
             document.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
         } else {
