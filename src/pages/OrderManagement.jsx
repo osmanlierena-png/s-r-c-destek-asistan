@@ -1395,10 +1395,10 @@ export default function OrderManagementPage() {
   };
 
   const toggleSelectAll = () => {
-    if (selectedOrderIds.length === filteredOrders.length) {
+    if (selectedOrderIds.length === sortedOrders.length) {
       setSelectedOrderIds([]);
     } else {
-      setSelectedOrderIds(filteredOrders.map(o => o.id));
+      setSelectedOrderIds(sortedOrders.map(o => o.id));
     }
   };
 
@@ -1471,6 +1471,15 @@ export default function OrderManagementPage() {
       order.dropoff_address?.toLowerCase().includes(search)
     );
   });
+
+  // "Sürücü Onayladı" durumunda en yeni onaydan eskiye sırala
+  const sortedOrders = filterStatus === 'Sürücü Onayladı' 
+    ? [...filteredOrders].sort((a, b) => {
+        const timeA = a.driver_response_at ? new Date(a.driver_response_at).getTime() : 0;
+        const timeB = b.driver_response_at ? new Date(b.driver_response_at).getTime() : 0;
+        return timeB - timeA; // En yeni başta
+      })
+    : filteredOrders;
 
   const getStatusLabel = (status) => {
     switch(status) {
@@ -1952,7 +1961,7 @@ export default function OrderManagementPage() {
                     </Badge>
                   )}
                   <span className="text-lg font-bold text-white">
-                    → {filteredOrders.length} sipariş gösteriliyor
+                    → {sortedOrders.length} sipariş gösteriliyor
                   </span>
                 </div>
                 <Button
@@ -2009,10 +2018,10 @@ export default function OrderManagementPage() {
                 </Button>
               </div>
             </div>
-            {filteredOrders.length > 0 && (
+            {sortedOrders.length > 0 && (
               <div className="flex items-center gap-2 mt-3 pt-3 border-t">
                 <Checkbox 
-                  checked={selectedOrderIds.length === filteredOrders.length}
+                  checked={selectedOrderIds.length === sortedOrders.length}
                   onCheckedChange={toggleSelectAll}
                   id="select-all"
                 />
@@ -2037,14 +2046,14 @@ export default function OrderManagementPage() {
                   Yeniden Dene
                 </Button>
               </div>
-            ) : filteredOrders.length === 0 ? (
+            ) : sortedOrders.length === 0 ? (
               <div className="text-center py-8 text-slate-500 text-sm">
                 {filterStatus ? `${getStatusLabel(filterStatus)} durumunda sipariş yok` : 
                  searchTerm ? 'Arama sonucu bulunamadı' : 'Bu tarihe ait sipariş bulunamadı'}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {filteredOrders.map((order) => (
+                {sortedOrders.map((order) => (
                   <div key={order.id} className="relative">
                     <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
                       <Checkbox 
