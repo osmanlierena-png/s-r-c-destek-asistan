@@ -172,8 +172,6 @@ Deno.serve(async (req) => {
             notes: 'NOTES',
             approveAll: '✅ APPROVE ALL',
             rejectAll: '❌ REJECT ALL',
-            approved: '✅ Orders approved!',
-            rejected: '✅ Orders rejected!',
             noOrders: 'No orders found for today.'
         };
 
