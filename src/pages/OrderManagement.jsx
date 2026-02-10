@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Package,
   Clock,
@@ -24,7 +25,8 @@ import {
   MessageSquare,
   BarChart3,
   Download,
-  Calendar
+  Calendar,
+  FileJson
 } from "lucide-react";
 import OrderCard from "../components/orders/OrderCard";
 import IntelligentAssignmentResults from "../components/orders/IntelligentAssignmentResults";
@@ -83,6 +85,10 @@ export default function OrderManagementPage() {
   const [exportStartDate, setExportStartDate] = useState('');
   const [exportEndDate, setExportEndDate] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const [showJsonImport, setShowJsonImport] = useState(false);
+  const [jsonInput, setJsonInput] = useState('');
+  const [isImportingJson, setIsImportingJson] = useState(false);
+  const [jsonImportResult, setJsonImportResult] = useState(null);
 
   const handleSendToCanvas = async () => {
     if (!selectedDate) {
@@ -2016,6 +2022,14 @@ export default function OrderManagementPage() {
                   <Upload className="w-4 h-4 mr-2" />
                   Screenshot Yükle
                 </Button>
+                <Button 
+                  onClick={() => setShowJsonImport(true)}
+                  size="sm"
+                  className="bg-indigo-600 hover:bg-indigo-700"
+                >
+                  <FileJson className="w-4 h-4 mr-2" />
+                  JSON Import
+                </Button>
               </div>
             </div>
             {sortedOrders.length > 0 && (
@@ -2207,6 +2221,178 @@ export default function OrderManagementPage() {
             loadOrders();
           }}
         />
+      )}
+
+      {showJsonImport && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b sticky top-0 bg-white z-10">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold">📋 JSON İle Sipariş Yükle</h2>
+                <button
+                  onClick={() => {
+                    setShowJsonImport(false);
+                    setJsonInput('');
+                    setJsonImportResult(null);
+                  }}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-900 mb-2 text-sm">📝 JSON Formatı:</h3>
+                <pre className="text-xs text-blue-800 bg-blue-100 p-3 rounded overflow-x-auto">
+{`[
+  {
+    "orderNo": "EzXXX",
+    "pickupAddress": "123 Main St",
+    "deliveryAddress": "456 Oak Ave",
+    "pickupTime": "07:15 AM",
+    "deliveryTime": "2/11/2026 7:45:00 AM",
+    "tip": "12.57$",
+    "price": "125.70$",
+    "customerName": "John Doe"
+  }
+]`}
+                </pre>
+                <p className="text-xs text-blue-700 mt-2">
+                  💡 <strong>Not:</strong> Aynı orderNo + tarih kombinasyonuna sahip siparişler atlanır (duplicate kontrolü).
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  JSON Verisi
+                </label>
+                <Textarea
+                  value={jsonInput}
+                  onChange={(e) => setJsonInput(e.target.value)}
+                  placeholder='[{"orderNo":"EzXXX","pickupAddress":"...","deliveryAddress":"...","pickupTime":"07:15 AM","deliveryTime":"2/11/2026 7:45:00 AM","tip":"12.57$","price":"125.70"}]'
+                  rows={12}
+                  className="font-mono text-xs"
+                />
+              </div>
+
+              {jsonImportResult && (
+                <div className={`border rounded-lg p-4 ${
+                  jsonImportResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    {jsonImportResult.success ? (
+                      <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                    )}
+                    <div className="flex-1">
+                      <p className={`font-semibold mb-2 ${
+                        jsonImportResult.success ? 'text-green-900' : 'text-red-900'
+                      }`}>
+                        {jsonImportResult.success ? '✅ Başarılı' : '❌ Hata'}
+                      </p>
+                      <p className={`text-sm ${
+                        jsonImportResult.success ? 'text-green-800' : 'text-red-800'
+                      }`}>
+                        {jsonImportResult.message}
+                      </p>
+
+                      {jsonImportResult.success && (
+                        <div className="grid grid-cols-3 gap-2 mt-3">
+                          <div className="bg-white rounded p-2 text-center border border-green-200">
+                            <p className="text-xs text-slate-600">Toplam</p>
+                            <p className="text-lg font-bold text-slate-900">{jsonImportResult.total}</p>
+                          </div>
+                          <div className="bg-white rounded p-2 text-center border border-green-200">
+                            <p className="text-xs text-slate-600">Eklenen</p>
+                            <p className="text-lg font-bold text-green-600">{jsonImportResult.added}</p>
+                          </div>
+                          <div className="bg-white rounded p-2 text-center border border-green-200">
+                            <p className="text-xs text-slate-600">Atlanan</p>
+                            <p className="text-lg font-bold text-orange-600">{jsonImportResult.skipped}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {jsonImportResult.errors && jsonImportResult.errors.length > 0 && (
+                        <div className="mt-3 bg-white rounded p-3 border border-red-200 max-h-40 overflow-y-auto">
+                          <p className="text-xs font-semibold text-red-900 mb-2">Hatalar:</p>
+                          {jsonImportResult.errors.map((err, i) => (
+                            <p key={i} className="text-xs text-red-800 mb-1">
+                              • {err.orderNo}: {err.error}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => {
+                    setShowJsonImport(false);
+                    setJsonInput('');
+                    setJsonImportResult(null);
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  İptal
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (!jsonInput.trim()) {
+                      alert('Lütfen JSON verisi girin!');
+                      return;
+                    }
+
+                    setIsImportingJson(true);
+                    setJsonImportResult(null);
+
+                    try {
+                      const response = await base44.functions.invoke('importOrdersFromJson', {
+                        json_data: jsonInput
+                      });
+
+                      setJsonImportResult(response.data);
+
+                      if (response.data.success) {
+                        setTimeout(() => {
+                          loadOrders();
+                        }, 1000);
+                      }
+                    } catch (error) {
+                      setJsonImportResult({
+                        success: false,
+                        message: error.message
+                      });
+                    }
+
+                    setIsImportingJson(false);
+                  }}
+                  disabled={isImportingJson || !jsonInput.trim()}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {isImportingJson ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      İmport Ediliyor...
+                    </>
+                  ) : (
+                    <>
+                      <FileJson className="w-4 h-4 mr-2" />
+                      İmport Et
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {missingPhones && (
