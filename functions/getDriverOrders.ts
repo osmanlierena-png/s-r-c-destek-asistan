@@ -140,6 +140,20 @@ ${orders.map(o => `
 ${ordersHTML}
 ${actionButtons}
 </div>
+<script>
+document.querySelector('form')?.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const checked = Array.from(document.querySelectorAll('input[name="selectedOrderIds"]:checked')).map(el => el.value);
+  fetch(window.location.href, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ selectedOrderIds: checked })
+  }).then(r => r.json()).then(data => {
+    alert('✅ ' + data.approvedCount + ' onaylandı, ' + data.rejectedCount + ' reddedildi!');
+    location.reload();
+  }).catch(e => alert('❌ Hata: ' + e.message));
+});
+</script>
 </body>
 </html>`;
 
