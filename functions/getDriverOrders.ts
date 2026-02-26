@@ -48,7 +48,9 @@ Deno.serve(async (req) => {
                 const rejectedOrderNumbers = [];
 
                 for (const order of orders) {
+                    console.log(`🔍 İncelenen Sipariş ID (DB'den): "${order.id}", EzCater ID: ${order.ezcater_order_id}`);
                     const isApproved = selectedOrderIds.includes(order.id);
+                    console.log(`   -> selectedOrderIds içinde mi? ${isApproved}`);
                     const newStatus = isApproved ? 'Sürücü Onayladı' : 'Sürücü Reddetti';
                     const responseText = isApproved ? 'Evet' : 'Hayır';
 
