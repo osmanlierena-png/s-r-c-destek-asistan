@@ -69,11 +69,12 @@ Deno.serve(async (req) => {
 
     const driver = drivers[0];
     
-    // Build the POST URL using request headers (works from any origin including SMS links)
+    // Build the POST URL - only pathname, pass params separately in POST body
     const reqUrl = new URL(req.url);
     const proto = req.headers.get('x-forwarded-proto') || reqUrl.protocol.replace(':', '');
     const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || reqUrl.host;
-    const functionUrl = `${proto}://${host}${reqUrl.pathname}${reqUrl.search}`;
+    const functionBaseUrl = `${proto}://${host}${reqUrl.pathname}`;
+    const functionUrl = functionBaseUrl;
     console.log(`📦 ${orders.length} orders, POST URL: ${functionUrl}`);
 
     const groupMap = new Map();
