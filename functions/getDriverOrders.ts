@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
         const orderDate = url.searchParams.get('t');
         const messageGroupId = url.searchParams.get('mg');
 
-        console.log('🚀 DEPLOY v102 - SCRIPT FIX');
+        console.log('🚀 DEPLOY v103 - FORM FIX');
         console.log('📧 Message Group ID: ' + (messageGroupId || 'NONE (old link)'));
 
         if (!driverId || !orderDate) {
@@ -20,12 +20,13 @@ Deno.serve(async (req) => {
 
         const base44 = createClientFromRequest(req);
         
-        // GET - Handle confirmation via query parameters
+        // CONFIRM ACTION
         const action = url.searchParams.get('action');
         if (action === 'confirm') {
             try {
-                const selectedStr = url.searchParams.get('selected') || '';
-                const selectedOrderIds = selectedStr ? selectedStr.split(',').filter(function(id) { return id; }) : [];
+                // Form checkbox'ları "selected" parametresi olarak gelir
+                // Birden fazla checkbox seçiliyse URL'de: selected=id1&selected=id2 şeklinde olur
+                const selectedOrderIds = url.searchParams.getAll('selected').filter(function(id) { return id; });
 
                 const filterQuery = {
                     driver_id: driverId,
@@ -40,6 +41,7 @@ Deno.serve(async (req) => {
 
                 console.log('📝 Yanıt işleniyor: ' + orders.length + ' sipariş');
                 console.log('✅ Seçilen: ' + selectedOrderIds.length);
+                console.log('📋 Seçilen IDler: ' + selectedOrderIds.join(', '));
 
                 const approvedOrderNumbers = [];
                 const rejectedOrderNumbers = [];
@@ -84,20 +86,39 @@ Deno.serve(async (req) => {
                     }
                 }
 
-                return Response.json({ 
-                    success: true, 
-                    approvedOrderNumbers,
-                    rejectedOrderNumbers
+                // Sonuç sayfası göster (JSON yerine HTML)
+                let resultMsg = '<h2 style="color: #166534;">✅ Response Recorded!</h2>';
+                if (approvedOrderNumbers.length > 0) {
+                    resultMsg += '<p><strong>Approved:</strong> ' + approvedOrderNumbers.join(', ') + '</p>';
+                }
+                if (rejectedOrderNumbers.length > 0) {
+                    resultMsg += '<p><strong>Rejected:</strong> ' + rejectedOrderNumbers.join(', ') + '</p>';
+                }
+
+                const resultHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Confirmed</title>' +
+                    '<style>body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; } .container { max-width: 640px; margin: 0 auto; }</style>' +
+                    '</head><body><div class="container">' +
+                    '<div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 28px; text-align: center;">' +
+                    resultMsg +
+                    '</div></div></body></html>';
+
+                return new Response(resultHTML, {
+                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
                 });
             } catch (err) {
                 console.error('💥 Onay işleme hatası:', err.message);
-                return Response.json({ success: false, message: err.message }, { status: 200 });
+                const errorHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Error</title>' +
+                    '<style>body { margin: 0; padding: 20px; font-family: -apple-system, sans-serif; background: #f8fafc; } .container { max-width: 640px; margin: 0 auto; }</style>' +
+                    '</head><body><div class="container"><div style="background: white; border-radius: 12px; padding: 28px; text-align: center;">' +
+                    '<h2 style="color: #991b1b;">❌ Error</h2><p>' + err.message + '</p></div></div></body></html>';
+                return new Response(errorHTML, {
+                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                });
             }
         }
         
-        // GET - Show orders HTML
+        // SHOW ORDERS PAGE
         const drivers = await base44.entities.Driver.filter({ id: driverId });
-
         const filterQuery = {
             driver_id: driverId,
             order_date: orderDate
@@ -114,8 +135,6 @@ Deno.serve(async (req) => {
         }
 
         const driver = drivers[0];
-
-        // Grup siparişleri
         const groupMap = new Map();
         orders.forEach(function(order) {
             const groupId = order.canvas_group_id || ('single_' + order.id);
@@ -139,7 +158,7 @@ Deno.serve(async (req) => {
             }
         });
 
-        // HTML oluştur - order card'ları
+        // Order cards HTML
         let orderIndex = 0;
         const ordersHTML = Array.from(groupMap.values()).map(function(group) {
             let groupHeader = '';
@@ -167,7 +186,6 @@ Deno.serve(async (req) => {
                 }
 
                 return '<div class="order-card" style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">' +
-                    '<label style="display: block; cursor: pointer;">' +
                     '<div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">' +
                     '<div style="display: flex; justify-content: space-between; align-items: center;">' +
                     '<div style="display: flex; align-items: center; gap: 12px;">' +
@@ -192,38 +210,22 @@ Deno.serve(async (req) => {
                     '<p style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Delivery Time</p>' +
                     '<p style="font-size: 24px; color: #1e293b; margin: 0; font-weight: 600; letter-spacing: -0.5px;">' + order.dropoff_time + '</p></div></div>' +
                     notesHTML +
-                    '</div>' +
-                    '</label>';
+                    '</div>';
             }).join('');
 
             return groupHeader + ordersInGroup;
         }).join('');
 
-        // Buton bölümü - HTML form ile
-        let buttonsHTML = '';
-        if (orders.length > 0 && orders.some(function(o) { return o.status !== 'Sürücü Onayladı' && o.status !== 'Sürücü Reddetti'; })) {
-            buttonsHTML = '<form method="GET" style="margin-top: 20px;">' +
-                '<input type="hidden" name="d" value="' + driverId + '">' +
-                '<input type="hidden" name="t" value="' + orderDate + '">' +
-                '<input type="hidden" name="mg" value="' + (messageGroupId || '') + '">' +
-                '<input type="hidden" name="action" value="confirm">' +
-                '<div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; border: 1px solid #e2e8f0;">' +
-                '<button type="submit" style="width: 100%; padding: 18px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">✅ CONFIRM SELECTION</button>' +
-                '<p style="margin-top: 12px; font-size: 13px; color: #64748b;">Selected orders will be approved, unselected will be rejected</p>' +
-                '</div>' +
-                '</form>';
-        }
-
-        // No orders mesajı
+        // Build page
         let ordersContent = ordersHTML;
         if (orders.length === 0) {
             ordersContent = '<div style="background: white; border-radius: 12px; padding: 48px; text-align: center;"><p style="color: #64748b; margin: 0;">No orders found for today.</p></div>';
         }
 
+        const showButtons = orders.length > 0 && orders.some(function(o) { return o.status !== 'Sürücü Onayladı' && o.status !== 'Sürücü Reddetti'; });
 
-
-        // Final HTML - TAMAMEN string concatenation
-        const html = '<!DOCTYPE html>' +
+        // FORM tüm sayfayı sarıyor - checkbox'lar ve buton aynı form içinde
+        let html = '<!DOCTYPE html>' +
             '<html><head>' +
             '<meta charset="UTF-8">' +
             '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
@@ -233,18 +235,32 @@ Deno.serve(async (req) => {
             'body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; min-height: 100vh; }' +
             '.container { max-width: 640px; margin: 0 auto; }' +
             '.order-card { transition: all 0.2s; }' +
-            '.order-card:has(.order-checkbox:not(:checked)) { border-color: #fca5a5 !important; background: #fef2f2 !important; }' +
             '</style>' +
             '</head><body>' +
             '<div class="container">' +
             '<div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 28px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">' +
             '<h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #1e293b;">Hello ' + driver.name + '</h1>' +
             '<p style="margin: 6px 0 0 0; color: #64748b; font-size: 14px;">' + orderDate + ' · ' + orders.length + ' orders</p>' +
-            '</div>' +
-            ordersContent +
-            buttonsHTML +
-            '</div>' +
-            '</body></html>';
+            '</div>';
+
+        if (showButtons) {
+            // Form açılışı - hidden field'lar + checkbox'lı order card'lar + submit butonu hepsi form içinde
+            html += '<form method="GET" action="">' +
+                '<input type="hidden" name="d" value="' + driverId + '">' +
+                '<input type="hidden" name="t" value="' + orderDate + '">' +
+                '<input type="hidden" name="mg" value="' + (messageGroupId || '') + '">' +
+                '<input type="hidden" name="action" value="confirm">' +
+                ordersContent +
+                '<div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 20px; border: 1px solid #e2e8f0;">' +
+                '<button type="submit" style="width: 100%; padding: 18px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">✅ CONFIRM SELECTION</button>' +
+                '<p style="margin-top: 12px; font-size: 13px; color: #64748b;">Selected orders will be approved, unselected will be rejected</p>' +
+                '</div>' +
+                '</form>';
+        } else {
+            html += ordersContent;
+        }
+
+        html += '</div></body></html>';
         
         return new Response(html, {
             headers: { 'Content-Type': 'text/html; charset=utf-8' }
