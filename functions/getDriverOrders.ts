@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
+    console.log('🔴 FONKSIYON BAŞLADI - getDriverOrders');
     try {
         const url = new URL(req.url);
         const driverId = url.searchParams.get('d');
