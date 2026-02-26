@@ -165,6 +165,75 @@ Deno.serve(async (req) => {
             noOrders: 'No orders found for today.'
         };
 
+        // CLIENT-SIDE SCRIPT - AYRI STRING OLARAK TANIMLA (Template literal DEĞİL)
+        const clientScript = '<script>\n' +
+            'function selectAll() {\n' +
+            '    document.querySelectorAll(".order-checkbox").forEach(function(cb) { cb.checked = true; });\n' +
+            '}\n' +
+            '\n' +
+            'function deselectAll() {\n' +
+            '    document.querySelectorAll(".order-checkbox").forEach(function(cb) { cb.checked = false; });\n' +
+            '}\n' +
+            '\n' +
+            'async function handleConfirm() {\n' +
+            '    var msg = document.getElementById("msg");\n' +
+            '    var checkboxes = document.querySelectorAll(".order-checkbox");\n' +
+            '    var selectedOrderIds = Array.from(checkboxes)\n' +
+            '        .filter(function(cb) { return cb.checked; })\n' +
+            '        .map(function(cb) { return cb.getAttribute("data-order-id"); });\n' +
+            '    \n' +
+            '    if (selectedOrderIds.length === 0 && !confirm("No orders selected. This will reject ALL orders. Continue?")) {\n' +
+            '        return;\n' +
+            '    }\n' +
+            '\n' +
+            '    document.querySelectorAll("button").forEach(function(btn) { btn.disabled = true; });\n' +
+            '    document.querySelectorAll(".order-checkbox").forEach(function(cb) { cb.disabled = true; });\n' +
+            '\n' +
+            '    msg.style.display = "block";\n' +
+            '    msg.textContent = "⏳ Processing...";\n' +
+            '    \n' +
+            '    try {\n' +
+            '        var currentUrl = new URL(window.location.href);\n' +
+            '        currentUrl.searchParams.set("action", "confirm");\n' +
+            '        currentUrl.searchParams.set("selected", selectedOrderIds.join(","));\n' +
+            '        \n' +
+            '        var res = await fetch(currentUrl.toString());\n' +
+            '        var data = await res.json();\n' +
+            '        \n' +
+            '        if (data.success) {\n' +
+            '            msg.style.background = "#dcfce7";\n' +
+            '            msg.style.color = "#166534";\n' +
+            '            \n' +
+            '            var message = "✅ Response Recorded!<br><br>";\n' +
+            '            if (data.approvedOrderNumbers && data.approvedOrderNumbers.length > 0) {\n' +
+            '                message += "<strong>Approved:</strong> " + data.approvedOrderNumbers.join(", ");\n' +
+            '            }\n' +
+            '            if (data.rejectedOrderNumbers && data.rejectedOrderNumbers.length > 0) {\n' +
+            '                if (data.approvedOrderNumbers && data.approvedOrderNumbers.length > 0) {\n' +
+            '                    message += "<br><br>";\n' +
+            '                }\n' +
+            '                message += "<strong>Rejected:</strong> " + data.rejectedOrderNumbers.join(", ");\n' +
+            '            }\n' +
+            '            \n' +
+            '            msg.innerHTML = message;\n' +
+            '            document.querySelectorAll("button").forEach(function(btn) { btn.style.display = "none"; });\n' +
+            '        } else {\n' +
+            '            msg.style.background = "#fee2e2";\n' +
+            '            msg.style.color = "#991b1b";\n' +
+            '            msg.textContent = "❌ Error: " + (data.message || "Unknown error");\n' +
+            '            document.querySelectorAll("button").forEach(function(btn) { btn.disabled = false; });\n' +
+            '            document.querySelectorAll(".order-checkbox").forEach(function(cb) { cb.disabled = false; });\n' +
+            '        }\n' +
+            '    } catch (error) {\n' +
+            '        msg.style.background = "#fee2e2";\n' +
+            '        msg.style.color = "#991b1b";\n' +
+            '        msg.textContent = "❌ Error: " + error.message;\n' +
+            '        document.querySelectorAll("button").forEach(function(btn) { btn.disabled = false; });\n' +
+            '        document.querySelectorAll(".order-checkbox").forEach(function(cb) { cb.disabled = false; });\n' +
+            '    }\n' +
+            '}\n' +
+            '<\/script>';
+
         // Sipariş ID'lerini maplemek için
         const orderIdMap = {};
         orders.forEach(order => {
