@@ -68,7 +68,12 @@ Deno.serve(async (req) => {
     }
 
     const driver = drivers[0];
-    const functionUrl = req.url;
+    
+    // Build the correct public-facing URL for the POST action
+    const reqUrl = new URL(req.url);
+    const forwardedHost = req.headers.get('x-forwarded-host') || req.headers.get('host') || reqUrl.host;
+    const forwardedProto = req.headers.get('x-forwarded-proto') || reqUrl.protocol.replace(':', '');
+    const functionUrl = `${forwardedProto}://${forwardedHost}${reqUrl.pathname}${reqUrl.search}`;
     console.log(`📦 ${orders.length} orders, POST URL: ${functionUrl}`);
 
     const groupMap = new Map();
