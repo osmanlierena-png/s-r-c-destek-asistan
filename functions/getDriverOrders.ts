@@ -56,8 +56,8 @@ Deno.serve(async (req) => {
 
     // GET
     const [drivers, orders] = await Promise.all([
-        base44.entities.Driver.filter({ id: driverId }),
-        base44.entities.DailyOrder.filter(
+        base44.asServiceRole.entities.Driver.filter({ id: driverId }),
+        base44.asServiceRole.entities.DailyOrder.filter(
             messageGroupId ? { driver_id: driverId, order_date: orderDate, message_group_id: messageGroupId } : { driver_id: driverId, order_date: orderDate },
             'pickup_time'
         )
