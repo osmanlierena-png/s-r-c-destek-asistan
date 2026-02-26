@@ -31,8 +31,26 @@ Deno.serve(async (req) => {
         if (!base44) {
             return new Response(JSON.stringify({ success: false, error: 'Authentication required for POST' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
         }
-        const body = await req.json();
-        const { selectedOrderIds } = body;
+        
+        let selectedOrderIds = [];
+        const contentType = req.headers.get('content-type') || '';
+        
+        try {
+            if (contentType.includes('application/json')) {
+                const body = await req.json();
+                selectedOrderIds = body.selectedOrderIds || [];
+            } else if (contentType.includes('application/x-www-form-urlencoded')) {
+                const text = await req.text();
+                const params = new URLSearchParams(text);
+                selectedOrderIds = params.getAll('selectedOrderIds');
+            } else {
+                const body = await req.json();
+                selectedOrderIds = body.selectedOrderIds || [];
+            }
+        } catch (e) {
+            console.error('❌ Body parse error:', e.message);
+            return new Response(JSON.stringify({ success: false, error: 'Invalid request body' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+        }
 
         const filterQuery = { driver_id: driverId, order_date: orderDate };
         if (messageGroupId) filterQuery.message_group_id = messageGroupId;
