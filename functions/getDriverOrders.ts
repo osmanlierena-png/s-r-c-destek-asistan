@@ -281,13 +281,11 @@ async function handleConfirm() {
     
     const selectedCount = selectedOrderIds.length;
     const totalCount = checkboxes.length;
-    const rejectedCount = totalCount - selectedCount;
 
     if (selectedCount === 0 && !confirm('No orders selected. This will reject ALL orders. Continue?')) {
         return;
     }
 
-    // Butonları ve checkbox'ları devre dışı bırak
     document.querySelectorAll('button').forEach(btn => btn.disabled = true);
     document.querySelectorAll('.order-checkbox').forEach(cb => cb.disabled = true);
 
@@ -295,11 +293,11 @@ async function handleConfirm() {
     msg.textContent = '⏳ Processing...';
     
     try {
-        const res = await fetch(window.location.href, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ selectedOrderIds }) 
-        });
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('action', 'confirm');
+        currentUrl.searchParams.set('selected', selectedOrderIds.join(','));
+        
+        const res = await fetch(currentUrl.toString());
         const data = await res.json();
         
         if (data.success) {
@@ -318,13 +316,11 @@ async function handleConfirm() {
             }
             
             msg.innerHTML = message;
-            // Butonları ve checkbox'ları kalıcı olarak devre dışı bırak
             document.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
         } else {
             msg.style.background = '#fee2e2';
             msg.style.color = '#991b1b';
             msg.textContent = '❌ Error: ' + (data.message || 'Unknown error');
-            // Hata durumunda butonları tekrar aktif et
             document.querySelectorAll('button').forEach(btn => btn.disabled = false);
             document.querySelectorAll('.order-checkbox').forEach(cb => cb.disabled = false);
         }
@@ -332,7 +328,6 @@ async function handleConfirm() {
         msg.style.background = '#fee2e2';
         msg.style.color = '#991b1b';
         msg.textContent = '❌ Error: ' + error.message;
-        // Hata durumunda butonları tekrar aktif et
         document.querySelectorAll('button').forEach(btn => btn.disabled = false);
         document.querySelectorAll('.order-checkbox').forEach(cb => cb.disabled = false);
     }
