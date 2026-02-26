@@ -192,8 +192,8 @@ Deno.serve(async (req) => {
                     <div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <input type="checkbox" class="order-checkbox" data-order-id="${order.id}" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #10b981;">
-                                <span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">${text.order.toUpperCase()} #${order.ezcater_order_id}</span>
+                                <input type="checkbox" class="order-checkbox" data-order-id="\${order.id}" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">\${text.order.toUpperCase()} #\${order.ezcater_order_id}</span>
                             </div>
                             <div style="display: flex; gap: 8px; align-items: center;">
                                 ${priceHTML}
