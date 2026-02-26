@@ -134,41 +134,7 @@ ${hasUnresponded ? `<div style="background:white;border-radius:8px;padding:24px;
 <div id="msg" style="margin-top:16px;padding:14px;border-radius:6px;display:none;font-weight:500;font-size:14px;"></div>
 </div>` : `<div style="background:#dcfce7;border-radius:8px;padding:24px;text-align:center;margin-top:20px;"><p style="color:#166534;font-weight:600;margin:0;">You have already responded to these orders.</p></div>`}
 </div>
-<script>
-var PARAMS = window.location.search;
-document.getElementById('btn-select-all') && document.getElementById('btn-select-all').addEventListener('click', function() { document.querySelectorAll('.order-checkbox').forEach(function(cb) { cb.checked = true; }); });
-document.getElementById('btn-deselect-all') && document.getElementById('btn-deselect-all').addEventListener('click', function() { document.querySelectorAll('.order-checkbox').forEach(function(cb) { cb.checked = false; }); });
-document.getElementById('btn-confirm') && document.getElementById('btn-confirm').addEventListener('click', function() {
-    var msg = document.getElementById('msg');
-    var checkboxes = document.querySelectorAll('.order-checkbox');
-    var selectedOrderIds = [];
-    checkboxes.forEach(function(cb) { if (cb.checked) selectedOrderIds.push(cb.getAttribute('data-order-id')); });
-    if (selectedOrderIds.length === 0 && !confirm('No orders selected. This will reject ALL orders. Continue?')) return;
-    document.querySelectorAll('button').forEach(function(btn) { btn.disabled = true; });
-    checkboxes.forEach(function(cb) { cb.disabled = true; });
-    msg.style.display = 'block'; msg.textContent = 'Processing...'; msg.style.background = '#f1f5f9'; msg.style.color = '#334155';
-    fetch(window.location.pathname + PARAMS, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ selectedOrderIds: selectedOrderIds }) })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-        if (data.success) {
-            msg.style.background = '#dcfce7'; msg.style.color = '#166534';
-            msg.textContent = 'Response recorded! Approved: ' + (data.approvedOrderNumbers || []).join(', ') + (data.rejectedOrderNumbers && data.rejectedOrderNumbers.length ? ' | Rejected: ' + data.rejectedOrderNumbers.join(', ') : '');
-            document.querySelectorAll('button').forEach(function(btn) { btn.style.display = 'none'; });
-        } else {
-            msg.style.background = '#fee2e2'; msg.style.color = '#991b1b';
-            msg.textContent = 'Error: ' + (data.message || 'Unknown error');
-            document.querySelectorAll('button').forEach(function(btn) { btn.disabled = false; });
-            checkboxes.forEach(function(cb) { cb.disabled = false; });
-        }
-    })
-    .catch(function(err) {
-        msg.style.background = '#fee2e2'; msg.style.color = '#991b1b';
-        msg.textContent = 'Error: ' + err.message;
-        document.querySelectorAll('button').forEach(function(btn) { btn.disabled = false; });
-        checkboxes.forEach(function(cb) { cb.disabled = false; });
-    });
-});
-</script>
+
 </body>
 </html>`;
 
