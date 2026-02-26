@@ -54,58 +54,7 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, approvedCount, rejectedCount, totalCount: orders.length, approvedOrderNumbers, rejectedOrderNumbers });
     }
 
-    // GET - handle action (approve/reject via link)
-    const action = url.searchParams.get('action');
-    const orderId = url.searchParams.get('order_id');
 
-    if (action && (action === 'approve' || action === 'reject') && orderId) {
-        try {
-            const base44action = createClientFromRequest(req);
-            console.log(`📝 ${action.toUpperCase()} order ${orderId}`);
-            await base44action.asServiceRole.entities.DailyOrder.update(orderId, {
-                status: action === 'approve' ? 'Sürücü Onayladı' : 'Sürücü Reddetti',
-                driver_response: action === 'approve' ? 'Evet' : 'Hayır',
-                driver_response_at: new Date().toISOString()
-            });
-            console.log(`✅ Order ${orderId} updated`);
-            const CANVAS_URL = Deno.env.get("CANVAS_URL");
-            if (CANVAS_URL) {
-                try {
-                    const orderData = await base44action.asServiceRole.entities.DailyOrder.filter({ id: orderId });
-                    if (orderData.length > 0) {
-                        const o = orderData[0];
-                        await fetch(`${CANVAS_URL}/api/base44/webhook`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || '' },
-                            body: JSON.stringify({ type: 'DRIVER_RESPONSE', orderId: o.id, orderNumber: o.ezcater_order_id, driverResponse: action === 'approve' ? 'Evet' : 'Hayır', driverName: o.driver_name, responseTime: new Date().toISOString(), date: o.order_date, groupId: o.canvas_group_id || null })
-                        });
-                    }
-                } catch (err) { console.error('Canvas error:', err); }
-            }
-            // Redirect back to the same page to show updated state
-            const redirectUrl = `${url.origin}${url.pathname}?d=${driverId}&t=${orderDate}${messageGroupId ? `&mg=${messageGroupId}` : ''}`;
-            return Response.redirect(redirectUrl, 302);
-        } catch (err) {
-            console.error(`❌ Error in ${action} action:`, err);
-            return new Response(`<html><body><h1>Error</h1><p>${err.message}</p></body></html>`, { status: 500, headers: { 'Content-Type': 'text/html' } });
-        }
-    }
-
-    if (action === 'approve_all' || action === 'reject_all') {
-        const base44action = createClientFromRequest(req);
-        const filterQuery = { driver_id: driverId, order_date: orderDate };
-        if (messageGroupId) filterQuery.message_group_id = messageGroupId;
-        const allOrders = await base44action.asServiceRole.entities.DailyOrder.filter(filterQuery);
-        for (const o of allOrders) {
-            await base44action.asServiceRole.entities.DailyOrder.update(o.id, {
-                status: action === 'approve_all' ? 'Sürücü Onayladı' : 'Sürücü Reddetti',
-                driver_response: action === 'approve_all' ? 'Evet' : 'Hayır',
-                driver_response_at: new Date().toISOString()
-            });
-        }
-        const redirectUrl = `${url.origin}${url.pathname}?d=${driverId}&t=${orderDate}${messageGroupId ? `&mg=${messageGroupId}` : ''}`;
-        return Response.redirect(redirectUrl, 302);
-    }
 
     // GET
     const [drivers, orders] = await Promise.all([
