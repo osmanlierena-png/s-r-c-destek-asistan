@@ -24,9 +24,14 @@ Deno.serve(async (req) => {
         const action = url.searchParams.get('action');
         if (action === 'confirm') {
             try {
-                // Form checkbox'ları "selected" parametresi olarak gelir
-                // Birden fazla checkbox seçiliyse URL'de: selected=id1&selected=id2 şeklinde olur
-                const selectedOrderIds = url.searchParams.getAll('selected').filter(function(id) { return id; });
+                // Form checkbox'ları "s_ORDER_ID" formatında gelir
+                // Her checkbox seçiliyse s_ID=1 olarak gönderilir
+                const selectedOrderIds = [];
+                for (const [key, value] of url.searchParams.entries()) {
+                    if (key.startsWith('s_') && value === '1') {
+                        selectedOrderIds.push(key.substring(2));
+                    }
+                }
 
                 const filterQuery = {
                     driver_id: driverId,
