@@ -21,21 +21,22 @@ Deno.serve(async (req) => {
         
         // POST - Handle selective approve/reject
         if (req.method === 'POST') {
-            const body = await req.json();
-            const { selectedOrderIds } = body;
+            try {
+                const body = await req.json();
+                const { selectedOrderIds } = body;
 
-            // GÜVENLIK: Sadece bu mesaj grubundaki siparişleri al
-            const filterQuery = {
-                driver_id: driverId,
-                order_date: orderDate
-            };
+                // GÜVENLIK: Sadece bu mesaj grubundaki siparişleri al
+                const filterQuery = {
+                    driver_id: driverId,
+                    order_date: orderDate
+                };
 
-            // Eğer message_group_id varsa sadece o gruptaki siparişleri al
-            if (messageGroupId) {
-                filterQuery.message_group_id = messageGroupId;
-            }
+                // Eğer message_group_id varsa sadece o gruptaki siparişleri al
+                if (messageGroupId) {
+                    filterQuery.message_group_id = messageGroupId;
+                }
 
-            const orders = await base44.asServiceRole.entities.DailyOrder.filter(filterQuery);
+                const orders = await base44.asServiceRole.entities.DailyOrder.filter(filterQuery);
 
             console.log(`📝 Yanıt işleniyor: ${orders.length} sipariş (Message Group: ${messageGroupId || 'NONE'})`);
             console.log(`✅ Seçilen siparişler: ${selectedOrderIds.length}`);
