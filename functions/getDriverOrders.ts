@@ -162,24 +162,24 @@ ${order.ezcater_notes ? `<div style="padding:16px;background:#fffbeb;border-left
     const baseActionUrl = `${url.origin}${url.pathname}?d=${driverId}&t=${orderDate}${messageGroupId ? `&mg=${messageGroupId}` : ''}`;
 
     const actionButtons = hasUnresponded ? `
-<div style="background:white;border-radius:8px;padding:24px;text-align:center;margin-top:20px;border:1px solid #e2e8f0;">
-<p style="margin:0 0 16px 0;font-size:14px;color:#64748b;font-weight:500;">Select your response for each order:</p>
-<div style="display:flex;gap:12px;flex-direction:column;">
+<div style="background:white;border-radius:8px;padding:20px;margin-top:12px;border:1px solid #e2e8f0;">
+<p style="font-size:13px;color:#64748b;font-weight:500;margin-bottom:12px;">Select your response for each order:</p>
+<div style="display:flex;gap:10px;flex-direction:column;">
 ${orders.map(o => `
-<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
-  <p style="margin:0 0 8px 0;font-size:13px;font-weight:600;color:#1e293b;">ORDER #${o.ezcater_order_id} &nbsp;|&nbsp; ${o.pickup_time} → ${o.dropoff_time}</p>
-  <p style="margin:0 0 12px 0;font-size:12px;color:#64748b;">${o.pickup_address}</p>
+<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;">
+  <p style="font-size:12px;font-weight:600;color:#1e293b;margin-bottom:6px;">ORDER #${o.ezcater_order_id} | ${o.pickup_time} → ${o.dropoff_time}</p>
+  <p style="font-size:11px;color:#64748b;margin-bottom:10px;">${o.pickup_address}</p>
   <div style="display:flex;gap:8px;">
-    <a href="${baseActionUrl}&action=approve&order_id=${o.id}" style="flex:1;display:block;padding:12px;background:#10b981;color:white;border-radius:8px;font-size:14px;font-weight:600;text-align:center;text-decoration:none;">✅ APPROVE</a>
-    <a href="${baseActionUrl}&action=reject&order_id=${o.id}" style="flex:1;display:block;padding:12px;background:#ef4444;color:white;border-radius:8px;font-size:14px;font-weight:600;text-align:center;text-decoration:none;">❌ REJECT</a>
+    <a href="${baseActionUrl}&action=approve&order_id=${o.id}" style="flex:1;padding:10px;background:#10b981;color:white;border-radius:6px;font-size:12px;font-weight:600;text-align:center;text-decoration:none;display:block;">✅ APPROVE</a>
+    <a href="${baseActionUrl}&action=reject&order_id=${o.id}" style="flex:1;padding:10px;background:#ef4444;color:white;border-radius:6px;font-size:12px;font-weight:600;text-align:center;text-decoration:none;display:block;">❌ REJECT</a>
   </div>
 </div>`).join('')}
 </div>
-<div style="margin-top:16px;display:flex;gap:8px;">
-  <a href="${baseActionUrl}&action=approve_all&${approveAllParam}" style="flex:1;display:block;padding:14px;background:#10b981;color:white;border-radius:8px;font-size:14px;font-weight:700;text-align:center;text-decoration:none;">✅ APPROVE ALL</a>
-  <a href="${baseActionUrl}&action=reject_all&${rejectAllParam}" style="flex:1;display:block;padding:14px;background:#ef4444;color:white;border-radius:8px;font-size:14px;font-weight:700;text-align:center;text-decoration:none;">❌ REJECT ALL</a>
+<div style="margin-top:12px;display:flex;gap:8px;">
+  <a href="${baseActionUrl}&action=approve_all&${approveAllParam}" style="flex:1;padding:12px;background:#10b981;color:white;border-radius:6px;font-size:13px;font-weight:700;text-align:center;text-decoration:none;display:block;">✅ APPROVE ALL</a>
+  <a href="${baseActionUrl}&action=reject_all&${rejectAllParam}" style="flex:1;padding:12px;background:#ef4444;color:white;border-radius:6px;font-size:13px;font-weight:700;text-align:center;text-decoration:none;display:block;">❌ REJECT ALL</a>
 </div>
-</div>` : `<div style="background:#dcfce7;border-radius:8px;padding:24px;text-align:center;margin-top:20px;"><p style="color:#166534;font-weight:600;margin:0;">You have already responded to these orders.</p></div>`;
+</div>` : `<div style="background:#dcfce7;border-radius:8px;padding:16px;margin-top:12px;text-align:center;"><p style="color:#166534;font-weight:600;">You have already responded to these orders.</p></div>`;
 
     const html = `<!DOCTYPE html>
 <html>
