@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
             if (isApproved) { approvedCount++; approvedOrderNumbers.push(order.ezcater_order_id); }
             else { rejectedCount++; rejectedOrderNumbers.push(order.ezcater_order_id); }
 
-            await base44.entities.DailyOrder.update(order.id, {
+            await base44.asServiceRole.entities.DailyOrder.update(order.id, {
                 status: isApproved ? 'Sürücü Onayladı' : 'Sürücü Reddetti',
                 driver_response: isApproved ? 'Evet' : 'Hayır',
                 driver_response_at: new Date().toISOString()
