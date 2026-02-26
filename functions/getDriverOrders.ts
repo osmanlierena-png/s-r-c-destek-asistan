@@ -19,96 +19,80 @@ Deno.serve(async (req) => {
 
         const base44 = createClientFromRequest(req);
         
-        // POST - Handle selective approve/reject
-        if (req.method === 'POST') {
+        // GET - Handle confirmation via query parameters
+        const action = url.searchParams.get('action');
+        if (action === 'confirm') {
             try {
-                const body = await req.json();
-                const { selectedOrderIds } = body;
+                const selectedStr = url.searchParams.get('selected') || '';
+                const selectedOrderIds = selectedStr ? selectedStr.split(',').filter(id => id) : [];
 
-                // GÜVENLIK: Sadece bu mesaj grubundaki siparişleri al
                 const filterQuery = {
                     driver_id: driverId,
                     order_date: orderDate
                 };
 
-                // Eğer message_group_id varsa sadece o gruptaki siparişleri al
                 if (messageGroupId) {
                     filterQuery.message_group_id = messageGroupId;
                 }
 
                 const orders = await base44.asServiceRole.entities.DailyOrder.filter(filterQuery);
 
-            console.log(`📝 Yanıt işleniyor: ${orders.length} sipariş (Message Group: ${messageGroupId || 'NONE'})`);
-            console.log(`✅ Seçilen siparişler: ${selectedOrderIds.length}`);
-            console.log(`❌ Reddedilen siparişler: ${orders.length - selectedOrderIds.length}`);
+                console.log(`📝 Yanıt işleniyor: ${orders.length} sipariş (Message Group: ${messageGroupId || 'NONE'})`);
+                console.log(`✅ Seçilen siparişler: ${selectedOrderIds.length}`);
+                console.log(`❌ Reddedilen siparişler: ${orders.length - selectedOrderIds.length}`);
 
-            let approvedCount = 0;
-            let rejectedCount = 0;
+                const approvedOrderNumbers = [];
+                const rejectedOrderNumbers = [];
 
-            for (const order of orders) {
-                const isApproved = selectedOrderIds.includes(order.id);
-                const newStatus = isApproved ? 'Sürücü Onayladı' : 'Sürücü Reddetti';
-                const responseText = isApproved ? 'Evet' : 'Hayır';
+                for (const order of orders) {
+                    const isApproved = selectedOrderIds.includes(order.id);
+                    const newStatus = isApproved ? 'Sürücü Onayladı' : 'Sürücü Reddetti';
+                    const responseText = isApproved ? 'Evet' : 'Hayır';
 
-                if (isApproved) approvedCount++;
-                else rejectedCount++;
+                    await base44.asServiceRole.entities.DailyOrder.update(order.id, {
+                        status: newStatus,
+                        driver_response: responseText,
+                        driver_response_at: new Date().toISOString()
+                    });
 
-                await base44.asServiceRole.entities.DailyOrder.update(order.id, {
-                    status: newStatus,
-                    driver_response: responseText,
-                    driver_response_at: new Date().toISOString()
-                });
+                    if (isApproved) approvedOrderNumbers.push(order.ezcater_order_id);
+                    else rejectedOrderNumbers.push(order.ezcater_order_id);
 
-                // Canvas'a bildir
-                const CANVAS_URL = Deno.env.get("CANVAS_URL");
-                if (CANVAS_URL) {
-                    try {
-                        await fetch(`${CANVAS_URL}/api/base44/webhook`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || ''
-                            },
-                            body: JSON.stringify({
-                                type: 'DRIVER_RESPONSE',
-                                orderId: order.id,
-                                orderNumber: order.ezcater_order_id,
-                                driverResponse: responseText,
-                                driverName: order.driver_name,
-                                responseTime: new Date().toISOString(),
-                                date: order.order_date,
-                                groupId: order.canvas_group_id || null
-                            })
-                        });
-                        console.log(`📡 Canvas'a bildirim gönderildi: ${order.ezcater_order_id} - ${responseText}`);
-                    } catch (err) {
-                        console.error('⚠️ Canvas bildirimi başarısız:', err);
+                    // Canvas'a bildir
+                    const CANVAS_URL = Deno.env.get("CANVAS_URL");
+                    if (CANVAS_URL) {
+                        try {
+                            await fetch(`${CANVAS_URL}/api/base44/webhook`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-API-Secret': Deno.env.get("CANVAS_API_SECRET") || ''
+                                },
+                                body: JSON.stringify({
+                                    type: 'DRIVER_RESPONSE',
+                                    orderId: order.id,
+                                    orderNumber: order.ezcater_order_id,
+                                    driverResponse: responseText,
+                                    driverName: order.driver_name,
+                                    responseTime: new Date().toISOString(),
+                                    date: order.order_date,
+                                    groupId: order.canvas_group_id || null
+                                })
+                            });
+                            console.log(`📡 Canvas'a bildirim gönderildi: ${order.ezcater_order_id} - ${responseText}`);
+                        } catch (err) {
+                            console.error('⚠️ Canvas bildirimi başarısız:', err);
+                        }
                     }
                 }
-            }
-
-            // Onaylanan ve reddedilen sipariş ID'lerini topla
-            const approvedOrderNumbers = [];
-            const rejectedOrderNumbers = [];
-
-            for (const order of orders) {
-                if (selectedOrderIds.includes(order.id)) {
-                    approvedOrderNumbers.push(order.ezcater_order_id);
-                } else {
-                    rejectedOrderNumbers.push(order.ezcater_order_id);
-                }
-            }
 
                 return Response.json({ 
                     success: true, 
-                    approvedCount,
-                    rejectedCount,
-                    totalCount: orders.length,
                     approvedOrderNumbers,
                     rejectedOrderNumbers
                 });
             } catch (err) {
-                console.error('💥 POST HATA:', err.message, err.stack);
+                console.error('💥 Onay işleme hatası:', err.message, err.stack);
                 return Response.json({ success: false, message: err.message }, { status: 200 });
             }
         }
