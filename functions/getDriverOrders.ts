@@ -187,18 +187,17 @@ ${orders.map(o => `
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Today's Orders</title>
-<style>* { box-sizing: border-box; } body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; } .container { max-width: 640px; margin: 0 auto; }</style>
+<style>* { box-sizing: border-box; margin: 0; padding: 0; } body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; padding: 16px; } .container { max-width: 640px; margin: 0 auto; }</style>
 </head>
 <body>
 <div class="container">
-<div style="background:white;border-radius:12px;padding:28px;margin-bottom:20px;border-left:4px solid #3b82f6;">
-<h1 style="margin:0;font-size:22px;font-weight:600;color:#1e293b;">Hello ${driver.name}</h1>
-<p style="margin:6px 0 0 0;color:#64748b;font-size:14px;">${orderDate} &middot; ${orders.length} orders</p>
+<div style="background:white;border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid #3b82f6;">
+<h1 style="font-size:20px;font-weight:600;color:#1e293b;">Hello ${driver.name}</h1>
+<p style="color:#64748b;font-size:13px;margin-top:6px;">${orderDate} &middot; ${orders.length} orders</p>
 </div>
 ${ordersHTML}
 ${actionButtons}
 </div>
-
 </body>
 </html>`;
 
