@@ -64,9 +64,10 @@ Deno.serve(async (req) => {
 
 
 
-    // GET - Kullanıcı auth'u olmadan service role ile fetch et
+    // GET - Service role ile fetch et (auth gerekli değil)
     let drivers = [], orders = [];
     try {
+        if (!base44) throw new Error('Service client not initialized');
         const results = await Promise.all([
             base44.asServiceRole.entities.Driver.filter({ id: driverId }),
             base44.asServiceRole.entities.DailyOrder.filter(
@@ -77,8 +78,8 @@ Deno.serve(async (req) => {
         drivers = results[0];
         orders = results[1];
     } catch (err) {
-        console.error('❌ Data fetch error:', err);
-        return new Response(`<html><body><h1>Error loading orders</h1><p>${err.message}</p></body></html>`, { status: 500, headers: { 'Content-Type': 'text/html' } });
+        console.error('❌ Data fetch error:', err.message, err.stack);
+        return new Response(`<html><body><h1>Error loading orders</h1><p>${err.message || 'Unknown error'}</p></body></html>`, { status: 500, headers: { 'Content-Type': 'text/html' } });
     }
 
     if (drivers.length === 0) {
