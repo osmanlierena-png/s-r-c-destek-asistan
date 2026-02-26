@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     }
 
     const driver = drivers[0];
-    const functionUrl = `${url.origin}/api/functions/getDriverOrders${url.search}`;
+    const functionUrl = req.url;
     console.log(`📦 ${orders.length} orders, POST URL: ${functionUrl}`);
 
     const groupMap = new Map();
