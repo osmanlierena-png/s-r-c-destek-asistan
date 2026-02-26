@@ -244,7 +244,6 @@ Deno.serve(async (req) => {
             ordersContent +
             buttonsHTML +
             '</div>' +
-            clientScript +
             '</body></html>';
         
         return new Response(html, {
