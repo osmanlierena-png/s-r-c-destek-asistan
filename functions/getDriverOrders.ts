@@ -241,6 +241,7 @@ Deno.serve(async (req) => {
             '.container { max-width: 640px; margin: 0 auto; }' +
             '.order-card { transition: all 0.2s; }' +
             '</style>' +
+            '<script>window.addEventListener("load", function() { document.querySelectorAll("input[type=\'checkbox\']").forEach(cb => { if(!cb.name.startsWith("action") && !cb.name.startsWith("d") && !cb.name.startsWith("t") && !cb.name.startsWith("mg")) cb.checked = true; }); });</script>' +
             '</head><body>' +
             '<div class="container">' +
             '<div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 28px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">' +
