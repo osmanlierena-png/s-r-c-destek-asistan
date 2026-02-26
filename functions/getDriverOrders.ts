@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
         const orderDate = url.searchParams.get('t');
         const messageGroupId = url.searchParams.get('mg'); // Unique message group ID
 
-        console.log('🚀 DEPLOY v102 - FIX POST URL');
+        console.log('🚀 DEPLOY v103 - USE FIXED FUNCTION URL');
         console.log(`📧 Message Group ID: ${messageGroupId || 'NONE (old link)'}`);
 
         if (!driverId || !orderDate) {
