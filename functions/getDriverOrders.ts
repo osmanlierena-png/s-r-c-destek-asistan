@@ -135,7 +135,7 @@ ${hasUnresponded ? `<div style="background:white;border-radius:8px;padding:24px;
 </div>` : `<div style="background:#dcfce7;border-radius:8px;padding:24px;text-align:center;margin-top:20px;"><p style="color:#166534;font-weight:600;margin:0;">You have already responded to these orders.</p></div>`}
 </div>
 <script>
-var FUNCTION_URL = "${functionUrl}";
+var PARAMS = window.location.search;
 document.getElementById('btn-select-all') && document.getElementById('btn-select-all').addEventListener('click', function() { document.querySelectorAll('.order-checkbox').forEach(function(cb) { cb.checked = true; }); });
 document.getElementById('btn-deselect-all') && document.getElementById('btn-deselect-all').addEventListener('click', function() { document.querySelectorAll('.order-checkbox').forEach(function(cb) { cb.checked = false; }); });
 document.getElementById('btn-confirm') && document.getElementById('btn-confirm').addEventListener('click', function() {
@@ -147,7 +147,7 @@ document.getElementById('btn-confirm') && document.getElementById('btn-confirm')
     document.querySelectorAll('button').forEach(function(btn) { btn.disabled = true; });
     checkboxes.forEach(function(cb) { cb.disabled = true; });
     msg.style.display = 'block'; msg.textContent = 'Processing...'; msg.style.background = '#f1f5f9'; msg.style.color = '#334155';
-    fetch(FUNCTION_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ selectedOrderIds: selectedOrderIds }) })
+    fetch(window.location.pathname + PARAMS, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ selectedOrderIds: selectedOrderIds }) })
     .then(function(res) { return res.json(); })
     .then(function(data) {
         if (data.success) {
