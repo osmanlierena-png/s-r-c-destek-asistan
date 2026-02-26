@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
                 if (isApproved) approvedCount++;
                 else rejectedCount++;
 
-                await base44.entities.DailyOrder.update(order.id, {
+                await base44.asServiceRole.entities.DailyOrder.update(order.id, {
                     status: newStatus,
                     driver_response: responseText,
                     driver_response_at: new Date().toISOString()
