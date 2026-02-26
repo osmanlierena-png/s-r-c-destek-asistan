@@ -170,5 +170,10 @@ document.getElementById('btn-confirm') && document.getElementById('btn-confirm')
 </body>
 </html>`;
 
-    return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline';" } });
+    return new Response(html, { 
+        headers: { 
+            'Content-Type': 'text/html; charset=utf-8',
+            'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
+        } 
+    });
 });
