@@ -175,7 +175,7 @@ document.getElementById('btn-confirm') && document.getElementById('btn-confirm')
     return new Response(html, { 
         headers: { 
             'Content-Type': 'text/html; charset=utf-8',
-            'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
+            'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval';"
         } 
     });
 });
