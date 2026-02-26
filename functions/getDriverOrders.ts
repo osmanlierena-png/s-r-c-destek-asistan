@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
     const orderDate = url.searchParams.get('t');
     const messageGroupId = url.searchParams.get('mg');
 
-    console.log('🚀 DEPLOY v106');
+    console.log('🚀 DEPLOY v107');
 
     if (!driverId || !orderDate) {
         return new Response('<html><body><h1>Invalid Link</h1><p>Missing d or t param</p></body></html>', {
@@ -68,14 +68,7 @@ Deno.serve(async (req) => {
     }
 
     const driver = drivers[0];
-    
-    // Build the POST URL - only pathname, pass params separately in POST body
-    const reqUrl = new URL(req.url);
-    const proto = req.headers.get('x-forwarded-proto') || reqUrl.protocol.replace(':', '');
-    const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || reqUrl.host;
-    const functionBaseUrl = `${proto}://${host}${reqUrl.pathname}`;
-    const functionUrl = functionBaseUrl;
-    console.log(`📦 ${orders.length} orders, POST URL: ${functionUrl}`);
+    console.log(`📦 ${orders.length} orders`);
 
     const groupMap = new Map();
     orders.forEach(order => {
@@ -109,6 +102,17 @@ ${order.ezcater_notes ? `<div style="padding:16px;background:#fffbeb;border-left
 
     const hasUnresponded = orders.some(o => o.status !== 'Sürücü Onayladı' && o.status !== 'Sürücü Reddetti');
 
+    const actionButtons = hasUnresponded ? `
+<div style="background:white;border-radius:8px;padding:24px;text-align:center;margin-top:20px;border:1px solid #e2e8f0;">
+<div style="display:flex;gap:8px;margin-bottom:16px;">
+<button id="btn-select-all" style="flex:1;padding:12px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Select All</button>
+<button id="btn-deselect-all" style="flex:1;padding:12px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Deselect All</button>
+</div>
+<button id="btn-confirm" style="width:100%;padding:18px;background:#10b981;color:white;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;">CONFIRM SELECTION</button>
+<p style="margin-top:12px;font-size:13px;color:#64748b;">Checked = Approve, Unchecked = Reject</p>
+<div id="msg" style="margin-top:16px;padding:14px;border-radius:6px;display:none;font-weight:500;font-size:14px;"></div>
+</div>` : `<div style="background:#dcfce7;border-radius:8px;padding:24px;text-align:center;margin-top:20px;"><p style="color:#166534;font-weight:600;margin:0;">You have already responded to these orders.</p></div>`;
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -124,17 +128,65 @@ ${order.ezcater_notes ? `<div style="padding:16px;background:#fffbeb;border-left
 <p style="margin:6px 0 0 0;color:#64748b;font-size:14px;">${orderDate} &middot; ${orders.length} orders</p>
 </div>
 ${ordersHTML}
-${hasUnresponded ? `<div style="background:white;border-radius:8px;padding:24px;text-align:center;margin-top:20px;border:1px solid #e2e8f0;">
-<div style="display:flex;gap:8px;margin-bottom:16px;">
-<button onclick="document.querySelectorAll('.order-checkbox').forEach(function(cb){cb.checked=true;})" style="flex:1;padding:12px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Select All</button>
-<button onclick="document.querySelectorAll('.order-checkbox').forEach(function(cb){cb.checked=false;})" style="flex:1;padding:12px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Deselect All</button>
+${actionButtons}
 </div>
-<button onclick="(function(){var msg=document.getElementById('msg');var checkboxes=document.querySelectorAll('.order-checkbox');var selectedOrderIds=[];checkboxes.forEach(function(cb){if(cb.checked)selectedOrderIds.push(cb.getAttribute('data-order-id'));});if(selectedOrderIds.length===0&&!confirm('No orders selected. This will reject ALL orders. Continue?'))return;document.querySelectorAll('button').forEach(function(btn){btn.disabled=true;});checkboxes.forEach(function(cb){cb.disabled=true;});msg.style.display='block';msg.textContent='Processing...';msg.style.background='#f1f5f9';msg.style.color='#334155';fetch(window.location.pathname+window.location.search,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selectedOrderIds:selectedOrderIds})}).then(function(res){return res.json();}).then(function(data){if(data.success){msg.style.background='#dcfce7';msg.style.color='#166534';msg.textContent='Response recorded! Approved: '+(data.approvedOrderNumbers||[]).join(', ')+(data.rejectedOrderNumbers&&data.rejectedOrderNumbers.length?' | Rejected: '+data.rejectedOrderNumbers.join(', '):'');document.querySelectorAll('button').forEach(function(btn){btn.style.display='none';});}else{msg.style.background='#fee2e2';msg.style.color='#991b1b';msg.textContent='Error: '+(data.message||'Unknown error');document.querySelectorAll('button').forEach(function(btn){btn.disabled=false;});checkboxes.forEach(function(cb){cb.disabled=false;});}}).catch(function(err){msg.style.background='#fee2e2';msg.style.color='#991b1b';msg.textContent='Error: '+err.message;document.querySelectorAll('button').forEach(function(btn){btn.disabled=false;});checkboxes.forEach(function(cb){cb.disabled=false;});});})()" style="width:100%;padding:18px;background:#10b981;color:white;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;">CONFIRM SELECTION</button>
-<p style="margin-top:12px;font-size:13px;color:#64748b;">Checked = Approve, Unchecked = Reject</p>
-<div id="msg" style="margin-top:16px;padding:14px;border-radius:6px;display:none;font-weight:500;font-size:14px;"></div>
-</div>` : `<div style="background:#dcfce7;border-radius:8px;padding:24px;text-align:center;margin-top:20px;"><p style="color:#166534;font-weight:600;margin:0;">You have already responded to these orders.</p></div>`}
-</div>
+<script>
+(function() {
+  var btnSelectAll = document.getElementById('btn-select-all');
+  var btnDeselectAll = document.getElementById('btn-deselect-all');
+  var btnConfirm = document.getElementById('btn-confirm');
+  if (!btnConfirm) return;
 
+  btnSelectAll.onclick = function() {
+    document.querySelectorAll('.order-checkbox').forEach(function(cb) { cb.checked = true; });
+  };
+  btnDeselectAll.onclick = function() {
+    document.querySelectorAll('.order-checkbox').forEach(function(cb) { cb.checked = false; });
+  };
+  btnConfirm.onclick = function() {
+    var msg = document.getElementById('msg');
+    var checkboxes = document.querySelectorAll('.order-checkbox');
+    var selectedOrderIds = [];
+    checkboxes.forEach(function(cb) { if (cb.checked) selectedOrderIds.push(cb.getAttribute('data-order-id')); });
+    if (selectedOrderIds.length === 0 && !confirm('No orders selected. This will reject ALL orders. Continue?')) return;
+    document.querySelectorAll('button').forEach(function(btn) { btn.disabled = true; });
+    checkboxes.forEach(function(cb) { cb.disabled = true; });
+    msg.style.display = 'block';
+    msg.textContent = 'Processing...';
+    msg.style.background = '#f1f5f9';
+    msg.style.color = '#334155';
+    fetch(window.location.href, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selectedOrderIds: selectedOrderIds })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.success) {
+        msg.style.background = '#dcfce7';
+        msg.style.color = '#166534';
+        var approved = (data.approvedOrderNumbers || []).join(', ');
+        var rejected = data.rejectedOrderNumbers && data.rejectedOrderNumbers.length ? ' | Rejected: ' + data.rejectedOrderNumbers.join(', ') : '';
+        msg.textContent = 'Response recorded! Approved: ' + approved + rejected;
+        document.querySelectorAll('button').forEach(function(btn) { btn.style.display = 'none'; });
+      } else {
+        msg.style.background = '#fee2e2';
+        msg.style.color = '#991b1b';
+        msg.textContent = 'Error: ' + (data.message || 'Unknown error');
+        document.querySelectorAll('button').forEach(function(btn) { btn.disabled = false; });
+        checkboxes.forEach(function(cb) { cb.disabled = false; });
+      }
+    })
+    .catch(function(err) {
+      msg.style.background = '#fee2e2';
+      msg.style.color = '#991b1b';
+      msg.textContent = 'Error: ' + err.message;
+      document.querySelectorAll('button').forEach(function(btn) { btn.disabled = false; });
+      checkboxes.forEach(function(cb) { cb.disabled = false; });
+    });
+  };
+})();
+<\/script>
 </body>
 </html>`;
 
