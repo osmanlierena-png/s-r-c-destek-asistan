@@ -99,14 +99,18 @@ Deno.serve(async (req) => {
                 }
             }
 
-            return Response.json({ 
-                success: true, 
-                approvedCount,
-                rejectedCount,
-                totalCount: orders.length,
-                approvedOrderNumbers,
-                rejectedOrderNumbers
-            });
+                return Response.json({ 
+                    success: true, 
+                    approvedCount,
+                    rejectedCount,
+                    totalCount: orders.length,
+                    approvedOrderNumbers,
+                    rejectedOrderNumbers
+                });
+            } catch (err) {
+                console.error('💥 POST HATA:', err.message, err.stack);
+                return Response.json({ success: false, message: err.message }, { status: 200 });
+            }
         }
         
         // GET - Show orders
