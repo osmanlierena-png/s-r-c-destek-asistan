@@ -297,25 +297,28 @@ Deno.serve(async (req) => {
             return groupHeader + ordersInGroup;
         }).join('');
         
-        const html = `<!DOCTYPE html>
+        const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${text.todayOrders}</title>
+<title>Today's Orders</title>
 <style>
 * { box-sizing: border-box; }
 body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f8fafc; min-height: 100vh; }
 .container { max-width: 640px; margin: 0 auto; }
+.order-card { transition: all 0.2s; }
+.order-checkbox:not(:checked) ~ * { opacity: 0.5; }
+.order-card:has(.order-checkbox:not(:checked)) { border-color: #fca5a5 !important; background: #fef2f2 !important; }
 </style>
 </head>
 <body>
 <div class="container">
 <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 28px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
-<h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #1e293b; letter-spacing: -0.3px;">${text.greeting} ${driver.name}</h1>
+<h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #1e293b; letter-spacing: -0.3px;">Hello ${driver.name}</h1>
 <p style="margin: 6px 0 0 0; color: #64748b; font-size: 14px; font-weight: 400;">${orderDate} · ${orders.length} orders</p>
 </div>
-${orders.length === 0 ? '<div style="background: white; border-radius: 12px; padding: 48px; text-align: center;"><p style="color: #64748b; margin: 0;">' + text.noOrders + '</p></div>' : ordersHTML}
+${orders.length === 0 ? '<div style="background: white; border-radius: 12px; padding: 48px; text-align: center;"><p style="color: #64748b; margin: 0;">No orders found for today.</p></div>' : ordersHTML}
 ${orders.length > 0 && orders.some(o => o.status !== 'Sürücü Onayladı' && o.status !== 'Sürücü Reddetti') ? `
 <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 20px; border: 1px solid #e2e8f0;">
 <div style="display: flex; gap: 8px; margin-bottom: 16px;">
@@ -328,83 +331,11 @@ ${orders.length > 0 && orders.some(o => o.status !== 'Sürücü Onayladı' && o.
 </div>
 `}
 </div>
-<style>
-.order-card { transition: all 0.2s; }
-.order-checkbox:not(:checked) ~ * { opacity: 0.5; }
-.order-card:has(.order-checkbox:not(:checked)) { border-color: #fca5a5 !important; background: #fef2f2 !important; }
-</style>
-<script>
-function selectAll() {
-    document.querySelectorAll('.order-checkbox').forEach(cb => cb.checked = true);
-}
-
-function deselectAll() {
-    document.querySelectorAll('.order-checkbox').forEach(cb => cb.checked = false);
-}
-
-async function handleConfirm() {
-    const msg = document.getElementById('msg');
-    const checkboxes = document.querySelectorAll('.order-checkbox');
-    const selectedOrderIds = Array.from(checkboxes)
-        .filter(cb => cb.checked)
-        .map(cb => cb.getAttribute('data-order-id'));
-    
-    const selectedCount = selectedOrderIds.length;
-    const totalCount = checkboxes.length;
-
-    if (selectedCount === 0 && !confirm('No orders selected. This will reject ALL orders. Continue?')) {
-        return;
-    }
-
-    document.querySelectorAll('button').forEach(btn => btn.disabled = true);
-    document.querySelectorAll('.order-checkbox').forEach(cb => cb.disabled = true);
-
-    msg.style.display = 'block';
-    msg.textContent = '⏳ Processing...';
-    
-    try {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('action', 'confirm');
-        currentUrl.searchParams.set('selected', selectedOrderIds.join(','));
-        
-        const res = await fetch(currentUrl.toString());
-        const data = await res.json();
-        
-        if (data.success) {
-            msg.style.background = '#dcfce7';
-            msg.style.color = '#166534';
-            
-            let message = '✅ Response Recorded!<br><br>';
-            if (data.approvedOrderNumbers && data.approvedOrderNumbers.length > 0) {
-                message += '<strong>Approved:</strong> ' + data.approvedOrderNumbers.join(', ');
-            }
-            if (data.rejectedOrderNumbers && data.rejectedOrderNumbers.length > 0) {
-                if (data.approvedOrderNumbers && data.approvedOrderNumbers.length > 0) {
-                    message += '<br><br>';
-                }
-                message += '<strong>Rejected:</strong> ' + data.rejectedOrderNumbers.join(', ');
-            }
-            
-            msg.innerHTML = message;
-            document.querySelectorAll('button').forEach(btn => btn.style.display = 'none');
-        } else {
-            msg.style.background = '#fee2e2';
-            msg.style.color = '#991b1b';
-            msg.textContent = '❌ Error: ' + (data.message || 'Unknown error');
-            document.querySelectorAll('button').forEach(btn => btn.disabled = false);
-            document.querySelectorAll('.order-checkbox').forEach(cb => cb.disabled = false);
-        }
-    } catch (error) {
-        msg.style.background = '#fee2e2';
-        msg.style.color = '#991b1b';
-        msg.textContent = '❌ Error: ' + error.message;
-        document.querySelectorAll('button').forEach(btn => btn.disabled = false);
-        document.querySelectorAll('.order-checkbox').forEach(cb => cb.disabled = false);
-    }
-}
-</script>
 </body>
 </html>`;
+
+        // HTML'e script'i ekle
+        const html = htmlContent.replace('</body>', clientScript + '\n</body>');
         
         return new Response(html, {
             headers: { 'Content-Type': 'text/html; charset=utf-8' }
