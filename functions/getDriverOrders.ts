@@ -69,11 +69,10 @@ Deno.serve(async (req) => {
 
     const driver = drivers[0];
     
-    // Build the POST URL from request headers (x-forwarded headers set by the proxy)
+    // Use the env variable for the public-facing function URL (most reliable approach)
+    const baseUrl = Deno.env.get("DRIVER_ORDERS_FUNCTION_URL") || req.url;
     const reqUrl = new URL(req.url);
-    const forwardedProto = req.headers.get('x-forwarded-proto') || 'https';
-    const forwardedHost = req.headers.get('x-forwarded-host') || req.headers.get('host') || reqUrl.host;
-    const functionUrl = `${forwardedProto}://${forwardedHost}${reqUrl.pathname}${reqUrl.search}`;
+    const functionUrl = baseUrl.includes('?') ? baseUrl : `${baseUrl}${reqUrl.search}`;
     console.log(`📦 ${orders.length} orders, POST URL: ${functionUrl}`);
 
     const groupMap = new Map();
@@ -171,5 +170,5 @@ document.getElementById('btn-confirm') && document.getElementById('btn-confirm')
 </body>
 </html>`;
 
-    return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline';" } });
 });
