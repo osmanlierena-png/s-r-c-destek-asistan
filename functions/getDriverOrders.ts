@@ -104,15 +104,29 @@ ${order.ezcater_notes ? `<div style="padding:16px;background:#fffbeb;border-left
 
     const hasUnresponded = orders.some(o => o.status !== 'Sürücü Onayladı' && o.status !== 'Sürücü Reddetti');
 
+    // Build approve/reject links for each order (no JS needed)
+    const approveAllParam = orders.map(o => `approve=${o.id}`).join('&');
+    const rejectAllParam = orders.map(o => `reject=${o.id}`).join('&');
+    const baseActionUrl = `${url.origin}${url.pathname}?d=${driverId}&t=${orderDate}${messageGroupId ? `&mg=${messageGroupId}` : ''}`;
+
     const actionButtons = hasUnresponded ? `
 <div style="background:white;border-radius:8px;padding:24px;text-align:center;margin-top:20px;border:1px solid #e2e8f0;">
-<div style="display:flex;gap:8px;margin-bottom:16px;">
-<button id="btn-select-all" style="flex:1;padding:12px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Select All</button>
-<button id="btn-deselect-all" style="flex:1;padding:12px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Deselect All</button>
+<p style="margin:0 0 16px 0;font-size:14px;color:#64748b;font-weight:500;">Select your response for each order:</p>
+<div style="display:flex;gap:12px;flex-direction:column;">
+${orders.map(o => `
+<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
+  <p style="margin:0 0 8px 0;font-size:13px;font-weight:600;color:#1e293b;">ORDER #${o.ezcater_order_id} &nbsp;|&nbsp; ${o.pickup_time} → ${o.dropoff_time}</p>
+  <p style="margin:0 0 12px 0;font-size:12px;color:#64748b;">${o.pickup_address}</p>
+  <div style="display:flex;gap:8px;">
+    <a href="${baseActionUrl}&action=approve&order_id=${o.id}" style="flex:1;display:block;padding:12px;background:#10b981;color:white;border-radius:8px;font-size:14px;font-weight:600;text-align:center;text-decoration:none;">✅ APPROVE</a>
+    <a href="${baseActionUrl}&action=reject&order_id=${o.id}" style="flex:1;display:block;padding:12px;background:#ef4444;color:white;border-radius:8px;font-size:14px;font-weight:600;text-align:center;text-decoration:none;">❌ REJECT</a>
+  </div>
+</div>`).join('')}
 </div>
-<button id="btn-confirm" style="width:100%;padding:18px;background:#10b981;color:white;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;">CONFIRM SELECTION</button>
-<p style="margin-top:12px;font-size:13px;color:#64748b;">Checked = Approve, Unchecked = Reject</p>
-<div id="msg" style="margin-top:16px;padding:14px;border-radius:6px;display:none;font-weight:500;font-size:14px;"></div>
+<div style="margin-top:16px;display:flex;gap:8px;">
+  <a href="${baseActionUrl}&action=approve_all&${approveAllParam}" style="flex:1;display:block;padding:14px;background:#10b981;color:white;border-radius:8px;font-size:14px;font-weight:700;text-align:center;text-decoration:none;">✅ APPROVE ALL</a>
+  <a href="${baseActionUrl}&action=reject_all&${rejectAllParam}" style="flex:1;display:block;padding:14px;background:#ef4444;color:white;border-radius:8px;font-size:14px;font-weight:700;text-align:center;text-decoration:none;">❌ REJECT ALL</a>
+</div>
 </div>` : `<div style="background:#dcfce7;border-radius:8px;padding:24px;text-align:center;margin-top:20px;"><p style="color:#166534;font-weight:600;margin:0;">You have already responded to these orders.</p></div>`;
 
     const html = `<!DOCTYPE html>
