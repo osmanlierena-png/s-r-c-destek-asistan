@@ -195,63 +195,7 @@ ${order.ezcater_notes ? `<div style="padding:16px;background:#fffbeb;border-left
 ${ordersHTML}
 ${actionButtons}
 </div>
-<script>
-(function() {
-  var btnSelectAll = document.getElementById('btn-select-all');
-  var btnDeselectAll = document.getElementById('btn-deselect-all');
-  var btnConfirm = document.getElementById('btn-confirm');
-  if (!btnConfirm) return;
-
-  btnSelectAll.onclick = function() {
-    document.querySelectorAll('.order-checkbox').forEach(function(cb) { cb.checked = true; });
-  };
-  btnDeselectAll.onclick = function() {
-    document.querySelectorAll('.order-checkbox').forEach(function(cb) { cb.checked = false; });
-  };
-  btnConfirm.onclick = function() {
-    var msg = document.getElementById('msg');
-    var checkboxes = document.querySelectorAll('.order-checkbox');
-    var selectedOrderIds = [];
-    checkboxes.forEach(function(cb) { if (cb.checked) selectedOrderIds.push(cb.getAttribute('data-order-id')); });
-    if (selectedOrderIds.length === 0 && !confirm('No orders selected. This will reject ALL orders. Continue?')) return;
-    document.querySelectorAll('button').forEach(function(btn) { btn.disabled = true; });
-    checkboxes.forEach(function(cb) { cb.disabled = true; });
-    msg.style.display = 'block';
-    msg.textContent = 'Processing...';
-    msg.style.background = '#f1f5f9';
-    msg.style.color = '#334155';
-    fetch(window.location.href, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ selectedOrderIds: selectedOrderIds })
-    })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.success) {
-        msg.style.background = '#dcfce7';
-        msg.style.color = '#166534';
-        var approved = (data.approvedOrderNumbers || []).join(', ');
-        var rejected = data.rejectedOrderNumbers && data.rejectedOrderNumbers.length ? ' | Rejected: ' + data.rejectedOrderNumbers.join(', ') : '';
-        msg.textContent = 'Response recorded! Approved: ' + approved + rejected;
-        document.querySelectorAll('button').forEach(function(btn) { btn.style.display = 'none'; });
-      } else {
-        msg.style.background = '#fee2e2';
-        msg.style.color = '#991b1b';
-        msg.textContent = 'Error: ' + (data.message || 'Unknown error');
-        document.querySelectorAll('button').forEach(function(btn) { btn.disabled = false; });
-        checkboxes.forEach(function(cb) { cb.disabled = false; });
-      }
-    })
-    .catch(function(err) {
-      msg.style.background = '#fee2e2';
-      msg.style.color = '#991b1b';
-      msg.textContent = 'Error: ' + err.message;
-      document.querySelectorAll('button').forEach(function(btn) { btn.disabled = false; });
-      checkboxes.forEach(function(cb) { cb.disabled = false; });
-    });
-  };
-})();
-<\/script>
+<script src="${url.pathname}/driver-orders.js${url.search}"><\/script>
 </body>
 </html>`;
 
