@@ -69,10 +69,11 @@ Deno.serve(async (req) => {
 
     const driver = drivers[0];
     
-    // Use the env variable for the public-facing function URL (most reliable approach)
-    const baseUrl = Deno.env.get("DRIVER_ORDERS_FUNCTION_URL") || req.url;
+    // Build the POST URL using request headers (works from any origin including SMS links)
     const reqUrl = new URL(req.url);
-    const functionUrl = baseUrl.includes('?') ? baseUrl : `${baseUrl}${reqUrl.search}`;
+    const proto = req.headers.get('x-forwarded-proto') || reqUrl.protocol.replace(':', '');
+    const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || reqUrl.host;
+    const functionUrl = `${proto}://${host}${reqUrl.pathname}${reqUrl.search}`;
     console.log(`📦 ${orders.length} orders, POST URL: ${functionUrl}`);
 
     const groupMap = new Map();
