@@ -197,18 +197,19 @@ Deno.serve(async (req) => {
             return groupHeader + ordersInGroup;
         }).join('');
 
-        // Buton bölümü
+        // Buton bölümü - HTML form ile
         let buttonsHTML = '';
         if (orders.length > 0 && orders.some(function(o) { return o.status !== 'Sürücü Onayladı' && o.status !== 'Sürücü Reddetti'; })) {
-            buttonsHTML = '<div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; margin-top: 20px; border: 1px solid #e2e8f0;">' +
-                '<div style="display: flex; gap: 8px; margin-bottom: 16px;">' +
-                '<button onclick="selectAll()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">✅ Select All</button>' +
-                '<button onclick="deselectAll()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">⬜ Deselect All</button>' +
-                '</div>' +
-                '<button onclick="handleConfirm()" style="width: 100%; padding: 18px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">✅ CONFIRM SELECTION</button>' +
+            buttonsHTML = '<form method="GET" style="margin-top: 20px;">' +
+                '<input type="hidden" name="d" value="' + driverId + '">' +
+                '<input type="hidden" name="t" value="' + orderDate + '">' +
+                '<input type="hidden" name="mg" value="' + (messageGroupId || '') + '">' +
+                '<input type="hidden" name="action" value="confirm">' +
+                '<div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; text-align: center; border: 1px solid #e2e8f0;">' +
+                '<button type="submit" style="width: 100%; padding: 18px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">✅ CONFIRM SELECTION</button>' +
                 '<p style="margin-top: 12px; font-size: 13px; color: #64748b;">Selected orders will be approved, unselected will be rejected</p>' +
-                '<div id="msg" style="margin-top: 16px; padding: 14px; border-radius: 6px; display: none; font-weight: 500; font-size: 14px;"></div>' +
-                '</div>';
+                '</div>' +
+                '</form>';
         }
 
         // No orders mesajı
