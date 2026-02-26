@@ -167,10 +167,11 @@ Deno.serve(async (req) => {
                 }
 
                 return '<div class="order-card" style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0;">' +
+                    '<label style="display: block; cursor: pointer;">' +
                     '<div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">' +
                     '<div style="display: flex; justify-content: space-between; align-items: center;">' +
                     '<div style="display: flex; align-items: center; gap: 12px;">' +
-                    '<input type="checkbox" class="order-checkbox" data-order-id="' + order.id + '" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #10b981;">' +
+                    '<input type="checkbox" name="selected" value="' + order.id + '" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #10b981;">' +
                     '<span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">ORDER #' + order.ezcater_order_id + '</span>' +
                     '</div>' +
                     '<div style="display: flex; gap: 8px; align-items: center;">' +
