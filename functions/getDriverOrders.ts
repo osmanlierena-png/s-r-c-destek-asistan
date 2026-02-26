@@ -6,7 +6,72 @@ Deno.serve(async (req) => {
     const orderDate = url.searchParams.get('t');
     const messageGroupId = url.searchParams.get('mg');
 
-    console.log('🚀 DEPLOY v107');
+    console.log('🚀 DEPLOY v108');
+
+    // Serve the JS file separately to bypass CSP inline script restrictions
+    if (url.pathname.endsWith('/driver-orders.js')) {
+        const js = `
+(function() {
+  var btnSelectAll = document.getElementById('btn-select-all');
+  var btnDeselectAll = document.getElementById('btn-deselect-all');
+  var btnConfirm = document.getElementById('btn-confirm');
+  if (!btnConfirm) return;
+
+  btnSelectAll.onclick = function() {
+    document.querySelectorAll('.order-checkbox').forEach(function(cb) { cb.checked = true; });
+  };
+  btnDeselectAll.onclick = function() {
+    document.querySelectorAll('.order-checkbox').forEach(function(cb) { cb.checked = false; });
+  };
+  btnConfirm.onclick = function() {
+    var msg = document.getElementById('msg');
+    var checkboxes = document.querySelectorAll('.order-checkbox');
+    var selectedOrderIds = [];
+    checkboxes.forEach(function(cb) { if (cb.checked) selectedOrderIds.push(cb.getAttribute('data-order-id')); });
+    if (selectedOrderIds.length === 0 && !confirm('No orders selected. This will reject ALL orders. Continue?')) return;
+    document.querySelectorAll('button').forEach(function(btn) { btn.disabled = true; });
+    checkboxes.forEach(function(cb) { cb.disabled = true; });
+    msg.style.display = 'block';
+    msg.textContent = 'Processing...';
+    msg.style.background = '#f1f5f9';
+    msg.style.color = '#334155';
+    var postUrl = window.location.href;
+    fetch(postUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selectedOrderIds: selectedOrderIds })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.success) {
+        msg.style.background = '#dcfce7';
+        msg.style.color = '#166534';
+        var approved = (data.approvedOrderNumbers || []).join(', ');
+        var rejected = data.rejectedOrderNumbers && data.rejectedOrderNumbers.length ? ' | Rejected: ' + data.rejectedOrderNumbers.join(', ') : '';
+        msg.textContent = 'Response recorded! Approved: ' + approved + rejected;
+        document.querySelectorAll('button').forEach(function(btn) { btn.style.display = 'none'; });
+      } else {
+        msg.style.background = '#fee2e2';
+        msg.style.color = '#991b1b';
+        msg.textContent = 'Error: ' + (data.message || 'Unknown error');
+        document.querySelectorAll('button').forEach(function(btn) { btn.disabled = false; });
+        checkboxes.forEach(function(cb) { cb.disabled = false; });
+      }
+    })
+    .catch(function(err) {
+      msg.style.background = '#fee2e2';
+      msg.style.color = '#991b1b';
+      msg.textContent = 'Error: ' + err.message;
+      document.querySelectorAll('button').forEach(function(btn) { btn.disabled = false; });
+      checkboxes.forEach(function(cb) { cb.disabled = false; });
+    });
+  };
+})();
+`;
+        return new Response(js, {
+            headers: { 'Content-Type': 'application/javascript' }
+        });
+    }
 
     if (!driverId || !orderDate) {
         return new Response('<html><body><h1>Invalid Link</h1><p>Missing d or t param</p></body></html>', {
