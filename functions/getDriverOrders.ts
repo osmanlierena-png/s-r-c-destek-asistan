@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
                     '<div style="background: #f8fafc; padding: 16px; border-bottom: 1px solid #e2e8f0;">' +
                     '<div style="display: flex; justify-content: space-between; align-items: center;">' +
                     '<div style="display: flex; align-items: center; gap: 12px;">' +
-                    '<input type="checkbox" name="s_' + order.id + '" value="1" style="width: 20px; height: 20px; cursor: pointer; accent-color: #10b981;">' +
+                    '<input type="checkbox" name="s_' + order.id + '" value="1" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #10b981;">' +
                     '<span style="font-size: 13px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">ORDER #' + order.ezcater_order_id + '</span>' +
                     '</div>' +
                     '<div style="display: flex; gap: 8px; align-items: center;">' +
