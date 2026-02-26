@@ -1,4 +1,4 @@
-import { createClientFromRequest, createClient } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
     const url = new URL(req.url);
@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
     const orderDate = url.searchParams.get('t');
     const messageGroupId = url.searchParams.get('mg');
 
-    console.log('🚀 DEPLOY v111');
+    console.log('🚀 DEPLOY v112');
 
     if (!driverId || !orderDate) {
         return new Response('<html><body><h1>Invalid Link</h1><p>Missing d or t param</p></body></html>', {
@@ -14,16 +14,7 @@ Deno.serve(async (req) => {
         });
     }
 
-    let base44;
-    try {
-        base44 = createClientFromRequest(req);
-    } catch (err) {
-        // GET request'lerde header yok, service role ile devam et
-        base44 = createClient({
-            appId: Deno.env.get("BASE44_APP_ID") || "",
-            token: Deno.env.get("BASE44_SERVICE_ROLE_TOKEN") || ""
-        });
-    }
+    const base44 = createClientFromRequest(req);
 
     if (req.method === 'POST') {
         const body = await req.json();
