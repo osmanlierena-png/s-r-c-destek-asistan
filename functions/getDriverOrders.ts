@@ -132,7 +132,7 @@ ${order.ezcater_notes ? `<div style="padding:16px;background:#fffbeb;border-left
 ${ordersHTML}
 ${actionButtons}
 </div>
-<script src="${url.origin}${url.pathname}/driver-orders.js${url.search}"><\/script>
+
 </body>
 </html>`;
 
