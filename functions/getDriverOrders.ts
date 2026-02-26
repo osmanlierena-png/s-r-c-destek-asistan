@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
                 filterQuery.message_group_id = messageGroupId;
             }
 
-            const orders = await base44.entities.DailyOrder.filter(filterQuery);
+            const orders = await base44.asServiceRole.entities.DailyOrder.filter(filterQuery);
 
             console.log(`📝 Yanıt işleniyor: ${orders.length} sipariş (Message Group: ${messageGroupId || 'NONE'})`);
             console.log(`✅ Seçilen siparişler: ${selectedOrderIds.length}`);
