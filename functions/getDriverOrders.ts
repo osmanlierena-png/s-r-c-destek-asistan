@@ -14,9 +14,17 @@ Deno.serve(async (req) => {
         });
     }
 
-    const base44 = createClientFromRequest(req);
+    let base44;
+    try {
+        base44 = createClientFromRequest(req);
+    } catch (e) {
+        console.log('Auth not required for service role, continuing...');
+    }
 
     if (req.method === 'POST') {
+        if (!base44) {
+            return new Response(JSON.stringify({ success: false, error: 'Authentication required for POST' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+        }
         const body = await req.json();
         const { selectedOrderIds } = body;
 
