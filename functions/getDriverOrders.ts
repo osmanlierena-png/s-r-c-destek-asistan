@@ -17,8 +17,14 @@ Deno.serve(async (req) => {
     let base44;
     try {
         base44 = createClientFromRequest(req);
+        console.log('✅ Base44 client initialized:', typeof base44);
     } catch (e) {
-        console.log('Auth not required for service role, continuing...');
+        console.error('❌ Auth error:', e.message);
+        base44 = null;
+    }
+    
+    if (!base44) {
+        console.error('❌ Base44 client is null/undefined - cannot proceed');
     }
 
     if (req.method === 'POST') {
