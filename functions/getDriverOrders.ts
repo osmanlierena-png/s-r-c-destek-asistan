@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
                 console.log('📝 Yanıt işleniyor: ' + orders.length + ' sipariş');
                 console.log('✅ Seçilen: ' + selectedOrderIds.length);
                 console.log('📋 Seçilen IDler: ' + selectedOrderIds.join(', '));
+                console.log('📋 Formdan Gelen Seçili IDler (Array): ' + JSON.stringify(selectedOrderIds));
 
                 const approvedOrderNumbers = [];
                 const rejectedOrderNumbers = [];
