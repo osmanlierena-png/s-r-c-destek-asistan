@@ -192,7 +192,8 @@ Deno.serve(async (req) => {
                     '<p style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">Delivery Time</p>' +
                     '<p style="font-size: 24px; color: #1e293b; margin: 0; font-weight: 600; letter-spacing: -0.5px;">' + order.dropoff_time + '</p></div></div>' +
                     notesHTML +
-                    '</div>';
+                    '</div>' +
+                    '</label>';
             }).join('');
 
             return groupHeader + ordersInGroup;
