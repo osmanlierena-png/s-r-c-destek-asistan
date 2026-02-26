@@ -56,14 +56,22 @@ Deno.serve(async (req) => {
 
 
 
-    // GET
-    const [drivers, orders] = await Promise.all([
-        base44.asServiceRole.entities.Driver.filter({ id: driverId }),
-        base44.asServiceRole.entities.DailyOrder.filter(
-            messageGroupId ? { driver_id: driverId, order_date: orderDate, message_group_id: messageGroupId } : { driver_id: driverId, order_date: orderDate },
-            'pickup_time'
-        )
-    ]);
+    // GET - Kullanıcı auth'u olmadan service role ile fetch et
+    let drivers = [], orders = [];
+    try {
+        const results = await Promise.all([
+            base44.asServiceRole.entities.Driver.filter({ id: driverId }),
+            base44.asServiceRole.entities.DailyOrder.filter(
+                messageGroupId ? { driver_id: driverId, order_date: orderDate, message_group_id: messageGroupId } : { driver_id: driverId, order_date: orderDate },
+                'pickup_time'
+            )
+        ]);
+        drivers = results[0];
+        orders = results[1];
+    } catch (err) {
+        console.error('❌ Data fetch error:', err);
+        return new Response(`<html><body><h1>Error loading orders</h1><p>${err.message}</p></body></html>`, { status: 500, headers: { 'Content-Type': 'text/html' } });
+    }
 
     if (drivers.length === 0) {
         return new Response('<html><body><h1>Driver not found</h1></body></html>', { status: 404, headers: { 'Content-Type': 'text/html' } });
