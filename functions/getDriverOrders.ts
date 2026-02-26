@@ -306,7 +306,8 @@ async function handleConfirm() {
     msg.textContent = '⏳ Processing...';
     
     try {
-        const res = await fetch(window.location.search ? window.location.origin + '/api/functions/getDriverOrders' + window.location.search : window.location.href, { 
+        const postUrl = window.location.origin + window.location.pathname + window.location.search;
+        const res = await fetch(postUrl, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ selectedOrderIds }) 
