@@ -306,8 +306,8 @@ async function handleConfirm() {
     msg.textContent = '⏳ Processing...';
     
     try {
-        const postUrl = window.location.origin + window.location.pathname + window.location.search;
-        const res = await fetch(postUrl, { 
+        const currentUrl = window.location.href;
+        const res = await fetch(currentUrl, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ selectedOrderIds }) 
