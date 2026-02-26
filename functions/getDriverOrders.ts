@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
         const filterQuery = { driver_id: driverId, order_date: orderDate };
         if (messageGroupId) filterQuery.message_group_id = messageGroupId;
 
-        const orders = await base44.entities.DailyOrder.filter(filterQuery);
+        const orders = await base44.asServiceRole.entities.DailyOrder.filter(filterQuery);
 
         let approvedCount = 0, rejectedCount = 0;
         const approvedOrderNumbers = [], rejectedOrderNumbers = [];
