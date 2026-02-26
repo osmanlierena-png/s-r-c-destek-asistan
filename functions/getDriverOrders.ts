@@ -6,8 +6,7 @@ Deno.serve(async (req) => {
     const orderDate = url.searchParams.get('t');
     const messageGroupId = url.searchParams.get('mg');
 
-    console.log('🚀 DEPLOY v108');
-
+    console.log('🚀 DEPLOY v109');
 
 
     if (!driverId || !orderDate) {
