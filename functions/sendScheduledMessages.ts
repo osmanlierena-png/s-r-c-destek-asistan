@@ -462,7 +462,11 @@ Deno.serve(async (req) => {
                   groupSize: group.length
                 });
                 
-                console.log(`✅ CheckMessage: ${order.ezcater_order_id}`);
+                await base44.asServiceRole.entities.DailyOrder.update(order.id, {
+                  sms_sent_at: new Date().toISOString()
+                });
+                
+                console.log(`✅ CheckMessage + sms_sent_at güncellendi: ${order.ezcater_order_id}`);
               } catch (error) {
                 console.error(`❌ CheckMessage hatası: ${error.message}`);
               }
