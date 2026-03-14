@@ -1,0 +1,60 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+Deno.serve(async (req) => {
+    try {
+        const base44 = createClientFromRequest(req);
+
+        console.log('⏰ Zaman aşımı kontrolü başlatılıyor...');
+
+        // "Sürücü Onayı Bekleniyor" durumundaki tüm siparişleri al
+        const pendingOrders = await base44.asServiceRole.entities.DailyOrder.filter({
+            status: 'Sürücü Onayı Bekleniyor'
+        });
+
+        console.log(`📦 ${pendingOrders.length} bekleyen sipariş bulundu`);
+
+        const now = new Date();
+        const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+
+        const expired = [];
+        const skipped = [];
+
+        for (const order of pendingOrders) {
+            if (!order.sms_sent_at) {
+                skipped.push({ id: order.ezcater_order_id, reason: 'sms_sent_at yok' });
+                continue;
+            }
+
+            const smsSentAt = new Date(order.sms_sent_at);
+            const elapsed = now - smsSentAt;
+
+            if (elapsed >= TWO_HOURS_MS) {
+                console.log(`⌛ Zaman aşımı: ${order.ezcater_order_id} (${Math.round(elapsed / 60000)} dk geçti)`);
+
+                await base44.asServiceRole.entities.DailyOrder.update(order.id, {
+                    status: 'Sürücü Reddetti',
+                    driver_response: 'Zaman Aşımı',
+                    driver_response_at: now.toISOString()
+                });
+
+                expired.push(order.ezcater_order_id);
+            } else {
+                skipped.push({ id: order.ezcater_order_id, reason: `${Math.round((TWO_HOURS_MS - elapsed) / 60000)} dk kaldı` });
+            }
+        }
+
+        console.log(`✅ ${expired.length} sipariş zaman aşımına uğradı`);
+        console.log(`⏩ ${skipped.length} sipariş atlandı`);
+
+        return Response.json({
+            success: true,
+            expiredCount: expired.length,
+            expired,
+            skipped
+        });
+
+    } catch (error) {
+        console.error('❌ Hata:', error);
+        return Response.json({ success: false, error: error.message }, { status: 500 });
+    }
+});

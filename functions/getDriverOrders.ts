@@ -140,6 +140,67 @@ Deno.serve(async (req) => {
         }
 
         const driver = drivers[0];
+
+        // ── ZAMAN AŞIMI / BAŞKASINA ATANDI SAYFASI ──
+        // Eğer bu linkteki tüm siparişler reddedildiyse (zaman aşımı dahil) özel sayfa göster
+        const allExpiredOrRejected = orders.length > 0 && orders.every(o =>
+            o.status === 'Sürücü Reddetti' || o.driver_response === 'Zaman Aşımı'
+        );
+        const isTimedOut = orders.some(o => o.driver_response === 'Zaman Aşımı');
+        const isReassigned = orders.some(o => o.status === 'Sürücü Reddetti' && o.driver_response !== 'Zaman Aşımı' && o.driver_response !== 'Hayır');
+
+        if (allExpiredOrRejected) {
+            const reason = isTimedOut
+                ? '⏰ This order has expired. You did not respond within 2 hours.'
+                : '🔄 This order has been assigned to another driver.';
+            const expiredHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Order Unavailable</title>' +
+                '<style>* { box-sizing: border-box; } body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; } .container { max-width: 480px; width: 100%; }</style>' +
+                '</head><body><div class="container">' +
+                '<div style="background: white; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 40px 32px; text-align: center;">' +
+                '<div style="font-size: 64px; margin-bottom: 20px;">' + (isTimedOut ? '⏰' : '🔄') + '</div>' +
+                '<h2 style="color: #1e293b; margin: 0 0 12px 0; font-size: 22px;">Order Unavailable</h2>' +
+                '<p style="color: #64748b; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">' + reason + '</p>' +
+                '<div style="background: #f1f5f9; border-radius: 10px; padding: 16px;">' +
+                '<p style="color: #475569; font-size: 13px; margin: 0;">Hello <strong>' + driver.name + '</strong>, thank you for your time. If you have any questions, please contact your dispatcher.</p>' +
+                '</div></div></div></body></html>';
+            return new Response(expiredHTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+        }
+
+        // ── KABUL EDİLMİŞ SİPARİŞLER SAYFASI ──
+        // Tüm siparişler onaylandıysa, sürücü istediği zaman görebileceği özet sayfası
+        const allApproved = orders.length > 0 && orders.every(o => o.status === 'Sürücü Onayladı');
+        if (allApproved) {
+            let approvedOrdersHTML = orders.map(function(o) {
+                return '<div style="background: white; border-radius: 10px; border: 1px solid #d1fae5; margin-bottom: 14px; overflow: hidden;">' +
+                    '<div style="background: #ecfdf5; padding: 12px 16px; border-bottom: 1px solid #d1fae5; display: flex; justify-content: space-between; align-items: center;">' +
+                    '<span style="font-size: 13px; font-weight: 700; color: #065f46;">ORDER #' + o.ezcater_order_id + '</span>' +
+                    '<span style="background: #10b981; color: white; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;">✓ Confirmed</span>' +
+                    '</div>' +
+                    '<div style="padding: 14px 16px; font-size: 13px; color: #334155; line-height: 1.8;">' +
+                    '<div>🟢 <strong>Pickup:</strong> ' + o.pickup_time + ' — ' + o.pickup_address + '</div>' +
+                    '<div>🔴 <strong>Delivery:</strong> ' + o.dropoff_time + ' — ' + o.dropoff_address + '</div>' +
+                    (o.ezcater_notes ? '<div style="margin-top: 8px; padding: 8px 10px; background: #fffbeb; border-radius: 6px; font-size: 12px; color: #78350f;">📝 ' + o.ezcater_notes + '</div>' : '') +
+                    '</div></div>';
+            }).join('');
+
+            const approvedHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Your Orders</title>' +
+                '<style>* { box-sizing: border-box; } body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0fdf4; min-height: 100vh; } .container { max-width: 640px; margin: 0 auto; }</style>' +
+                '</head><body><div class="container">' +
+                '<div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px 28px; margin-bottom: 20px; border-left: 4px solid #10b981;">' +
+                '<div style="display: flex; align-items: center; gap: 12px;">' +
+                '<div style="font-size: 36px;">✅</div>' +
+                '<div>' +
+                '<h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #065f46;">Orders Confirmed!</h1>' +
+                '<p style="margin: 4px 0 0 0; color: #64748b; font-size: 14px;">Hello ' + driver.name + ' · ' + orderDate + ' · ' + orders.length + ' order(s)</p>' +
+                '</div></div></div>' +
+                approvedOrdersHTML +
+                '<div style="background: white; border-radius: 10px; padding: 18px; text-align: center; border: 1px solid #e2e8f0; color: #64748b; font-size: 13px;">' +
+                '📌 You can bookmark this page to check your orders anytime.' +
+                '</div>' +
+                '</div></body></html>';
+            return new Response(approvedHTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+        }
+
         const groupMap = new Map();
         orders.forEach(function(order) {
             const groupId = order.canvas_group_id || ('single_' + order.id);

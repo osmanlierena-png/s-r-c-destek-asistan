@@ -77,6 +77,12 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
   };
 
   const handleManualAssign = async (driver) => {
+    // Aynı sürücüye tekrar atama kontrolü
+    if (order.driver_id === driver.id) {
+      alert(`⚠️ ${driver.name} zaten bu siparişe atanmış! Lütfen farklı bir sürücü seçin.`);
+      return;
+    }
+
     if (!window.confirm(`${order.ezcater_order_id} siparişini ${driver.name} sürücüsüne atamak istediğinizden emin misiniz?`)) {
       return;
     }
