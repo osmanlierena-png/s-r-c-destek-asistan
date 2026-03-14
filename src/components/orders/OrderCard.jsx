@@ -166,9 +166,11 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
               </CardTitle>
               <p className="text-xs text-slate-500 mt-1">{order.customer_name}</p>
             </div>
-            <Badge className={`${getStatusColor(order.status)} border flex items-center text-xs`}>
+            <Badge className={`${getStatusColor(order.status, order.driver_response)} border flex items-center text-xs`}>
               {getStatusIcon(order.status)}
-              {order.status}
+              {order.status === 'Sürücü Reddetti' && order.driver_response === 'Zaman Aşımı'
+                ? '⏰ Zaman Aşımı'
+                : order.status}
             </Badge>
           </div>
         </CardHeader>
