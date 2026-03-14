@@ -120,7 +120,10 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
     setIsAssigning(false);
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status, driverResponse) => {
+    if (status === 'Sürücü Reddetti' && driverResponse === 'Zaman Aşımı') {
+      return 'bg-gray-100 text-gray-700 border-gray-400';
+    }
     switch(status) {
       case 'Çekildi': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
       case 'Atandı': return 'bg-blue-100 text-blue-800 border-blue-300';
