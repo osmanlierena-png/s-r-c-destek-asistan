@@ -1,3 +1,4 @@
+// takeOrder - cross-app driver lookup + direct SMS fetch
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
