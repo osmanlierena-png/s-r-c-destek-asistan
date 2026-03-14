@@ -1,6 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
+const AGENT_APP_ID = "69b35a4842c50e200a1fe0db";
+const AGENT_API_KEY = "47aadaf67ea94f1f9021c59986b2d158";
+const APP_URL = "https://surucu-destek-asistan-e1788cbe.base44.app";
 
 async function tgPost(method, body) {
     const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
@@ -11,14 +14,22 @@ async function tgPost(method, body) {
     return r.json();
 }
 
+async function getTelegramDriver(telegramUserId) {
+    const r = await fetch(
+        `https://api69b35a4842c50e200a1fe0db.base44.app/api/apps/${AGENT_APP_ID}/entities/TelegramDriver?telegram_user_id=${telegramUserId}`,
+        { headers: { "api_key": AGENT_API_KEY } }
+    );
+    const data = await r.json();
+    return Array.isArray(data) ? data[0] : null;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const { orderDbId, telegramUserId, callbackQueryId, messageId, chatId, originalText } = await req.json();
 
-        // 1. Driver'ı bul (TelegramDriver entity)
-        const drivers = await base44.asServiceRole.entities.TelegramDriver.filter({ telegram_user_id: telegramUserId });
-        const tgDriver = drivers && drivers[0];
+        // 1. Driver'ı agent app'inden çek
+        const tgDriver = await getTelegramDriver(telegramUserId);
 
         if (!tgDriver || tgDriver.driver_id === "ADMIN") {
             await tgPost("answerCallbackQuery", {
@@ -80,9 +91,11 @@ Deno.serve(async (req) => {
             show_alert: false
         });
 
-        // 6. SMS gönder
-        await base44.asServiceRole.functions.invoke('sendOrderAssignmentSMS', {
-            orderIds: [orderDbId]
+        // 6. SMS gönder (direkt fetch ile aynı app'teki function)
+        await fetch(`${APP_URL}/api/functions/sendOrderAssignmentSMS`, {
+            method: "POST",
+            headers: { "api_key": AGENT_API_KEY, "Content-Type": "application/json" },
+            body: JSON.stringify({ orderIds: [orderDbId] })
         });
 
         return Response.json({ success: true, driver: tgDriver.driver_name, order: order.ezcater_order_id });
