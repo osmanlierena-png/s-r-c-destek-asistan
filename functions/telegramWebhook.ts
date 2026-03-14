@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+// telegramWebhook - Telegram bot webhook handler
 
 const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const AGENT_APP_ID = "69b35a4842c50e200a1fe0db";
