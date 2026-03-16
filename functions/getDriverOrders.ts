@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
             filterQuery.message_group_id = messageGroupId;
         }
 
-        const orders = await base44.entities.DailyOrder.filter(filterQuery, 'pickup_time');
+        const orders = await base44.entities.DailyOrder.filter(filterQuery, '-driver_response_at');
 
         if (drivers.length === 0) {
             return Response.json({ error: 'Driver not found' }, { status: 404 });
