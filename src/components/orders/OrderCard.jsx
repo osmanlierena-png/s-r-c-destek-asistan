@@ -58,22 +58,25 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
   };
 
   const handleCanvasPriceUpdate = async () => {
-    const newPrice = parseFloat(canvasPriceInput);
-    if (isNaN(newPrice) || newPrice <= 0) {
-      alert('Lütfen geçerli bir fiyat girin');
+    if (isSavingPrice) return;
+
+    const newPrice = parseFloat(currentCanvasPrice);
+    if (isNaN(newPrice) || newPrice < 0) {
+      setIsEditingPrice(false);
+      setCurrentCanvasPrice("");
       return;
     }
 
+    setIsSavingPrice(true);
     try {
-      await base44.entities.DailyOrder.update(order.id, {
-        canvas_price: newPrice
-      });
-      setShowPriceInput(false);
-      setCanvasPriceInput("");
+      await base44.entities.DailyOrder.update(order.id, { canvas_price: newPrice });
       onUpdate();
+      setIsEditingPrice(false);
     } catch (error) {
       console.error('Fiyat güncelleme hatası:', error);
       alert('Fiyat güncellenemedi: ' + error.message);
+    } finally {
+      setIsSavingPrice(false);
     }
   };
 
