@@ -203,7 +203,7 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
           </div>
           <div className="flex items-center gap-3 pt-1 text-xs">
             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-              {isEditingPrice ? (
+              {isEditingPrice && order.status !== 'Sürücü Reddetti' ? (
                 <div className="flex items-center gap-1">
                   <span className="text-slate-600">💵</span>
                   <Input
