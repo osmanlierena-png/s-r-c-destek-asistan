@@ -202,46 +202,45 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
             <span className="text-slate-600">{order.pickup_time} → {order.dropoff_time}</span>
           </div>
           <div className="flex items-center gap-3 pt-1 text-xs">
-            {order.canvas_price ? (
-              <span className="text-slate-700 font-medium">
-                💵 ${order.canvas_price.toFixed(2)}
-              </span>
-            ) : (order.status === 'Atandı' || order.status === 'Çekildi') && (
-              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                {!showPriceInput ? (
-                  <button
-                    onClick={() => setShowPriceInput(true)}
-                    className="text-blue-600 hover:text-blue-700 text-xs font-medium flex items-center gap-1"
-                  >
-                    💵 Fiyat Ekle
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <span className="text-slate-600">💵</span>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={canvasPriceInput}
-                      onChange={(e) => setCanvasPriceInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleCanvasPriceUpdate();
-                        if (e.key === 'Escape') {
-                          setShowPriceInput(false);
-                          setCanvasPriceInput("");
-                        }
-                      }}
-                      onBlur={() => {
-                        if (canvasPriceInput) handleCanvasPriceUpdate();
-                        else setShowPriceInput(false);
-                      }}
-                      autoFocus
-                      className="w-20 h-6 p-1 text-xs"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+              {isEditingPrice ? (
+                <div className="flex items-center gap-1">
+                  <span className="text-slate-600">💵</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={currentCanvasPrice}
+                    onChange={(e) => setCurrentCanvasPrice(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleCanvasPriceUpdate();
+                        e.target.blur();
+                      }
+                      if (e.key === 'Escape') {
+                        setIsEditingPrice(false);
+                        setCurrentCanvasPrice("");
+                      }
+                    }}
+                    onBlur={handleCanvasPriceUpdate}
+                    autoFocus
+                    disabled={isSavingPrice}
+                    className="w-24 h-7 p-1 text-xs"
+                  />
+                  {isSavingPrice && <span className="text-blue-500 text-xs">...</span>}
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsEditingPrice(true);
+                    setCurrentCanvasPrice(order.canvas_price != null ? order.canvas_price.toString() : "");
+                  }}
+                  className="text-slate-700 font-medium hover:text-blue-600 text-xs flex items-center gap-1"
+                >
+                  💵 {order.canvas_price != null ? `$${order.canvas_price.toFixed(2)}` : 'Fiyat Ekle'}
+                </button>
+              )}
+            </div>
             {order.tip && (
               <span className="text-green-600 font-medium">
                 💰 Tip ${order.tip.toFixed(2)}
