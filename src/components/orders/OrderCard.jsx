@@ -20,8 +20,9 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
   const [isLoadingDrivers, setIsLoadingDrivers] = React.useState(false);
   const [searchDriver, setSearchDriver] = React.useState("");
   const [isAssigning, setIsAssigning] = React.useState(false);
-  const [showPriceInput, setShowPriceInput] = React.useState(false);
-  const [canvasPriceInput, setCanvasPriceInput] = React.useState("");
+  const [isEditingPrice, setIsEditingPrice] = React.useState(false);
+  const [currentCanvasPrice, setCurrentCanvasPrice] = React.useState("");
+  const [isSavingPrice, setIsSavingPrice] = React.useState(false);
 
   const handleDelete = async () => {
     if (!window.confirm(`${order.ezcater_order_id} numaralı siparişi silmek istediğinizden emin misiniz?`)) {
