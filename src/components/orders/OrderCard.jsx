@@ -229,10 +229,6 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
                   />
                   {isSavingPrice && <span className="text-blue-500 text-xs">...</span>}
                 </div>
-              ) : order.status === 'Sürücü Reddetti' ? (
-                order.canvas_price != null ? (
-                  <span className="text-slate-500 text-xs">💵 ${order.canvas_price.toFixed(2)}</span>
-                ) : null
               ) : (
                 <button
                   onClick={() => {
