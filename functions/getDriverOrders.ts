@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
         // ── ZAMAN AŞIMI / BAŞKASINA ATANDI SAYFASI ──
         // Eğer bu linkteki tüm siparişler reddedildiyse (zaman aşımı dahil) özel sayfa göster
         const allExpiredOrRejected = orders.length > 0 && orders.every(o =>
-            o.status === 'Sürücü Reddetti' || o.driver_response === 'Zaman Aşımı'
+            o.status === 'Sürücü Reddetti'
         );
         const isTimedOut = orders.some(o => o.driver_response === 'Zaman Aşımı');
         const isReassigned = orders.some(o => o.status === 'Sürücü Reddetti' && o.driver_response !== 'Zaman Aşımı' && o.driver_response !== 'Hayır');

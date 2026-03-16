@@ -37,6 +37,24 @@ Deno.serve(async (req) => {
                     driver_response_at: now.toISOString()
                 });
 
+                // Zaman aşımı geçmişini logla (driver puanlaması için)
+                try {
+                    await base44.asServiceRole.entities.DriverTimeoutLog.create({
+                        driver_id: order.driver_id,
+                        driver_name: order.driver_name,
+                        driver_phone: order.driver_phone,
+                        order_id: order.id,
+                        ezcater_order_id: order.ezcater_order_id,
+                        order_date: order.order_date,
+                        pickup_time: order.pickup_time,
+                        sms_sent_at: order.sms_sent_at,
+                        timed_out_at: now.toISOString(),
+                        elapsed_minutes: Math.round(elapsed / 60000)
+                    });
+                } catch (logErr) {
+                    console.error('⚠️ Timeout log yazılamadı:', logErr.message);
+                }
+
                 expired.push(order.ezcater_order_id);
             } else {
                 skipped.push({ id: order.ezcater_order_id, reason: `${Math.round((TWO_HOURS_MS - elapsed) / 60000)} dk kaldı` });

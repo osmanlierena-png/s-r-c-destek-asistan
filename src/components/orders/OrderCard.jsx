@@ -78,7 +78,9 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
 
   const handleManualAssign = async (driver) => {
     // Aynı sürücüye tekrar atama kontrolü
-    if (order.driver_id === driver.id) {
+    // Zaman aşımı olan siparişler aynı sürücüye tekrar atanabilir
+    const isTimedOut = order.status === 'Sürücü Reddetti' && order.driver_response === 'Zaman Aşımı';
+    if (order.driver_id === driver.id && !isTimedOut) {
       alert(`⚠️ ${driver.name} zaten bu siparişe atanmış! Lütfen farklı bir sürücü seçin.`);
       return;
     }
@@ -101,7 +103,11 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
         driver_id: driver.id,
         driver_name: driver.name,
         driver_phone: driver.phone,
-        status: 'Atandı'
+        status: 'Atandı',
+        driver_response: null,
+        driver_response_at: null,
+        sms_sent_at: null,
+        message_group_id: null
       });
       
       console.log('✅ Manuel atama başarılı!');
