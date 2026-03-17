@@ -9,6 +9,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
+    const forceRecalculate = body.force_recalculate === true;
 
     let weekStart, weekEnd;
 
