@@ -75,7 +75,7 @@ export default function WeeklyPayments() {
     }
     setIsCalculating(true);
     setCalcResult(null);
-    const res = await calculateWeeklyEarnings({ week_start, week_end });
+    const res = await calculateWeeklyEarnings({ week_start, week_end, force_recalculate: forceRecalculate });
     setCalcResult(res.data);
     await loadSummaries();
     setIsCalculating(false);
