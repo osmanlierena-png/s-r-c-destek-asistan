@@ -61,12 +61,36 @@ export default function WeeklyPayments() {
   }, []);
 
   const handleCalculate = async () => {
+    let week_start, week_end;
+    if (selectedWeek === "custom") {
+      if (!customStart || !customEnd) return alert("Lütfen başlangıç ve bitiş tarihini girin.");
+      week_start = customStart;
+      week_end = customEnd;
+    } else {
+      const opt = weekOptions.find(o => o.weekStart === selectedWeek);
+      if (!opt) return;
+      week_start = opt.weekStart;
+      week_end = opt.weekEnd;
+    }
     setIsCalculating(true);
     setCalcResult(null);
-    const res = await calculateWeeklyEarnings({});
+    const res = await calculateWeeklyEarnings({ week_start, week_end });
     setCalcResult(res.data);
     await loadSummaries();
     setIsCalculating(false);
+  };
+
+  const toggleSummaryOrders = async (summaryId) => {
+    if (expandedSummary === summaryId) {
+      setExpandedSummary(null);
+      return;
+    }
+    setExpandedSummary(summaryId);
+    if (summaryOrders[summaryId]) return; // zaten yüklendi
+    setLoadingOrders(summaryId);
+    const orders = await base44.entities.DailyOrder.filter({ weekly_summary_id: summaryId });
+    setSummaryOrders(prev => ({ ...prev, [summaryId]: orders }));
+    setLoadingOrders(null);
   };
 
   const handleStatusChange = async (summaryId, newStatus) => {
