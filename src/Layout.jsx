@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { BarChart3, Users, SlidersHorizontal, MessageCircle, Package, TrendingUp, MapPin } from "lucide-react"; // Added MapPin
+import { BarChart3, Users, SlidersHorizontal, MessageCircle, Package, TrendingUp, MapPin, Wallet } from "lucide-react"; // Added MapPin
 import {
   Sidebar,
   SidebarContent,
