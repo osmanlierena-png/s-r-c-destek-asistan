@@ -100,10 +100,10 @@ Deno.serve(async (req) => {
             let summaryId;
 
             if (existing.length > 0) {
-                // Mevcut özete yeni siparişleri ekle
+                // Mevcut özeti güncelle (force modunda sıfırdan yaz)
                 await base44.asServiceRole.entities.DriverWeeklySummary.update(existing[0].id, {
-                    total_canvas_price: (existing[0].total_canvas_price || 0) + totalCanvasPrice,
-                    order_count: (existing[0].order_count || 0) + orderCount
+                    total_canvas_price: forceRecalculate ? totalCanvasPrice : (existing[0].total_canvas_price || 0) + totalCanvasPrice,
+                    order_count: forceRecalculate ? orderCount : (existing[0].order_count || 0) + orderCount
                 });
                 summaryId = existing[0].id;
                 console.log(`🔄 Güncellendi: ${group.driver_name} - $${totalCanvasPrice}`);
