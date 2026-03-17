@@ -124,15 +124,10 @@ export default function WeeklyPayments() {
           <h1 className="text-2xl font-bold text-slate-900">Haftalık Ödemeler</h1>
           <p className="text-slate-500 text-sm mt-1">Sürücü haftalık kazanç özetleri</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={loadSummaries} disabled={isLoading}>
+        <Button variant="outline" onClick={loadSummaries} disabled={isLoading}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Yenile
           </Button>
-          <Button onClick={handleCalculate} disabled={isCalculating} className="bg-blue-600 hover:bg-blue-700">
-            {isCalculating ? 'Hesaplanıyor...' : 'Geçen Haftayı Hesapla'}
-          </Button>
-        </div>
       </div>
 
       {calcResult && (
