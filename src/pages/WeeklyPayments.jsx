@@ -130,6 +130,47 @@ export default function WeeklyPayments() {
           </Button>
       </div>
 
+      {/* Hafta Seçimi ve Hesaplama */}
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Calendar className="w-4 h-4 text-blue-600" />
+            <span className="font-semibold text-slate-800 text-sm">Hafta Seç ve Hesapla</span>
+          </div>
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="flex-1 min-w-48">
+              <label className="text-xs text-slate-500 mb-1 block">Hafta</label>
+              <Select value={selectedWeek} onValueChange={setSelectedWeek}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {weekOptions.map(opt => (
+                    <SelectItem key={opt.weekStart} value={opt.weekStart}>{opt.label}</SelectItem>
+                  ))}
+                  <SelectItem value="custom">🗓️ Özel Tarih Aralığı</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedWeek === "custom" && (
+              <>
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">Başlangıç</label>
+                  <Input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} className="w-40" />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">Bitiş</label>
+                  <Input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)} className="w-40" />
+                </div>
+              </>
+            )}
+            <Button onClick={handleCalculate} disabled={isCalculating} className="bg-blue-600 hover:bg-blue-700">
+              {isCalculating ? 'Hesaplanıyor...' : 'Hesapla'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {calcResult && (
         <div className={`rounded-lg p-4 text-sm border ${calcResult.success ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
           {calcResult.success
