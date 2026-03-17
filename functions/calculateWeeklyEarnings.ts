@@ -32,10 +32,10 @@ Deno.serve(async (req) => {
 
     console.log(`📅 Hafta hesaplanıyor: ${weekStart} - ${weekEnd}`);
 
-    // "Tamamlandı" statüsünde tüm siparişleri çek
-    const allOrders = await base44.asServiceRole.entities.DailyOrder.filter({
-        status: 'Tamamlandı'
-    });
+    // Tamamlanmış sayılacak statüslerdeki tüm siparişleri çek
+    const completedStatuses = ['Tamamlandı', 'Sürücü Onayladı', 'Yolda'];
+    const allOrdersRaw = await base44.asServiceRole.entities.DailyOrder.list();
+    const allOrders = allOrdersRaw.filter(o => completedStatuses.includes(o.status));
 
     // Hafta filtresi + canvas_price > 0
     // force_recalculate modunda weekly_summary_id dolu olanları da dahil et
