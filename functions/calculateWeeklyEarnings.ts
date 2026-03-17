@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
     // Tamamlanmış sayılacak statüslerdeki tüm siparişleri çek
     const completedStatuses = ['Tamamlandı', 'Sürücü Onayladı', 'Yolda'];
-    const allOrdersRaw = await base44.asServiceRole.entities.DailyOrder.list();
+    const allOrdersRaw = await base44.asServiceRole.entities.DailyOrder.list('-order_date', 2000);
     const allOrders = allOrdersRaw.filter(o => completedStatuses.includes(o.status));
 
     // Hafta filtresi + canvas_price > 0
