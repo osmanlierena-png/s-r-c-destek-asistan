@@ -10,9 +10,9 @@ import {
   RefreshCw, Calculator, TrendingUp, AlertCircle, Package, Calendar,
   ArrowRight, Banknote, Search
 } from "lucide-react";
-import PaymentCard from "@/components/payments/PaymentCard";
-import PaymentSummaryBar from "@/components/payments/PaymentSummaryBar";
-import WeekSelector from "@/components/payments/WeekSelector";
+import PaymentCard from "@/components/payments/PaymentCard.jsx";
+import PaymentSummaryBar from "@/components/payments/PaymentSummaryBar.jsx";
+import WeekSelector from "@/components/payments/WeekSelector.jsx";
 
 export default function WeeklyPayments() {
   const [summaries, setSummaries] = useState([]);
