@@ -424,6 +424,7 @@ const SidebarMenuButton = React.forwardRef(function SidebarMenuButtonInner(
       data-sidebar="menu-button"
       data-size={_size}
       data-active={_isActive}
+      id={id}
       className={cn(sidebarMenuButtonVariants({ variant: _variant, size: _size }), className)}
       {...props} />
   )
