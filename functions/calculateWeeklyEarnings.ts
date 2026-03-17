@@ -37,9 +37,10 @@ Deno.serve(async (req) => {
         status: 'Tamamlandı'
     });
 
-    // Hafta filtresi + weekly_summary_id boş + canvas_price > 0
+    // Hafta filtresi + canvas_price > 0
+    // force_recalculate modunda weekly_summary_id dolu olanları da dahil et
     const weekOrders = allOrders.filter(order => {
-        if (order.weekly_summary_id) return false; // zaten özetlenmiş
+        if (!forceRecalculate && order.weekly_summary_id) return false; // zaten özetlenmiş
 
         if (!order.canvas_price || order.canvas_price <= 0) {
             console.warn(`⚠️ canvas_price eksik/sıfır: ${order.ezcater_order_id}`);
@@ -51,6 +52,8 @@ Deno.serve(async (req) => {
 
         return orderDate >= weekStart && orderDate <= weekEnd;
     });
+
+    console.log(`🔁 Force recalculate: ${forceRecalculate}`);
 
     console.log(`📦 Uygun sipariş sayısı: ${weekOrders.length}`);
 
