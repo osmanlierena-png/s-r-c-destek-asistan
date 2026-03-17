@@ -20,6 +20,7 @@ export default function WeeklyPayments() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
   const [calcResult, setCalcResult] = useState(null);
+  const [forceRecalculate, setForceRecalculate] = useState(false);
   const [expandedSummary, setExpandedSummary] = useState(null);
   const [summaryOrders, setSummaryOrders] = useState({});
   const [loadingOrders, setLoadingOrders] = useState(null);
