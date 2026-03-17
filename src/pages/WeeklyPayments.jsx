@@ -165,9 +165,21 @@ export default function WeeklyPayments() {
                 </div>
               </>
             )}
-            <Button onClick={handleCalculate} disabled={isCalculating} className="bg-blue-600 hover:bg-blue-700">
-              {isCalculating ? 'Hesaplanıyor...' : 'Hesapla'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs text-orange-700 bg-orange-50 border border-orange-200 rounded px-2 py-1">
+                <input
+                  type="checkbox"
+                  checked={forceRecalculate}
+                  onChange={e => setForceRecalculate(e.target.checked)}
+                  className="w-3 h-3"
+                />
+                <AlertTriangle className="w-3 h-3" />
+                Yeniden Hesapla
+              </label>
+              <Button onClick={handleCalculate} disabled={isCalculating} className="bg-blue-600 hover:bg-blue-700">
+                {isCalculating ? 'Hesaplanıyor...' : 'Hesapla'}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
