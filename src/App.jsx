@@ -60,6 +60,14 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route
+        path="/WeeklyPayments"
+        element={
+          <LayoutWrapper currentPageName="WeeklyPayments">
+            <WeeklyPayments />
+          </LayoutWrapper>
+        }
+      />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

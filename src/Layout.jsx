@@ -43,6 +43,11 @@ const navigationItems = [
     icon: MessageCircle,
   },
   {
+    title: "Haftalık Ödemeler",
+    url: createPageUrl("WeeklyPayments"),
+    icon: Wallet,
+  },
+  {
     title: "Ayarlar",
     url: createPageUrl("Settings"),
     icon: SlidersHorizontal,
