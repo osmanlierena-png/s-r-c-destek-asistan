@@ -20,6 +20,34 @@ export default function WeeklyPayments() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
   const [calcResult, setCalcResult] = useState(null);
+  const [expandedSummary, setExpandedSummary] = useState(null);
+  const [summaryOrders, setSummaryOrders] = useState({});
+  const [loadingOrders, setLoadingOrders] = useState(null);
+
+  // Hafta seçimi için
+  const getWeekOptions = () => {
+    const options = [];
+    const now = new Date();
+    // Son 8 haftayı oluştur
+    for (let i = 0; i < 8; i++) {
+      const d = new Date(now);
+      // Bu haftanın Pazartesi'sini bul
+      const dayOfWeek = d.getDay();
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      d.setDate(d.getDate() + diffToMonday - i * 7);
+      const monday = d.toISOString().split('T')[0];
+      const sunday = new Date(d);
+      sunday.setDate(d.getDate() + 6);
+      const sundayStr = sunday.toISOString().split('T')[0];
+      options.push({ label: `${monday} — ${sundayStr}`, weekStart: monday, weekEnd: sundayStr });
+    }
+    return options;
+  };
+
+  const weekOptions = getWeekOptions();
+  const [selectedWeek, setSelectedWeek] = useState("custom");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
 
   const loadSummaries = async () => {
     setIsLoading(true);
