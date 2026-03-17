@@ -264,32 +264,66 @@ export default function WeeklyPayments() {
                         </Badge>
                       </div>
                     </div>
-                    <div className="flex gap-2 mt-3 pt-3 border-t">
-                      {summary.status === 'Hesaplandı' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs h-7 text-blue-600 hover:bg-blue-50"
-                          onClick={() => handleStatusChange(summary.id, 'Onaylandı')}
-                        >
-                          Onayla
-                        </Button>
-                      )}
-                      {summary.status === 'Onaylandı' && (
-                        <Button
-                          size="sm"
-                          className="text-xs h-7 bg-green-600 hover:bg-green-700"
-                          onClick={() => handleStatusChange(summary.id, 'Ödendi')}
-                        >
-                          Ödendi İşaretle
-                        </Button>
-                      )}
-                      {summary.status === 'Ödendi' && (
-                        <span className="text-xs text-green-600 flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> Ödeme Tamamlandı
-                        </span>
-                      )}
+                    <div className="flex gap-2 mt-3 pt-3 border-t items-center justify-between">
+                      <div className="flex gap-2">
+                        {summary.status === 'Hesaplandı' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs h-7 text-blue-600 hover:bg-blue-50"
+                            onClick={() => handleStatusChange(summary.id, 'Onaylandı')}
+                          >
+                            Onayla
+                          </Button>
+                        )}
+                        {summary.status === 'Onaylandı' && (
+                          <Button
+                            size="sm"
+                            className="text-xs h-7 bg-green-600 hover:bg-green-700"
+                            onClick={() => handleStatusChange(summary.id, 'Ödendi')}
+                          >
+                            Ödendi İşaretle
+                          </Button>
+                        )}
+                        {summary.status === 'Ödendi' && (
+                          <span className="text-xs text-green-600 flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" /> Ödeme Tamamlandı
+                          </span>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs h-7 text-slate-500"
+                        onClick={() => toggleSummaryOrders(summary.id)}
+                      >
+                        {expandedSummary === summary.id ? <ChevronUp className="w-3 h-3 mr-1" /> : <ChevronDown className="w-3 h-3 mr-1" />}
+                        Siparişler
+                      </Button>
                     </div>
+
+                    {expandedSummary === summary.id && (
+                      <div className="mt-3 pt-3 border-t space-y-1">
+                        {loadingOrders === summary.id ? (
+                          <p className="text-xs text-slate-400">Yükleniyor...</p>
+                        ) : (summaryOrders[summary.id] || []).length === 0 ? (
+                          <p className="text-xs text-slate-400">Sipariş bulunamadı.</p>
+                        ) : (
+                          (summaryOrders[summary.id] || []).map(order => (
+                            <div key={order.id} className="flex justify-between items-center py-1 px-2 bg-slate-50 rounded text-xs">
+                              <div>
+                                <span className="font-medium text-slate-700">#{order.ezcater_order_id}</span>
+                                <span className="text-slate-400 ml-2">{order.order_date}</span>
+                              </div>
+                              <div className="text-right">
+                                <span className="font-semibold text-slate-800">${(order.canvas_price || 0).toFixed(2)}</span>
+                                <span className="text-slate-400 ml-2">{order.pickup_time}</span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
