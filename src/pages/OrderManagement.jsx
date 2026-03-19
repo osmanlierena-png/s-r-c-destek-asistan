@@ -1909,16 +1909,16 @@ export default function OrderManagementPage() {
           </Card>
 
           <Card 
-            className="bg-white border-orange-50 border-2 cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setFilterStatus(filterStatus === 'DELAYED' ? null : 'DELAYED')}
+            className="bg-white border-slate-200 border-2 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setFilterStatus(filterStatus === 'İptal Edildi' ? null : 'İptal Edildi')}
           >
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-600 mb-1">⏱️ Gecikmeler</p>
-                  <p className="text-xl font-bold text-orange-600">{stats.delayed}</p>
+                  <p className="text-xs text-slate-600 mb-1">🚫 İptal</p>
+                  <p className="text-xl font-bold text-slate-500">{orders.filter(o => o.status === 'İptal Edildi').length}</p>
                 </div>
-                <AlertTriangle className="w-5 h-5 text-orange-500" />
+                <XCircle className="w-5 h-5 text-slate-400" />
               </div>
             </CardContent>
           </Card>
