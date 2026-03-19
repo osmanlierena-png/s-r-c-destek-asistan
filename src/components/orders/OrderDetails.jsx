@@ -170,6 +170,21 @@ export default function OrderDetails({ order, onClose, onUpdate }) {
               <p className="text-sm text-slate-700">{order.ezcater_notes}</p>
             </div>
           )}
+
+          {/* İptal Butonu */}
+          {order.status !== 'İptal Edildi' && order.status !== 'Tamamlandı' && (
+            <div className="border-t pt-4">
+              <Button
+                variant="outline"
+                className="w-full text-red-600 border-red-300 hover:bg-red-50"
+                onClick={handleCancel}
+                disabled={isCancelling}
+              >
+                <Ban className="w-4 h-4 mr-2" />
+                {isCancelling ? 'İptal Ediliyor...' : 'Siparişi İptal Et'}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
