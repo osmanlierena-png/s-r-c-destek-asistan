@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 
 export default function OrderCard({ order, onUpdate, onViewDetails }) {
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isCancelling, setIsCancelling] = React.useState(false);
   const [showManualAssign, setShowManualAssign] = React.useState(false);
   const [drivers, setDrivers] = React.useState([]);
   const [isLoadingDrivers, setIsLoadingDrivers] = React.useState(false);
@@ -23,6 +24,18 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
   const [isEditingPrice, setIsEditingPrice] = React.useState(false);
   const [currentCanvasPrice, setCurrentCanvasPrice] = React.useState("");
   const [isSavingPrice, setIsSavingPrice] = React.useState(false);
+
+  const handleCancel = async () => {
+    if (!window.confirm(`${order.ezcater_order_id} siparişini iptal etmek istediğinizden emin misiniz?`)) return;
+    setIsCancelling(true);
+    try {
+      await base44.entities.DailyOrder.update(order.id, { status: 'İptal Edildi' });
+      onUpdate();
+    } catch (error) {
+      alert('Sipariş iptal edilemedi: ' + error.message);
+    }
+    setIsCancelling(false);
+  };
 
   const handleDelete = async () => {
     if (!window.confirm(`${order.ezcater_order_id} numaralı siparişi silmek istediğinizden emin misiniz?`)) {
