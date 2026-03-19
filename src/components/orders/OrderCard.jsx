@@ -157,6 +157,7 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
       case 'Yolda': return 'bg-indigo-100 text-indigo-800 border-indigo-300';
       case 'Tamamlandı': return 'bg-green-100 text-green-800 border-green-300';
       case 'Problem': return 'bg-red-100 text-red-800 border-red-300';
+      case 'İptal Edildi': return 'bg-slate-200 text-slate-500 border-slate-400';
       default: return 'bg-slate-100 text-slate-800 border-slate-300';
     }
   };
@@ -307,6 +308,18 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
               <Trash2 className="w-3 h-3 mr-1" />
               {isDeleting ? '...' : 'Sil'}
             </Button>
+            {order.status !== 'İptal Edildi' && order.status !== 'Tamamlandı' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-orange-600 hover:bg-orange-50 text-xs h-7"
+                onClick={handleCancel}
+                disabled={isCancelling}
+              >
+                <Ban className="w-3 h-3 mr-1" />
+                {isCancelling ? '...' : 'İptal'}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
