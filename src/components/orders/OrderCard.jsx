@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, User, Trash2, Eye, CheckCircle, XCircle, AlertCircle, UserPlus } from "lucide-react";
+import { MapPin, Clock, User, Trash2, Eye, CheckCircle, XCircle, AlertCircle, UserPlus, Ban } from "lucide-react";
 import {
   Dialog,
   DialogContent,
