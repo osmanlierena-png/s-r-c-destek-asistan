@@ -308,18 +308,7 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
               <Trash2 className="w-3 h-3 mr-1" />
               {isDeleting ? '...' : 'Sil'}
             </Button>
-            {order.status !== 'İptal Edildi' && order.status !== 'Tamamlandı' && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-orange-600 hover:bg-orange-50 text-xs h-7"
-                onClick={handleCancel}
-                disabled={isCancelling}
-              >
-                <Ban className="w-3 h-3 mr-1" />
-                {isCancelling ? '...' : 'İptal'}
-              </Button>
-            )}
+
           </div>
         </CardContent>
       </Card>
