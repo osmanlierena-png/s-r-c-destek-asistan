@@ -17,7 +17,21 @@ import {
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
-export default function OrderDetails({ order, onClose }) {
+export default function OrderDetails({ order, onClose, onUpdate }) {
+  const [isCancelling, setIsCancelling] = React.useState(false);
+
+  const handleCancel = async () => {
+    if (!window.confirm(`${order.ezcater_order_id} siparişini iptal etmek istediğinizden emin misiniz?`)) return;
+    setIsCancelling(true);
+    try {
+      await base44.entities.DailyOrder.update(order.id, { status: 'İptal Edildi' });
+      if (onUpdate) onUpdate();
+      onClose();
+    } catch (error) {
+      alert('Sipariş iptal edilemedi: ' + error.message);
+    }
+    setIsCancelling(false);
+  };
   const getStatusColor = (status) => {
     const colors = {
       'Çekildi': 'bg-blue-100 text-blue-800',
