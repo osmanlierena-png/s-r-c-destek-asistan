@@ -1421,11 +1421,7 @@ export default function OrderManagementPage() {
 
   const filteredOrders = orders.filter(order => {
     if (filterStatus) {
-      if (filterStatus === 'DELAYED') {
-        if (!order.estimated_delay_minutes || order.estimated_delay_minutes <= 0) {
-          return false;
-        }
-      } else if (order.status !== filterStatus) {
+      if (order.status !== filterStatus) {
         return false;
       }
     }
