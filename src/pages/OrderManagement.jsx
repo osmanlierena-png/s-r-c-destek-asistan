@@ -1495,7 +1495,7 @@ export default function OrderManagementPage() {
       case 'Sürücü Onayladı': return '✅ Onaylandı';
       case 'Sürücü Reddetti': return '❌ Reddedildi';
       case 'Tamamlandı': return '✅ Tamamlandı';
-      case 'DELAYED': return '⏱️ Gecikmeler';
+      case 'İptal Edildi': return '🚫 İptal Edildi';
       default: return status;
     }
   };
