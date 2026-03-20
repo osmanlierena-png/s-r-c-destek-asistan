@@ -5,7 +5,7 @@ Deno.serve(async (req) => {
 
     // Yesterday's date in EST (UTC-5)
     const nowUTC = new Date();
-    const estOffset = 5 * 60 * 60 * 1000; // EST = UTC-5
+    const estOffset = 5 * 60 * 60 * 1000;
     const nowEST = new Date(nowUTC.getTime() - estOffset);
     const yesterday = new Date(nowEST);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -46,82 +46,57 @@ Deno.serve(async (req) => {
     const canvasUrl = Deno.env.get('CANVAS_URL') || 'https://order-assignment-system.vercel.app';
     const canvasSecret = Deno.env.get('CANVAS_API_SECRET');
 
-    // Send all orders in a single batch request
-    const orders = rejectedOrders.map(order => ({
-        order_id: order.ezcater_order_id,
-        driver_id: order.driver_id,
-        driver_name: order.driver_name,
-        date: targetDate,
-        time_slot: getTimeSlot(order.pickup_time),
-        pickup_address: order.pickup_address,
-        dropoff_address: order.dropoff_address,
-        pickup_time: order.pickup_time,
-        dropoff_time: order.dropoff_time,
-        driver_response: order.driver_response,
-        rejected_at: order.driver_response_at
-    }));
+    let sentCount = 0;
+    let errorCount = 0;
+    const errors = [];
 
-    try {
-        const response = await fetch(`${canvasUrl}/api/drivers/learn/batch`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(canvasSecret ? { 'x-api-secret': canvasSecret } : {})
-            },
-            body: JSON.stringify({ date: targetDate, orders })
-        });
+    for (const order of rejectedOrders) {
+        const payload = {
+            order_id: order.ezcater_order_id,
+            driver_id: order.driver_id,
+            driver_name: order.driver_name,
+            date: targetDate,
+            time_slot: getTimeSlot(order.pickup_time),
+            pickup_address: order.pickup_address,
+            dropoff_address: order.dropoff_address,
+            pickup_time: order.pickup_time,
+            dropoff_time: order.dropoff_time,
+            driver_response: order.driver_response,
+            rejected_at: order.driver_response_at
+        };
 
-        if (response.ok) {
-            const result = await response.json();
-            console.log(`✅ Batch gönderildi: ${orders.length} sipariş`);
-            return Response.json({
-                success: true,
-                date: targetDate,
-                total: rejectedOrders.length,
-                sent: orders.length,
-                result
+        try {
+            const response = await fetch(`${canvasUrl}/api/drivers/learn`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(canvasSecret ? { 'x-api-secret': canvasSecret } : {})
+                },
+                body: JSON.stringify(payload)
             });
-        } else {
-            // Fallback: batch endpoint yoksa tek tek gönder
-            console.log(`⚠️ Batch endpoint yok (${response.status}), tek tek gönderiliyor...`);
-            let sentCount = 0;
-            let errorCount = 0;
-            const errors = [];
 
-            for (const order of orders) {
-                try {
-                    const res = await fetch(`${canvasUrl}/api/drivers/learn`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...(canvasSecret ? { 'x-api-secret': canvasSecret } : {})
-                        },
-                        body: JSON.stringify(order)
-                    });
-                    if (res.ok) {
-                        sentCount++;
-                        console.log(`✅ Gönderildi: ${order.order_id}`);
-                    } else {
-                        errorCount++;
-                        errors.push({ order_id: order.order_id, status: res.status });
-                    }
-                } catch (err) {
-                    errorCount++;
-                    errors.push({ order_id: order.order_id, error: err.message });
-                }
+            if (response.ok) {
+                sentCount++;
+                console.log(`✅ Gönderildi: ${order.ezcater_order_id}`);
+            } else {
+                const text = await response.text();
+                errorCount++;
+                errors.push({ order_id: order.ezcater_order_id, status: response.status, error: text });
+                console.error(`❌ Hata: ${order.ezcater_order_id} - ${response.status} - ${text}`);
             }
-
-            return Response.json({
-                success: true,
-                date: targetDate,
-                total: rejectedOrders.length,
-                sent: sentCount,
-                errors: errorCount,
-                error_details: errors
-            });
+        } catch (err) {
+            errorCount++;
+            errors.push({ order_id: order.ezcater_order_id, error: err.message });
+            console.error(`❌ Fetch hatası: ${order.ezcater_order_id} - ${err.message}`);
         }
-    } catch (err) {
-        console.error(`❌ Fetch hatası: ${err.message}`);
-        return Response.json({ success: false, error: err.message }, { status: 500 });
     }
+
+    return Response.json({
+        success: true,
+        date: targetDate,
+        total: rejectedOrders.length,
+        sent: sentCount,
+        errors: errorCount,
+        error_details: errors
+    });
 });
