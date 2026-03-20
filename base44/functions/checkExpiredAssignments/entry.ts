@@ -6,10 +6,14 @@ Deno.serve(async (req) => {
 
         console.log('⏰ Zaman aşımı kontrolü başlatılıyor...');
 
-        // "Sürücü Onayı Bekleniyor" durumundaki tüm siparişleri al
+        // Sadece bugün ve dünün siparişlerini al (limit ekle)
+        const today = new Date().toISOString().split('T')[0];
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
         const pendingOrders = await base44.asServiceRole.entities.DailyOrder.filter({
-            status: 'Sürücü Onayı Bekleniyor'
-        });
+            status: 'Sürücü Onayı Bekleniyor',
+            order_date: { $gte: yesterday, $lte: today }
+        }, '-created_date', 100);
 
         console.log(`📦 ${pendingOrders.length} bekleyen sipariş bulundu`);
 
