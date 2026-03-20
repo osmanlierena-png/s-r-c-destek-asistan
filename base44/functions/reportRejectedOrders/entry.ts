@@ -52,17 +52,17 @@ Deno.serve(async (req) => {
 
     for (const order of rejectedOrders) {
         const payload = {
-            order_id: order.ezcater_order_id,
-            driver_id: order.driver_id,
-            driver_name: order.driver_name,
+            orderId: order.ezcater_order_id,
+            driverId: order.driver_id,
+            driverName: order.driver_name,
             date: targetDate,
-            time_slot: getTimeSlot(order.pickup_time),
-            pickup_address: order.pickup_address,
-            dropoff_address: order.dropoff_address,
-            pickup_time: order.pickup_time,
-            dropoff_time: order.dropoff_time,
-            driver_response: order.driver_response,
-            rejected_at: order.driver_response_at
+            timeSlot: getTimeSlot(order.pickup_time),
+            pickupAddress: order.pickup_address,
+            dropoffAddress: order.dropoff_address,
+            pickupTime: order.pickup_time,
+            dropoffTime: order.dropoff_time,
+            driverResponse: order.driver_response,
+            rejectedAt: order.driver_response_at
         };
 
         try {
