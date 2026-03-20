@@ -1,11 +1,9 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChatMessage } from "@/entities/ChatMessage";
-import { Case } from "@/entities/Case";
+import { base44 } from "@/api/base44Client";
 import { 
   X, 
   User, 
