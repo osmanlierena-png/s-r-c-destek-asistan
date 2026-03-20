@@ -21,25 +21,34 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
         
         // CONFIRM ACTION
-        const action = url.searchParams.get('action');
+        const isPost = req.method === 'POST';
+        const action = isPost ? 'confirm' : url.searchParams.get('action');
         if (action === 'confirm') {
             try {
+                // POST body'den form verilerini oku
+                const formText = await req.text();
+                const formParams = new URLSearchParams(formText);
+
                 // Form checkbox'ları "s_ORDER_ID" formatında gelir
-                // Her checkbox seçiliyse s_ID=1 olarak gönderilir
                 const selectedOrderIds = [];
-                for (const [key, value] of url.searchParams.entries()) {
+                for (const [key, value] of formParams.entries()) {
                     if (key.startsWith('s_') && value === '1') {
                         selectedOrderIds.push(key.substring(2));
                     }
                 }
 
+                // POST'ta driverId ve orderDate form body'den gelir
+                const postDriverId = formParams.get('d') || driverId;
+                const postOrderDate = formParams.get('t') || orderDate;
+                const postMessageGroupId = formParams.get('mg') || messageGroupId;
+
                 const filterQuery = {
-                    driver_id: driverId,
-                    order_date: orderDate
+                    driver_id: postDriverId,
+                    order_date: postOrderDate
                 };
 
-                if (messageGroupId) {
-                    filterQuery.message_group_id = messageGroupId;
+                if (postMessageGroupId) {
+                    filterQuery.message_group_id = postMessageGroupId;
                 }
 
                 const orders = await base44.asServiceRole.entities.DailyOrder.filter(filterQuery);
