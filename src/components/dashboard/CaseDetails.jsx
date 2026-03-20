@@ -44,7 +44,7 @@ export default function CaseDetails({ caseItem, onClose }) {
   const handleMarkAsSolved = async () => {
     setIsUpdating(true);
     try {
-      await Case.update(caseItem.id, { durum: "Çözüldü" });
+      await base44.entities.Case.update(caseItem.id, { durum: "Çözüldü" });
       onClose(); 
     } catch (error) {
       console.error('Case güncellenirken hata:', error);
