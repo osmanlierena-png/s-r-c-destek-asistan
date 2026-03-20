@@ -26,7 +26,7 @@ export default function CaseDetails({ caseItem, onClose }) {
   const loadChatMessages = useCallback(async () => {
     setIsLoading(true);
     try {
-      const messages = await ChatMessage.filter(
+      const messages = await base44.entities.ChatMessage.filter(
         { case_id: caseItem.id },
         'created_date'
       );
