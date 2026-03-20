@@ -312,7 +312,7 @@ Deno.serve(async (req) => {
 
         if (showButtons) {
             // Form açılışı - hidden field'lar + checkbox'lı order card'lar + submit butonu hepsi form içinde
-            html += '<form method="GET" action="">' +
+            html += '<form method="POST" action="">' +
                 '<input type="hidden" name="d" value="' + driverId + '">' +
                 '<input type="hidden" name="t" value="' + orderDate + '">' +
                 '<input type="hidden" name="mg" value="' + (messageGroupId || '') + '">' +
