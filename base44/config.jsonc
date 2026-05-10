@@ -1,0 +1,9 @@
+{
+  "name": "S\u00fcr\u00fcc\u00fc Destek Asistan\u0131",
+  "site": {
+    "installCommand": "npm install",
+    "buildCommand": "npm run build",
+    "serveCommand": "npm run dev",
+    "outputDirectory": "./dist"
+  }
+}
