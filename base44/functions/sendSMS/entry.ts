@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 // ===== MERKEZİ TELEFON VALİDASYONU =====
 function isValidUSPhone(phone: string | null | undefined): boolean {
   if (!phone) return false;
-  const cleaned = phone.replace(/[\s\(\)\-]/g, ''); // boşluk, parantez, tire temizle
+  const cleaned = phone.replace(/[\u202a\u202b\u202c\u202d\u202e\u200b\u200c\u200d\ufeff\s\(\)\-]/g, '');
   if (cleaned.toUpperCase().includes('MISSING')) return false;
   if (!cleaned.startsWith('+1')) return false;
   if (cleaned.length !== 12) return false; // +1 + 10 hane = 12

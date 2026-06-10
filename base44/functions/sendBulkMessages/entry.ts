@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
         for (const [driverId, driver] of driverMap) {
             try {
                 // Telefon validasyonu
-                const cleanPhone = driver.phone ? driver.phone.trim() : '';
+                const cleanPhone = driver.phone ? driver.phone.replace(/[\u202a\u202b\u202c\u202d\u202e\u200b\u200c\u200d\ufeff\s\(\)\-]/g, '') : '';
                 if (!cleanPhone || !/^\+1\d{10}$/.test(cleanPhone)) {
                     results.failed++;
                     results.errors.push({ driver: driver.name, phone: driver.phone, error: 'Geçersiz telefon formatı' });

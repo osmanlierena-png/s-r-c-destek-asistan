@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
       // 4. Uzunluk kontrolü (12 karakter: +1XXXXXXXXXX)
       // 5. Sadece rakam kontrolü
 
-      const phoneNumber = order.driver_phone ? order.driver_phone.trim() : order.driver_phone;
+      const phoneNumber = order.driver_phone ? order.driver_phone.replace(/[\u202a\u202b\u202c\u202d\u202e\u200b\u200c\u200d\ufeff\s\(\)\-]/g, '') : order.driver_phone;
 
       // Kontrol 1: Boş veya eksik
       if (!phoneNumber || phoneNumber.trim() === '') {
