@@ -116,10 +116,19 @@ Deno.serve(async (req) => {
         // Her sürücüye mesaj gönder
         for (const [driverId, driver] of driverMap) {
             try {
+                // Telefon validasyonu
+                const cleanPhone = driver.phone ? driver.phone.trim() : '';
+                if (!cleanPhone || !/^\+1\d{10}$/.test(cleanPhone)) {
+                    results.failed++;
+                    results.errors.push({ driver: driver.name, phone: driver.phone, error: 'Geçersiz telefon formatı' });
+                    console.log(`⚠️ ${driver.name} atlandı - Geçersiz numara: "${driver.phone}"`);
+                    continue;
+                }
+
                 // Mesaj şablonunu kişiselleştir
                 const personalizedMessage = messageTemplate.replace(/{driver_name}/g, driver.name);
 
-                console.log(`📨 ${driver.name} (${driver.phone}) - ${driver.orderCount} sipariş`);
+                console.log(`📨 ${driver.name} (${cleanPhone}) - ${driver.orderCount} sipariş`);
 
                 const response = await fetch(
                     `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`,
@@ -130,7 +139,7 @@ Deno.serve(async (req) => {
                             'Content-Type': 'application/x-www-form-urlencoded'
                         },
                         body: new URLSearchParams({
-                            To: driver.phone,
+                            To: cleanPhone,
                             From: twilioPhoneNumber,
                             Body: personalizedMessage
                         })
