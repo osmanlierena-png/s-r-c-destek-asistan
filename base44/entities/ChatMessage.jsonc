@@ -1,0 +1,42 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "\u0130lgili case ID"
+    },
+    "sender": {
+      "type": "string",
+      "enum": [
+        "s\u00fcr\u00fcc\u00fc",
+        "bot"
+      ],
+      "description": "Mesaj\u0131 g\u00f6nderen"
+    },
+    "message": {
+      "type": "string",
+      "description": "Mesaj i\u00e7eri\u011fi"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Mesaj zaman\u0131"
+    },
+    "feedback": {
+      "type": "string",
+      "enum": [
+        "liked",
+        "disliked",
+        null
+      ],
+      "default": null,
+      "description": "Operat\u00f6r\u00fcn bu cevaba verdi\u011fi geri bildirim"
+    }
+  },
+  "required": [
+    "sender",
+    "message",
+    "case_id"
+  ]
+}

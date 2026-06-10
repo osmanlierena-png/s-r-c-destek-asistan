@@ -118,14 +118,26 @@ export default function DriverForm({ driver, onClose }) {
     }));
   };
 
+  const validatePhone = (phone) => {
+    const cleaned = phone.trim();
+    return /^\+1\d{10}$/.test(cleaned);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const cleanedPhone = formData.phone.trim();
+    if (!validatePhone(cleanedPhone)) {
+      alert('❌ Geçersiz telefon numarası!\n\nFormat: +1XXXXXXXXXX (örn: +12025551234)\n• +1 ile başlamalı\n• Toplam 12 karakter\n• Sadece rakam (+1 sonrası)');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
       const driverData = {
         name: formData.name,
-        phone: formData.phone,
+        phone: cleanedPhone,
         address: formData.address,
         language: formData.language,
         status: formData.status,
@@ -228,10 +240,14 @@ export default function DriverForm({ driver, onClose }) {
                     <Input
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      placeholder="Örn: +905551234567"
+                      onBlur={(e) => setFormData({...formData, phone: e.target.value.trim()})}
+                      placeholder="+12025551234"
                       required
-                      className="bg-white"
+                      className={`bg-white ${formData.phone && !validatePhone(formData.phone) ? 'border-red-400 focus:ring-red-400' : ''}`}
                     />
+                    {formData.phone && !validatePhone(formData.phone) && (
+                      <p className="text-xs text-red-500 mt-1">Format: +1XXXXXXXXXX (12 karakter)</p>
+                    )}
                   </div>
 
                   <div>

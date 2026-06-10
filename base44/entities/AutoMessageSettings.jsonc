@@ -1,0 +1,49 @@
+{
+  "name": "AutoMessageSettings",
+  "type": "object",
+  "properties": {
+    "is_active": {
+      "type": "boolean",
+      "default": false,
+      "description": "Otomatik mesaj sistemi aktif mi?"
+    },
+    "minutes_before": {
+      "type": "number",
+      "default": 60,
+      "description": "Pickup time'dan ka\u00e7 dakika \u00f6nce mesaj g\u00f6nderilsin"
+    },
+    "message_template_tr": {
+      "type": "string",
+      "default": "Selam {driver_name}! {minutes} dakika sonra {pickup_time} pickup'\u0131n var.\n\n\ud83d\udccd Pickup: {pickup_address}\n\nHaz\u0131r m\u0131s\u0131n?\n\u2705 EVET\n\u274c HAYIR\n\nPickup adresine ula\u015f\u0131nca Arrive'a basmay\u0131 unutma. Kolay gelsin! \ud83d\ude97",
+      "description": "T\u00fcrk\u00e7e mesaj \u015fablonu"
+    },
+    "message_template_en": {
+      "type": "string",
+      "default": "Hey {driver_name}! You have a {pickup_time} pickup in {minutes} minutes.\n\n\ud83d\udccd Pickup: {pickup_address}\n\nAre you ready?\n\u2705 YES\n\u274c NO\n\nDon't forget to press Arrive when you reach the pickup location. Good luck! \ud83d\ude97",
+      "description": "\u0130ngilizce mesaj \u015fablonu"
+    },
+    "grouped_message_template_tr": {
+      "type": "string",
+      "default": "Selam {driver_name}! {order_count} pickup'\u0131n var:\n\n{order_list}\n\nHaz\u0131r m\u0131s\u0131n?\n\u2705 EVET\n\u274c HAYIR\n\nPickup adreslerine ula\u015f\u0131nca Arrive'a basmay\u0131 unutma. Kolay gelsin! \ud83d\ude97",
+      "description": "Grupland\u0131r\u0131lm\u0131\u015f sipari\u015fler i\u00e7in T\u00fcrk\u00e7e mesaj \u015fablonu"
+    },
+    "grouped_message_template_en": {
+      "type": "string",
+      "default": "Hey {driver_name}! You have {order_count} pickups:\n\n{order_list}\n\nAre you ready?\n\u2705 YES\n\u274c NO\n\nDon't forget to press Arrive when you reach the pickup locations. Good luck! \ud83d\ude97",
+      "description": "Grupland\u0131r\u0131lm\u0131\u015f sipari\u015fler i\u00e7in \u0130ngilizce mesaj \u015fablonu"
+    },
+    "response_timeout_minutes": {
+      "type": "number",
+      "default": 15,
+      "description": "Yan\u0131t bekleme s\u00fcresi (dakika). Bu s\u00fcreden sonra alert olu\u015fur."
+    }
+  },
+  "required": [
+    "is_active",
+    "minutes_before",
+    "message_template_tr",
+    "message_template_en",
+    "grouped_message_template_tr",
+    "grouped_message_template_en"
+  ]
+}

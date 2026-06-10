@@ -1,0 +1,36 @@
+{
+  "name": "MessageTemplate",
+  "type": "object",
+  "properties": {
+    "template_key": {
+      "type": "string",
+      "description": "Programatik anahtar (\u00f6rn: check_60min)"
+    },
+    "name": {
+      "type": "string",
+      "description": "\u015eablonun okunabilir ad\u0131 (\u00f6rn: 60 Dakika Kontrol\u00fc)"
+    },
+    "description": {
+      "type": "string",
+      "description": "\u015eablonun a\u00e7\u0131klamas\u0131"
+    },
+    "message_content": {
+      "type": "string",
+      "description": "G\u00f6nderilecek mesaj\u0131n i\u00e7eri\u011fi"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "trigger_time": {
+      "type": "number",
+      "description": "Teslimattan ka\u00e7 dakika \u00f6nce tetiklenece\u011fi"
+    }
+  },
+  "required": [
+    "template_key",
+    "name",
+    "message_content",
+    "trigger_time"
+  ]
+}

@@ -1,0 +1,254 @@
+{
+  "name": "Driver",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn ad\u0131"
+    },
+    "phone": {
+      "type": "string",
+      "description": "WhatsApp numaras\u0131 (+1XXXXXXXXXX format\u0131nda, 12 karakter)",
+      "pattern": "^\\+1\\d{10}$"
+    },
+    "address": {
+      "type": "string",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn ev/ba\u015flang\u0131\u00e7 adresi"
+    },
+    "home_coordinates": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number",
+          "description": "Enlem koordinat\u0131"
+        },
+        "lng": {
+          "type": "number",
+          "description": "Boylam koordinat\u0131"
+        }
+      },
+      "description": "Ev adresinin geocoded koordinatlar\u0131 (Top Dasher haritas\u0131 i\u00e7in)"
+    },
+    "preferred_areas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Analiz sonucu en \u00e7ok \u00e7al\u0131\u015ft\u0131\u011f\u0131 b\u00f6lgeler"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "tr",
+        "en"
+      ],
+      "default": "tr",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn konu\u015ftu\u011fu dil"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Aktif",
+        "Pasif",
+        "\u0130zinli"
+      ],
+      "default": "Aktif",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn durumu"
+    },
+    "is_top_dasher": {
+      "type": "boolean",
+      "default": false,
+      "description": "En iyi s\u00fcr\u00fcc\u00fclerden mi (Top Dasher)"
+    },
+    "is_joker_driver": {
+      "type": "boolean",
+      "default": false,
+      "description": "Joker s\u00fcr\u00fcc\u00fc m\u00fc - sert ge\u00e7i\u015fler, uzak mesafeler, zor sipari\u015fler alabilir"
+    },
+    "preferred_shift": {
+      "type": "string",
+      "enum": [
+        "all_day",
+        "morning",
+        "evening"
+      ],
+      "default": "all_day",
+      "description": "Tercih etti\u011fi vardiya: all_day (t\u00fcm g\u00fcn), morning (07:00-14:00), evening (14:00-21:00)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "S\u00fcr\u00fcc\u00fc hakk\u0131nda notlar"
+    },
+    "assignment_preferences": {
+      "type": "object",
+      "properties": {
+        "max_orders_per_day": {
+          "type": "number",
+          "default": 5,
+          "description": "G\u00fcnde en fazla ka\u00e7 sipari\u015f alabilir"
+        },
+        "avg_orders_per_week": {
+          "type": "number",
+          "default": 0,
+          "description": "Aktif oldu\u011fu haftalardaki ortalama sipari\u015f say\u0131s\u0131"
+        },
+        "working_days": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ]
+          },
+          "default": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "description": "\u00c7al\u0131\u015ft\u0131\u011f\u0131 g\u00fcnler"
+        }
+      },
+      "description": "S\u00fcr\u00fcc\u00fc atama tercihleri"
+    },
+    "early_morning_eligible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Erken sabah sipari\u015fleri alabilir mi (05:00-09:00)"
+    },
+    "early_morning_specialist": {
+      "type": "boolean",
+      "default": false,
+      "description": "Erken sabah uzman\u0131 m\u0131"
+    },
+    "early_morning_reliability": {
+      "type": "number",
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "default": 0,
+      "description": "Erken sabah g\u00fcvenilirlik seviyesi: 0=Yok, 1=\u00c7ok G\u00fcvenilir, 2=Y\u00fcksek, 3=Orta, 4=D\u00fc\u015f\u00fck"
+    },
+    "assignment_score": {
+      "type": "number",
+      "default": 0,
+      "description": "HTML verisinden hesaplanan genel atama skoru"
+    },
+    "assignment_priority": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low",
+        "None"
+      ],
+      "default": "None",
+      "description": "Atama \u00f6ncelik seviyesi"
+    },
+    "chain_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "stops": {
+            "type": "number"
+          },
+          "chain": {
+            "type": "string"
+          },
+          "regions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "description": "Son 2 aydaki rota zinciri ge\u00e7mi\u015fi"
+    },
+    "special_notes": {
+      "type": "object",
+      "properties": {
+        "is_owner": {
+          "type": "boolean",
+          "default": false,
+          "description": "Bu s\u00fcr\u00fcc\u00fc \u015firket sahibi mi (sen)"
+        },
+        "is_friend": {
+          "type": "boolean",
+          "default": false,
+          "description": "Yak\u0131n arkada\u015f m\u0131"
+        },
+        "must_get_orders_when_working": {
+          "type": "boolean",
+          "default": false,
+          "description": "\u00c7al\u0131\u015ft\u0131\u011f\u0131 g\u00fcn mutlaka sipari\u015f almal\u0131"
+        },
+        "avoid_dc": {
+          "type": "boolean",
+          "default": false,
+          "description": "DC'ye girmek istemiyor"
+        },
+        "avoid_long_distance": {
+          "type": "boolean",
+          "default": false,
+          "description": "Uzun mesafe sipari\u015flerden ka\u00e7\u0131n"
+        },
+        "priority_level": {
+          "type": "number",
+          "default": 0,
+          "description": "\u00d6ncelik seviyesi (0-10, 10 en y\u00fcksek)"
+        },
+        "custom_note": {
+          "type": "string",
+          "description": "Di\u011fer \u00f6zel notlar"
+        },
+        "primary_region": {
+          "type": "string",
+          "description": "Ana \u00e7al\u0131\u015fma b\u00f6lgesi"
+        },
+        "top_zip_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "En \u00e7ok gitti\u011fi zip kodlar\u0131"
+        },
+        "top_states": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "En \u00e7ok \u00e7al\u0131\u015ft\u0131\u011f\u0131 eyaletler"
+        },
+        "region_distribution": {
+          "type": "object",
+          "description": "Eyalet baz\u0131nda da\u011f\u0131l\u0131m y\u00fczdeleri"
+        },
+        "total_orders_analyzed": {
+          "type": "number",
+          "description": "Analiz edilen toplam sipari\u015f say\u0131s\u0131"
+        }
+      },
+      "description": "S\u00fcr\u00fcc\u00fc i\u00e7in \u00f6zel notlar ve tercihler"
+    }
+  },
+  "required": [
+    "name",
+    "phone"
+  ]
+}

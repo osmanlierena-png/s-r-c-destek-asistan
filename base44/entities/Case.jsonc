@@ -1,0 +1,83 @@
+{
+  "name": "Case",
+  "type": "object",
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "Otomatik olu\u015fturulan case ID"
+    },
+    "driver_name": {
+      "type": "string",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn ad\u0131 veya kimli\u011fi"
+    },
+    "driver_phone": {
+      "type": "string",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn WhatsApp telefon numaras\u0131"
+    },
+    "konum": {
+      "type": "string",
+      "description": "Problem lokasyonu"
+    },
+    "sorun": {
+      "type": "string",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn bildirdi\u011fi ana sorun"
+    },
+    "aciliyet": {
+      "type": "string",
+      "enum": [
+        "D\u00fc\u015f\u00fck",
+        "Orta",
+        "Y\u00fcksek",
+        "Acil"
+      ],
+      "default": "Orta"
+    },
+    "fotograflar": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "aciklama": {
+            "type": "string"
+          },
+          "yukleme_zamani": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "S\u00fcr\u00fcc\u00fc taraf\u0131ndan g\u00f6nderilen foto\u011fraflar"
+    },
+    "ekstra_bilgi": {
+      "type": "string",
+      "description": "Konu\u015fmadan toplanan ek detaylar"
+    },
+    "durum": {
+      "type": "string",
+      "enum": [
+        "Bildirildi",
+        "\u0130\u015flemde",
+        "\u00c7\u00f6z\u00fcld\u00fc"
+      ],
+      "default": "Bildirildi"
+    },
+    "kategori": {
+      "type": "string",
+      "enum": [
+        "Lojistik & Ula\u015f\u0131m",
+        "\u00dcr\u00fcnle \u0130lgili",
+        "Kurye Kaynakl\u0131",
+        "Teknolojik / Sistemsel",
+        "M\u00fc\u015fteri Kaynakl\u0131",
+        "Belirlenmedi"
+      ],
+      "default": "Belirlenmedi"
+    }
+  },
+  "required": [
+    "sorun"
+  ]
+}

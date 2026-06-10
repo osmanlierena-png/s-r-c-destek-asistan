@@ -1,0 +1,56 @@
+{
+  "name": "DriverTimeoutLog",
+  "type": "object",
+  "properties": {
+    "driver_id": {
+      "type": "string",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn ID'si"
+    },
+    "driver_name": {
+      "type": "string",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn ad\u0131"
+    },
+    "driver_phone": {
+      "type": "string",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn telefon numaras\u0131"
+    },
+    "order_id": {
+      "type": "string",
+      "description": "Zaman a\u015f\u0131m\u0131na u\u011frayan DailyOrder ID'si"
+    },
+    "ezcater_order_id": {
+      "type": "string",
+      "description": "EzCater sipari\u015f numaras\u0131"
+    },
+    "order_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Sipari\u015fin tarihi"
+    },
+    "pickup_time": {
+      "type": "string",
+      "description": "Pickup saati"
+    },
+    "sms_sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "SMS'in g\u00f6nderildi\u011fi zaman"
+    },
+    "timed_out_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Zaman a\u015f\u0131m\u0131n\u0131n tespit edildi\u011fi zaman"
+    },
+    "elapsed_minutes": {
+      "type": "number",
+      "description": "SMS g\u00f6nderiminden zaman a\u015f\u0131m\u0131na kadar ge\u00e7en s\u00fcre (dakika)"
+    }
+  },
+  "required": [
+    "driver_id",
+    "driver_name",
+    "order_id",
+    "ezcater_order_id",
+    "order_date"
+  ]
+}

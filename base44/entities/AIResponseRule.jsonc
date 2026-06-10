@@ -1,0 +1,50 @@
+{
+  "name": "AIResponseRule",
+  "type": "object",
+  "properties": {
+    "category_name": {
+      "type": "string",
+      "description": "Kategori ad\u0131 (\u00f6rn: Trafik/Gecikme, Ara\u00e7 Ar\u0131zas\u0131)"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Bu kategoriyi tetikleyen anahtar kelimeler"
+    },
+    "required_info": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sure_bilgisi",
+          "evet_hayir",
+          "konum",
+          "foto\u011fraf",
+          "aciklama"
+        ]
+      },
+      "description": "Bu kategori i\u00e7in al\u0131nmas\u0131 gereken bilgiler"
+    },
+    "initial_question": {
+      "type": "string",
+      "description": "\u0130lk sorulacak soru"
+    },
+    "completion_message": {
+      "type": "string",
+      "description": "Bilgiler al\u0131nd\u0131ktan sonra g\u00f6nderilecek biti\u015f mesaj\u0131"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "category_name",
+    "keywords",
+    "required_info",
+    "initial_question",
+    "completion_message"
+  ]
+}

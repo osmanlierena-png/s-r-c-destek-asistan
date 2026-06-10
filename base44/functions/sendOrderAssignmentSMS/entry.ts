@@ -141,7 +141,7 @@ if (apiKey !== '47aadaf67ea94f1f9021c59986b2d158' && !(await base44.auth.isAuthe
                 console.log(`\n📤 ${driver_name} için SMS hazırlanıyor (${orders.length} sipariş, ${order_date})`);
 
                 // Telefon numarası validasyonu
-                const phone = driver_phone;
+                const phone = driver_phone.trim();
                 
                 if (phone.toUpperCase().includes('MISSING')) {
                     orders.forEach(order => {

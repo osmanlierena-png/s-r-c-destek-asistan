@@ -1,0 +1,145 @@
+{
+  "name": "DailyOrder",
+  "type": "object",
+  "properties": {
+    "ezcater_order_id": {
+      "type": "string",
+      "description": "EzCater'dan gelen orijinal sipari\u015f ID'si (Order No)"
+    },
+    "order_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Sipari\u015f teslimat tarihi"
+    },
+    "pickup_address": {
+      "type": "string",
+      "description": "Sipari\u015fin al\u0131naca\u011f\u0131 adres"
+    },
+    "pickup_time": {
+      "type": "string",
+      "description": "Sipari\u015fin al\u0131naca\u011f\u0131 saat (HH:MM)"
+    },
+    "pickup_coords": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number",
+          "description": "Pickup latitude"
+        },
+        "lng": {
+          "type": "number",
+          "description": "Pickup longitude"
+        }
+      },
+      "description": "Pickup adresinin geocoded koordinatlar\u0131"
+    },
+    "dropoff_address": {
+      "type": "string",
+      "description": "Sipari\u015fin teslim edilece\u011fi adres"
+    },
+    "dropoff_time": {
+      "type": "string",
+      "description": "Sipari\u015fin teslim edilece\u011fi saat (HH:MM)"
+    },
+    "dropoff_coords": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number",
+          "description": "Dropoff latitude"
+        },
+        "lng": {
+          "type": "number",
+          "description": "Dropoff longitude"
+        }
+      },
+      "description": "Dropoff adresinin geocoded koordinatlar\u0131"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "M\u00fc\u015fterinin ad\u0131"
+    },
+    "ezcater_notes": {
+      "type": "string",
+      "description": "EzCater'dan gelen sipari\u015f notlar\u0131"
+    },
+    "tip": {
+      "type": "number",
+      "description": "Bah\u015fi\u015f miktar\u0131 ($)"
+    },
+    "price": {
+      "type": "number",
+      "description": "Sipari\u015f fiyat\u0131 ($)"
+    },
+    "driver_id": {
+      "type": "string",
+      "description": "Atanan s\u00fcr\u00fcc\u00fcn\u00fcn ID'si"
+    },
+    "driver_name": {
+      "type": "string",
+      "description": "Atanan s\u00fcr\u00fcc\u00fcn\u00fcn ad\u0131"
+    },
+    "driver_phone": {
+      "type": "string",
+      "description": "Atanan s\u00fcr\u00fcc\u00fcn\u00fcn telefon numaras\u0131"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "\u00c7ekildi",
+        "Atand\u0131",
+        "S\u00fcr\u00fcc\u00fc Onay\u0131 Bekleniyor",
+        "S\u00fcr\u00fcc\u00fc Onaylad\u0131",
+        "S\u00fcr\u00fcc\u00fc Reddetti",
+        "Yeniden Atama Havuzu",
+        "S\u00fcr\u00fcc\u00fcye G\u00f6nderildi",
+        "Yolda",
+        "Tamamland\u0131",
+        "Problem",
+        "\u0130ptal Edildi"
+      ],
+      "default": "\u00c7ekildi",
+      "description": "Sipari\u015fin g\u00fcncel durumu"
+    },
+    "sms_sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "S\u00fcr\u00fcc\u00fcye SMS g\u00f6nderim zaman\u0131"
+    },
+    "driver_response": {
+      "type": "string",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn verdi\u011fi yan\u0131t (Evet/Hay\u0131r/Gecikme s\u00fcresi)"
+    },
+    "driver_response_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "S\u00fcr\u00fcc\u00fc yan\u0131t zaman\u0131"
+    },
+    "estimated_delay_minutes": {
+      "type": "number",
+      "description": "S\u00fcr\u00fcc\u00fcn\u00fcn bildirdi\u011fi tahmini gecikme s\u00fcresi (dakika)"
+    },
+    "canvas_group_id": {
+      "type": "string",
+      "description": "Canvas sisteminden gelen grup ID'si"
+    },
+    "canvas_price": {
+      "type": "number",
+      "description": "Canvas sisteminden gelen fiyat"
+    },
+    "message_group_id": {
+      "type": "string",
+      "description": "SMS mesaj\u0131n\u0131n unique grup ID'si - ayn\u0131 g\u00fcn i\u00e7inde farkl\u0131 SMS'lerin kar\u0131\u015fmamas\u0131 i\u00e7in"
+    },
+    "weekly_summary_id": {
+      "type": "string",
+      "description": "Bu sipari\u015fin dahil edildi\u011fi DriverWeeklySummary kayd\u0131n\u0131n ID'si. Bo\u015fsa hen\u00fcz \u00f6zetlenmemi\u015f demektir."
+    }
+  },
+  "required": [
+    "ezcater_order_id",
+    "order_date",
+    "dropoff_address",
+    "dropoff_time"
+  ]
+}

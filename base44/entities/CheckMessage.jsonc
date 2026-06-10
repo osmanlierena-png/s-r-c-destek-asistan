@@ -1,0 +1,101 @@
+{
+  "name": "CheckMessage",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "\u0130lgili sipari\u015f ID'si"
+    },
+    "driver_phone": {
+      "type": "string",
+      "description": "Mesaj g\u00f6nderilen numara"
+    },
+    "driver_language": {
+      "type": "string",
+      "enum": [
+        "tr",
+        "en"
+      ],
+      "default": "tr",
+      "description": "\u0130lk mesajda kullan\u0131lan dil - tutarl\u0131l\u0131k i\u00e7in saklan\u0131r"
+    },
+    "message_type": {
+      "type": "string",
+      "enum": [
+        "60dk_Kontrol",
+        "30dk_Kontrol",
+        "15dk_Kontrol",
+        "Acil_Uyar\u0131",
+        "5dk_Fotograf_Hatirlatma"
+      ],
+      "description": "Mesaj tipi"
+    },
+    "message_content": {
+      "type": "string",
+      "description": "G\u00f6nderilen mesaj i\u00e7eri\u011fi"
+    },
+    "sent_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "response_received": {
+      "type": "boolean",
+      "default": false
+    },
+    "response_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Yan\u0131t verilme zaman\u0131"
+    },
+    "second_reminder_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u0130kinci hat\u0131rlatma mesaj\u0131 g\u00f6nderildi mi?"
+    },
+    "second_reminder_sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u0130kinci hat\u0131rlatma g\u00f6nderim zaman\u0131"
+    },
+    "alert_level": {
+      "type": "string",
+      "enum": [
+        "Normal",
+        "Uyar\u0131",
+        "Acil"
+      ],
+      "default": "Normal"
+    },
+    "escalated_to_case": {
+      "type": "boolean",
+      "default": false,
+      "description": "Case'e d\u00f6n\u00fc\u015ft\u00fcr\u00fcld\u00fc m\u00fc?"
+    },
+    "message_status": {
+      "type": "string",
+      "enum": [
+        "sent",
+        "failed"
+      ],
+      "description": "Mesaj\u0131n g\u00f6nderim durumu: sent (ba\u015far\u0131l\u0131) veya failed (ba\u015far\u0131s\u0131z)"
+    },
+    "failure_reason": {
+      "type": "string",
+      "description": "Mesaj ba\u015far\u0131s\u0131z olduysa neden (Twilio hatas\u0131, s\u00fcr\u00fcc\u00fc bilgisi eksik vb.)"
+    },
+    "twilio_sid": {
+      "type": "string",
+      "description": "Twilio'dan d\u00f6nen mesaj SID (ba\u015far\u0131l\u0131 g\u00f6nderimler i\u00e7in)"
+    },
+    "message_group_id": {
+      "type": "string",
+      "description": "Grupland\u0131r\u0131lm\u0131\u015f mesajlar i\u00e7in ortak ID - birden fazla sipari\u015fin ayn\u0131 SMS'te g\u00f6nderildi\u011fini belirtir"
+    }
+  },
+  "required": [
+    "order_id",
+    "driver_phone",
+    "message_type",
+    "message_content"
+  ]
+}
