@@ -211,6 +211,14 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
               </Badge>
             )}
           </div>
+          {order.driving_distance_miles != null && (
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400 text-xs">🛣️</span>
+              <span className="text-slate-600 text-xs font-medium">
+                {order.driving_distance_miles} mil sürüş
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-3 pt-1 text-xs">
             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
               {isEditingPrice ? (

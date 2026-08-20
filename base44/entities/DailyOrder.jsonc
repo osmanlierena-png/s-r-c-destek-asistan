@@ -55,6 +55,10 @@
       },
       "description": "Dropoff adresinin geocoded koordinatlar\u0131"
     },
+    "driving_distance_miles": {
+      "type": "number",
+      "description": "Pickup \u2192 Dropoff aras\u0131 s\u00fcr\u00fc\u015f mesafesi (mil) - OSRM \u00fczerinden hesaplan\u0131r"
+    },
     "customer_name": {
       "type": "string",
       "description": "M\u00fc\u015fterinin ad\u0131"

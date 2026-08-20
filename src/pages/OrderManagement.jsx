@@ -71,6 +71,7 @@ export default function OrderManagementPage() {
   const [isDebuggingCoords, setIsDebuggingCoords] = useState(false);
   const [isGeocodingOrders, setIsGeocodingOrders] = useState(false);
   const [geocodingProgress, setGeocodingProgress] = useState(0);
+  const [isCalculatingDistances, setIsCalculatingDistances] = useState(false);
   const [isUpdatingRules, setIsUpdatingRules] = useState(false);
   const [ruleUpdateProgress, setRuleUpdateProgress] = useState(null);
   const [isAssigningThreeLayer, setIsAssigningThreeLayer] = useState(false);
@@ -1037,6 +1038,45 @@ export default function OrderManagementPage() {
     setRuleUpdateProgress(null);
   };
 
+  const handleCalculateDistances = async () => {
+    const withCoords = orders.filter(o =>
+      o.pickup_coords?.lat != null && o.dropoff_coords?.lat != null
+    );
+    const needsCalc = withCoords.filter(o => o.driving_distance_miles == null);
+
+    if (withCoords.length === 0) {
+      alert('❌ Hiçbir siparişte koordinat yok!\n\nÖnce "Koordinat Bul" butonuna basın.');
+      return;
+    }
+
+    if (needsCalc.length === 0) {
+      if (!window.confirm('Tüm siparişlerin mesafesi zaten hesaplanmış. Yeniden hesaplamak ister misiniz?')) {
+        return;
+      }
+    }
+
+    setIsCalculatingDistances(true);
+    try {
+      const response = await base44.functions.invoke('calculateDrivingDistances', {
+        date: selectedDate,
+        force: needsCalc.length === 0
+      });
+
+      if (response.data.success) {
+        const msg = needsCalc.length === 0
+          ? `✅ ${response.data.calculated} sipariş yeniden hesaplandı!`
+          : `✅ ${response.data.calculated} sipariş için sürüş mesafesi hesaplandı!`;
+        alert(`${msg}\n\n📊 Toplam: ${response.data.total_orders}\n✅ Hesaplanan: ${response.data.calculated}\n❌ Hata: ${response.data.failed}`);
+        loadOrders();
+      } else {
+        alert(`❌ Hata: ${response.data.error}`);
+      }
+    } catch (error) {
+      alert(`❌ Bağlantı hatası: ${error.message}`);
+    }
+    setIsCalculatingDistances(false);
+  };
+
   const handleTestSingleGeocode = async () => {
     const orderId = prompt('Test edilecek sipariş ID\'sini girin (örn: EzQMTZ5W):');
     
@@ -1350,6 +1390,25 @@ export default function OrderManagementPage() {
                   </>
                 ) : (
                   `🗺️ Koordinat Bul (${orders.filter(o => !o.pickup_coords || !o.dropoff_coords).length})`
+                )}
+              </Button>
+            )}
+
+            {orders.filter(o => o.pickup_coords?.lat != null && o.dropoff_coords?.lat != null).length > 0 && (
+              <Button 
+                onClick={handleCalculateDistances}
+                disabled={isCalculatingDistances}
+                size="sm"
+                className="bg-teal-600 hover:bg-teal-700"
+                title="Pickup → Dropoff arası sürüş mesafesini (mil) hesapla"
+              >
+                {isCalculatingDistances ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Mesafe Hesaplanıyor...
+                  </>
+                ) : (
+                  `🛣️ Sürüş Mesafesi (${orders.filter(o => o.pickup_coords?.lat != null && o.dropoff_coords?.lat != null).length})`
                 )}
               </Button>
             )}
