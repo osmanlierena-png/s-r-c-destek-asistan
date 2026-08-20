@@ -159,13 +159,36 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
               await new Promise(r => setTimeout(r, 500));
             }
           }
-        }
 
-        setResults({
-          success: true,
-          totalOrders: allOrders.length,
-          newOrders: newOrders.length
-        });
+          // 🚗 Import sonrası otomatik koordinat + sürüş süresi/mesafesi hesaplama
+          try {
+            setProgress('Koordinatlar ve sürüş süreleri hesaplanıyor...');
+            const processRes = await base44.functions.invoke('autoProcessOrders', {});
+            const processed = processRes?.data || processRes;
+            setResults({
+              success: true,
+              totalOrders: allOrders.length,
+              newOrders: newOrders.length,
+              geocoded: processed?.geocoded || 0,
+              distanceCalculated: processed?.distanceCalculated || 0,
+              remainingGeocode: processed?.remainingGeocode || 0
+            });
+          } catch (procErr) {
+            console.error('Otomatik hesaplama hatası:', procErr);
+            setResults({
+              success: true,
+              totalOrders: allOrders.length,
+              newOrders: newOrders.length,
+              autoProcessError: procErr.message
+            });
+          }
+        } else {
+          setResults({
+            success: true,
+            totalOrders: allOrders.length,
+            newOrders: 0
+          });
+        }
       } else {
         setResults({ success: false, message: 'No orders found' });
       }
@@ -235,6 +258,18 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
                     <div className="mt-2 text-sm text-green-800">
                       <p>• {results.totalOrders} orders found</p>
                       <p>• {results.newOrders} new orders added</p>
+                      {results.geocoded != null && (
+                        <p>• 📍 {results.geocoded} adres koordinatlandı</p>
+                      )}
+                      {results.distanceCalculated != null && results.distanceCalculated > 0 && (
+                        <p>• 🚗 {results.distanceCalculated} sipariş için sürüş süresi hesaplandı</p>
+                      )}
+                      {results.remainingGeocode != null && results.remainingGeocode > 0 && (
+                        <p className="text-amber-700">• ⏳ {results.remainingGeocode} sipariş arka planda işleniyor (5 dk içinde tamamlanır)</p>
+                      )}
+                      {results.autoProcessError && (
+                        <p className="text-amber-700">• ⚠️ Otomatik hesaplama başarısız: {results.autoProcessError}</p>
+                      )}
                     </div>
                   )}
                   {!results.success && (
