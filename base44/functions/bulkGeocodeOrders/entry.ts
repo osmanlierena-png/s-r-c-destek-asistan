@@ -1,34 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
-
-const geocodeAddress = async (address) => {
-    if (!address) return null;
-    try {
-        const clean = address
-            .replace(/\\n/g, ' ')
-            .replace(/\n/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-        
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(clean + ', USA')}&limit=1&countrycodes=us`,
-            { headers: { 'User-Agent': 'BulkGeocode/1.0' } }
-        );
-        
-        if (!response.ok) return null;
-        
-        const data = await response.json();
-        
-        if (data && data.length > 0) {
-            return {
-                lat: parseFloat(data[0].lat),
-                lng: parseFloat(data[0].lon)
-            };
-        }
-    } catch (error) {
-        console.error('Geocoding error:', error);
-    }
-    return null;
-};
+import { geocodeAddress } from '../../shared/geocode.ts';
 
 Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);

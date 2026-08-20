@@ -1,10 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-
-// OSRM public demo server - sürüş mesafesi (kuş uçuşu değil)
-// URL format: https://router.project-osrm.org/route/v1/driving/{lng1},{lat1};{lng2},{lat2}?overview=false
-// Returns: { routes: [{ distance: meters, duration: seconds }] }
-
-const METERS_TO_MILES = 0.000621371;
+import { calculateDrivingDistance } from '../../shared/distance.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -56,27 +51,10 @@ Deno.serve(async (req) => {
 
       const results = await Promise.allSettled(
         batch.map(async (order) => {
-          const { lat: lat1, lng: lng1 } = order.pickup_coords;
-          const { lat: lat2, lng: lng2 } = order.dropoff_coords;
-
-          const url = `https://router.project-osrm.org/route/v1/driving/${lng1},${lat1};${lng2},${lat2}?overview=false`;
-
-          const response = await fetch(url, {
-            headers: { 'User-Agent': 'DriverSupportAssistant/1.0' }
-          });
-
-          if (!response.ok) {
-            throw new Error(`OSRM HTTP ${response.status}`);
-          }
-
-          const data = await response.json();
-
-          if (!data.routes || data.routes.length === 0) {
+          const distanceMiles = await calculateDrivingDistance(order.pickup_coords, order.dropoff_coords);
+          if (distanceMiles == null) {
             throw new Error('OSRM rota bulunamadı');
           }
-
-          const distanceMeters = data.routes[0].distance;
-          const distanceMiles = Math.round(distanceMeters * METERS_TO_MILES * 10) / 10;
 
           // Database'e kaydet
           await base44.asServiceRole.entities.DailyOrder.update(order.id, {
