@@ -206,7 +206,7 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
           </div>
           {order.driving_duration_minutes != null && (
             <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-xs">🚗</span>
+              <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
               <span className="text-slate-600 text-xs font-medium">
                 ~{order.driving_duration_minutes} dk sürüş
               </span>
