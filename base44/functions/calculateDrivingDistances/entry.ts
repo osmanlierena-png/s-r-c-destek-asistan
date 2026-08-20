@@ -18,11 +18,11 @@ Deno.serve(async (req) => {
 
     console.log(`📦 ${orders.length} sipariş bulundu`);
 
-    // Koordinatları olan ve mesafesi olmayan (veya force) siparişleri filtrele
+    // Koordinatları olan ve mesafesi/süresi olmayan (veya force) siparişleri filtrele
     const needsCalc = orders.filter(o =>
       o.pickup_coords?.lat != null && o.pickup_coords?.lng != null &&
       o.dropoff_coords?.lat != null && o.dropoff_coords?.lng != null &&
-      (forceRecalculate || o.driving_distance_miles == null)
+      (forceRecalculate || o.driving_distance_miles == null || o.driving_duration_minutes == null)
     );
 
     console.log(`🎯 ${needsCalc.length} sipariş için mesafe hesaplanacak`);
@@ -51,17 +51,18 @@ Deno.serve(async (req) => {
 
       const results = await Promise.allSettled(
         batch.map(async (order) => {
-          const distanceMiles = await calculateDrivingDistance(order.pickup_coords, order.dropoff_coords);
-          if (distanceMiles == null) {
+          const result = await calculateDrivingDistance(order.pickup_coords, order.dropoff_coords);
+          if (result == null) {
             throw new Error('OSRM rota bulunamadı');
           }
 
           // Database'e kaydet
           await base44.asServiceRole.entities.DailyOrder.update(order.id, {
-            driving_distance_miles: distanceMiles
+            driving_distance_miles: result.miles,
+            driving_duration_minutes: result.durationMinutes
           });
 
-          return { orderId: order.ezcater_order_id, miles: distanceMiles };
+          return { orderId: order.ezcater_order_id, miles: result.miles, minutes: result.durationMinutes };
         })
       );
 

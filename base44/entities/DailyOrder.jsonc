@@ -59,6 +59,10 @@
       "type": "number",
       "description": "Pickup \u2192 Dropoff aras\u0131 s\u00fcr\u00fc\u015f mesafesi (mil) - OSRM \u00fczerinden hesaplan\u0131r"
     },
+    "driving_duration_minutes": {
+      "type": "number",
+      "description": "Pickup \u2192 Dropoff aras\u0131 tahmini s\u00fcr\u00fc\u015f s\u00fcresi (dakika) - OSRM \u00fczerinden hesaplan\u0131r"
+    },
     "customer_name": {
       "type": "string",
       "description": "M\u00fc\u015fterinin ad\u0131"

@@ -12,12 +12,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { calcDurationMinutes, formatDuration } from "@/utils/timeDuration";
+
 
 export default function OrderCard({ order, onUpdate, onViewDetails }) {
   const [isDeleting, setIsDeleting] = React.useState(false);
-
-  const duration = calcDurationMinutes(order.pickup_time, order.dropoff_time);
 
   const [showManualAssign, setShowManualAssign] = React.useState(false);
   const [drivers, setDrivers] = React.useState([]);
@@ -205,18 +203,16 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
           <div className="flex items-center gap-2 pt-1">
             <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <span className="text-slate-600">{order.pickup_time} → {order.dropoff_time}</span>
-            {duration != null && (
-              <Badge variant="outline" className="ml-auto text-xs font-medium text-slate-600">
-                ⏱️ {formatDuration(duration)}
-              </Badge>
-            )}
           </div>
-          {order.driving_distance_miles != null && (
+          {order.driving_duration_minutes != null && (
             <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-xs">🛣️</span>
+              <span className="text-slate-400 text-xs">🚗</span>
               <span className="text-slate-600 text-xs font-medium">
-                {order.driving_distance_miles} mil sürüş
+                ~{order.driving_duration_minutes} dk sürüş
               </span>
+              {order.driving_distance_miles != null && (
+                <span className="text-slate-400 text-xs">· {order.driving_distance_miles} mil</span>
+              )}
             </div>
           )}
           <div className="flex items-center gap-3 pt-1 text-xs">

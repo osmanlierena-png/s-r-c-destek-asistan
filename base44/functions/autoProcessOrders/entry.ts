@@ -23,14 +23,14 @@ Deno.serve(async (req) => {
         (o.dropoff_address && (!o.dropoff_coords || o.dropoff_coords.lat == null))
     );
 
-    // 2) Koordinatı tam ama mesafe yok
+    // 2) Koordinatı tam ama mesafe veya süre yok
     const needsDistance = orders.filter(
       (o) =>
         o.pickup_coords?.lat != null &&
         o.pickup_coords?.lng != null &&
         o.dropoff_coords?.lat != null &&
         o.dropoff_coords?.lng != null &&
-        o.driving_distance_miles == null
+        (o.driving_distance_miles == null || o.driving_duration_minutes == null)
     );
 
     console.log(`🔄 Otomatik işlem: ${needsGeocode.length} geocode, ${needsDistance.length} mesafe bekliyor`);
@@ -75,12 +75,13 @@ Deno.serve(async (req) => {
 
       const results = await Promise.allSettled(
         batch.map(async (order) => {
-          const miles = await calculateDrivingDistance(order.pickup_coords, order.dropoff_coords);
-          if (miles == null) throw new Error("OSLM rota bulunamadı");
+          const result = await calculateDrivingDistance(order.pickup_coords, order.dropoff_coords);
+          if (result == null) throw new Error("OSRM rota bulunamadı");
           await base44.asServiceRole.entities.DailyOrder.update(order.id, {
-            driving_distance_miles: miles,
+            driving_distance_miles: result.miles,
+            driving_duration_minutes: result.durationMinutes,
           });
-          return miles;
+          return result;
         })
       );
 
