@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,8 @@ import {
   TrendingUp,
   Award,
   Sunrise,
-  Star
+  Star,
+  Trash2
 } from "lucide-react";
 import { Driver } from "@/entities/Driver";
 import DriverForm from "./DriverForm";
@@ -41,6 +41,7 @@ export default function DriverList({ drivers, onRefresh, isLoading }) {
   const [filterTopDasher, setFilterTopDasher] = useState('all');
   const [updatingJoker, setUpdatingJoker] = useState({});
   const [updatingShift, setUpdatingShift] = useState({});
+  const [deletingDriver, setDeletingDriver] = useState({});
 
   // Güvenli filtreleme - drivers null/undefined olabilir
   const safeDrivers = drivers || [];
@@ -184,6 +185,21 @@ export default function DriverList({ drivers, onRefresh, isLoading }) {
       'evening': { emoji: '🌙', text: 'Akşamcı', color: 'bg-indigo-100 text-indigo-800 border-indigo-300' }
     };
     return displays[shift] || displays['all_day'];
+  };
+
+  const handleDelete = async (driver, e) => {
+    e.stopPropagation();
+    if (!window.confirm(`⚠️ "${driver.name}" silinsin mi?\n\nBu işlem geri alınamaz.`)) return;
+
+    setDeletingDriver(prev => ({ ...prev, [driver.id]: true }));
+    try {
+      await Driver.delete(driver.id);
+      onRefresh();
+    } catch (error) {
+      console.error('Sürücü silinirken hata:', error);
+      alert('Silme başarısız!');
+    }
+    setDeletingDriver(prev => ({ ...prev, [driver.id]: false }));
   };
 
   return (
@@ -467,10 +483,19 @@ export default function DriverList({ drivers, onRefresh, isLoading }) {
                         </p>
                       )}
 
-                      <div className="mt-3 pt-3 border-t border-slate-200 text-center">
+                      <div className="mt-3 pt-3 border-t border-slate-200 flex justify-between items-center">
                         <span className="text-xs text-blue-600 font-medium group-hover:text-blue-700">
                           📝 Düzenlemek için tıklayın
                         </span>
+                        <button
+                          onClick={(e) => handleDelete(driver, e)}
+                          disabled={deletingDriver[driver.id]}
+                          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-red-600 hover:bg-red-50 border border-red-200 transition-all disabled:opacity-50"
+                          title="Sürücüyü sil"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          {deletingDriver[driver.id] ? '...' : 'Sil'}
+                        </button>
                       </div>
                     </CardContent>
                   </Card>
