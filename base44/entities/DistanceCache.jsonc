@@ -1,0 +1,33 @@
+{
+  "name": "DistanceCache",
+  "type": "object",
+  "properties": {
+    "cache_key": {
+      "type": "string",
+      "description": "Normalize edilmi\u015f anahtar: normalize(origin) + '||' + normalize(destination) \u2014 y\u00f6n duyarl\u0131 (A\u2192B \u2260 B\u2192A)"
+    },
+    "origin_raw": {
+      "type": "string",
+      "description": "Orijinal pickup adresi (ham \u2014 temizleme yok)"
+    },
+    "destination_raw": {
+      "type": "string",
+      "description": "Orijinal dropoff adresi (ham \u2014 temizleme yok)"
+    },
+    "driving_distance_miles": {
+      "type": "number",
+      "description": "S\u00fcr\u00fc\u015f mesafesi (mil) \u2014 Google Distance Matrix distance.value \u00d7 0.000621371"
+    },
+    "driving_duration_minutes": {
+      "type": "number",
+      "description": "S\u00fcr\u00fc\u015f s\u00fcresi (dakika) \u2014 Google Distance Matrix ceil(duration.value / 60)"
+    }
+  },
+  "required": [
+    "cache_key",
+    "origin_raw",
+    "destination_raw",
+    "driving_distance_miles",
+    "driving_duration_minutes"
+  ]
+}

@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import { calculateDrivingDistance } from '../../shared/distance.ts';
+import { getDrivingDistance } from '../../shared/googleDistance.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -18,10 +18,10 @@ Deno.serve(async (req) => {
 
     console.log(`📦 ${orders.length} sipariş bulundu`);
 
-    // Koordinatları olan ve mesafesi/süresi olmayan (veya force) siparişleri filtrele
+    // Adresi olan ve mesafesi/süresi olmayan (veya force) siparişleri filtrele
+    // Google Distance Matrix ham adres kullanır, koordinat gerekmez
     const needsCalc = orders.filter(o =>
-      o.pickup_coords?.lat != null && o.pickup_coords?.lng != null &&
-      o.dropoff_coords?.lat != null && o.dropoff_coords?.lng != null &&
+      o.pickup_address && o.dropoff_address &&
       (forceRecalculate || o.driving_distance_miles == null || o.driving_duration_minutes == null)
     );
 
@@ -42,49 +42,28 @@ Deno.serve(async (req) => {
     let failed = 0;
     const errors = [];
 
-    // 5'erli paralel batch'ler halinde işle (OSRM demo rate limit'e saygı)
-    const BATCH_SIZE = 5;
-    const BATCH_DELAY_MS = 200;
-
-    for (let i = 0; i < needsCalc.length; i += BATCH_SIZE) {
-      const batch = needsCalc.slice(i, i + BATCH_SIZE);
-
-      const results = await Promise.allSettled(
-        batch.map(async (order) => {
-          const result = await calculateDrivingDistance(order.pickup_coords, order.dropoff_coords);
-          if (result == null) {
-            throw new Error('OSRM rota bulunamadı');
-          }
-
-          // Database'e kaydet
-          await base44.asServiceRole.entities.DailyOrder.update(order.id, {
-            driving_distance_miles: result.miles,
-            driving_duration_minutes: result.durationMinutes
-          });
-
-          return { orderId: order.ezcater_order_id, miles: result.miles, minutes: result.durationMinutes };
-        })
-      );
-
-      for (let j = 0; j < results.length; j++) {
-        const r = results[j];
-        if (r.status === 'fulfilled') {
-          calculated++;
-          console.log(`✅ ${r.value.orderId}: ${r.value.miles} mil`);
-        } else {
+    // Sıralı işle (Google Distance Matrix + cache)
+    for (const order of needsCalc) {
+      try {
+        const result = await getDrivingDistance(base44.asServiceRole, order.pickup_address, order.dropoff_address);
+        if (result == null) {
           failed++;
-          const order = batch[j];
-          console.error(`❌ ${order.ezcater_order_id}: ${r.reason}`);
-          errors.push({
-            orderId: order.ezcater_order_id,
-            reason: r.reason?.message || String(r.reason)
-          });
+          console.error(`❌ ${order.ezcater_order_id}: Google mesafe bulunamadı`);
+          errors.push({ orderId: order.ezcater_order_id, reason: 'Google: NOT_FOUND' });
+          continue;
         }
-      }
 
-      // Batch'ler arası kısa bekleme
-      if (i + BATCH_SIZE < needsCalc.length) {
-        await new Promise(r => setTimeout(r, BATCH_DELAY_MS));
+        await base44.asServiceRole.entities.DailyOrder.update(order.id, {
+          driving_distance_miles: result.miles,
+          driving_duration_minutes: result.durationMinutes
+        });
+
+        calculated++;
+        console.log(`✅ ${order.ezcater_order_id}: ${result.miles} mil, ${result.durationMinutes} dk${result.fromCache ? ' (cache)' : ''}`);
+      } catch (error) {
+        failed++;
+        console.error(`❌ ${order.ezcater_order_id}: ${error.message}`);
+        errors.push({ orderId: order.ezcater_order_id, reason: error.message });
       }
     }
 
