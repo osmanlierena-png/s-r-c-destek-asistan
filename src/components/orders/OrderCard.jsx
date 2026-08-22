@@ -25,6 +25,25 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
   const [isEditingPrice, setIsEditingPrice] = React.useState(false);
   const [currentCanvasPrice, setCurrentCanvasPrice] = React.useState("");
   const [isSavingPrice, setIsSavingPrice] = React.useState(false);
+  const [isRecalculating, setIsRecalculating] = React.useState(false);
+
+  const handleRecalculateDistance = async (e) => {
+    e.stopPropagation();
+    if (isRecalculating) return;
+    setIsRecalculating(true);
+    try {
+      await base44.functions.invoke("calculateDrivingDistances", {
+        date: order.order_date,
+        force: true,
+      });
+      await onUpdate();
+    } catch (error) {
+      console.error("Mesafe yeniden hesaplama hatası:", error);
+      alert("Mesafe hesaplanamadı: " + error.message);
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!window.confirm(`${order.ezcater_order_id} numaralı siparişi silmek istediğinizden emin misiniz?`)) {
@@ -215,10 +234,14 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
               )}
             </div>
           ) : (order.pickup_address && order.dropoff_address) && (
-            <div className="flex items-center gap-2">
-              <RotateCw className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <span className="text-amber-500 text-xs font-medium">Mesafe hesaplanıyor — yeniden dene</span>
-            </div>
+            <button
+              onClick={handleRecalculateDistance}
+              disabled={isRecalculating}
+              className="flex items-center gap-2 text-amber-500 text-xs font-medium hover:text-amber-600 hover:bg-amber-50 rounded px-1 py-0.5 -mx-1 -my-0.5 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+            >
+              <RotateCw className={`w-4 h-4 flex-shrink-0 ${isRecalculating ? "animate-spin" : ""}`} />
+              <span>{isRecalculating ? "Hesaplanıyor..." : "Mesafe hesaplanıyor — yeniden dene"}</span>
+            </button>
           )}
           <div className="flex items-center gap-3 pt-1 text-xs">
             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
