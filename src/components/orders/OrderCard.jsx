@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, User, Trash2, Eye, CheckCircle, XCircle, AlertCircle, UserPlus, Ban } from "lucide-react";
+import { MapPin, Clock, User, Trash2, Eye, CheckCircle, XCircle, AlertCircle, UserPlus, Ban, RotateCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -204,7 +204,7 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
             <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <span className="text-slate-600">{order.pickup_time} → {order.dropoff_time}</span>
           </div>
-          {order.driving_duration_minutes != null && (
+          {order.driving_duration_minutes != null ? (
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
               <span className="text-slate-600 text-xs font-medium">
@@ -213,6 +213,11 @@ export default function OrderCard({ order, onUpdate, onViewDetails }) {
               {order.driving_distance_miles != null && (
                 <span className="text-slate-400 text-xs">· {order.driving_distance_miles} mil</span>
               )}
+            </div>
+          ) : (order.pickup_address && order.dropoff_address) && (
+            <div className="flex items-center gap-2">
+              <RotateCw className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <span className="text-amber-500 text-xs font-medium">Mesafe hesaplanıyor — yeniden dene</span>
             </div>
           )}
           <div className="flex items-center gap-3 pt-1 text-xs">

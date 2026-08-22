@@ -66,23 +66,27 @@ Deno.serve(async (req) => {
     }
 
     // --- MESAFE HESAPLAMA (Google Distance Matrix, sıralı — cache + rate limit) ---
-    for (const order of needsDistance) {
-      try {
-        const result = await getDrivingDistance(base44.asServiceRole, order.pickup_address, order.dropoff_address);
-        if (result == null) {
-          console.log(`⚠️ ${order.ezcater_order_id}: Google mesafe bulunamadı`);
+    if (!process.env.GOOGLE_MAPS_API_KEY) {
+      console.log("⚠️ GOOGLE_MAPS_API_KEY tanımlı değil — mesafe hesaplama atlandı, sonraki tur tekrar dener");
+    } else {
+      for (const order of needsDistance) {
+        try {
+          const result = await getDrivingDistance(base44.asServiceRole, order.pickup_address, order.dropoff_address);
+          if (result == null) {
+            console.log(`⚠️ ${order.ezcater_order_id}: Google mesafe bulunamadı`);
+            failed++;
+            continue;
+          }
+          await base44.asServiceRole.entities.DailyOrder.update(order.id, {
+            driving_distance_miles: result.miles,
+            driving_duration_minutes: result.durationMinutes,
+          });
+          distanceCalculated++;
+          console.log(`✅ ${order.ezcater_order_id}: ${result.miles} mil, ${result.durationMinutes} dk${result.fromCache ? " (cache)" : ""}`);
+        } catch (error) {
+          console.error(`❌ ${order.ezcater_order_id}:`, error.message);
           failed++;
-          continue;
         }
-        await base44.asServiceRole.entities.DailyOrder.update(order.id, {
-          driving_distance_miles: result.miles,
-          driving_duration_minutes: result.durationMinutes,
-        });
-        distanceCalculated++;
-        console.log(`✅ ${order.ezcater_order_id}: ${result.miles} mil, ${result.durationMinutes} dk${result.fromCache ? " (cache)" : ""}`);
-      } catch (error) {
-        console.error(`❌ ${order.ezcater_order_id}:`, error.message);
-        failed++;
       }
     }
 
