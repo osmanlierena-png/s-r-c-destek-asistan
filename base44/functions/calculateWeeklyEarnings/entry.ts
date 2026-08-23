@@ -9,7 +9,6 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const forceRecalculate = body.force_recalculate === true;
 
     let weekStart, weekEnd;
 
@@ -17,7 +16,7 @@ Deno.serve(async (req) => {
         weekStart = body.week_start;
         weekEnd = body.week_end;
     } else {
-        // Bir önceki haftayı hesapla (Pazartesi - Pazar, EST)
+        // Bir önceki haftayı hesapla (Pazartesi - Pazar)
         const now = new Date();
         const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ...
         const diffToLastMonday = dayOfWeek === 0 ? 13 : dayOfWeek + 6;
@@ -37,23 +36,16 @@ Deno.serve(async (req) => {
     const allOrdersRaw = await base44.asServiceRole.entities.DailyOrder.list('-order_date', 2000);
     const allOrders = allOrdersRaw.filter(o => completedStatuses.includes(o.status));
 
-    // Hafta filtresi + canvas_price > 0
-    // force_recalculate modunda weekly_summary_id dolu olanları da dahil et
+    // Hafta filtresi + canvas_price > 0 — HER ZAMAN tüm siparişleri işle
+    // (weekly_summary_id atlaması yok — her çalıştırmada sıfırdan hesapla)
     const weekOrders = allOrders.filter(order => {
-        if (!forceRecalculate && order.weekly_summary_id) return false; // zaten özetlenmiş
-
         if (!order.canvas_price || order.canvas_price <= 0) {
-            console.warn(`⚠️ canvas_price eksik/sıfır: ${order.ezcater_order_id}`);
             return false;
         }
-
         const orderDate = order.order_date;
         if (!orderDate) return false;
-
         return orderDate >= weekStart && orderDate <= weekEnd;
     });
-
-    console.log(`🔁 Force recalculate: ${forceRecalculate}`);
 
     console.log(`📦 Uygun sipariş sayısı: ${weekOrders.length}`);
 
@@ -84,6 +76,7 @@ Deno.serve(async (req) => {
 
     const results = [];
     const errors = [];
+    const deletedSummaries = [];
 
     for (const driverId of Object.keys(driverGroups)) {
         const group = driverGroups[driverId];
@@ -91,22 +84,57 @@ Deno.serve(async (req) => {
         const orderCount = group.orders.length;
 
         try {
-            // Bu sürücü + bu hafta için mevcut özet var mı?
-            const existing = await base44.asServiceRole.entities.DriverWeeklySummary.filter({
-                driver_id: driverId,
-                week_start_date: weekStart
+            // Bu sürücünün TÜM özetlerini çek
+            const allDriverSummaries = await base44.asServiceRole.entities.DriverWeeklySummary.filter({
+                driver_id: driverId
             });
 
-            let summaryId;
+            // Bu haftanın siparişlerinin işaret ettiği özet ID'leri
+            const weekSummaryIds = new Set(
+                group.orders.map(o => o.weekly_summary_id).filter(Boolean)
+            );
 
-            if (existing.length > 0) {
-                // Mevcut özeti güncelle (force modunda sıfırdan yaz)
-                await base44.asServiceRole.entities.DriverWeeklySummary.update(existing[0].id, {
-                    total_canvas_price: forceRecalculate ? totalCanvasPrice : (existing[0].total_canvas_price || 0) + totalCanvasPrice,
-                    order_count: forceRecalculate ? orderCount : (existing[0].order_count || 0) + orderCount
+            // Doğru week_start_date'e sahip özet var mı?
+            const correctSummary = allDriverSummaries.find(s => s.week_start_date === weekStart);
+
+            let summaryId;
+            let summaryToKeep;
+
+            if (correctSummary) {
+                summaryToKeep = correctSummary;
+                summaryId = correctSummary.id;
+            } else if (weekSummaryIds.size > 0) {
+                // Yanlış week_start_date'li özet var — onu düzelt
+                const oldSummary = allDriverSummaries.find(s => weekSummaryIds.has(s.id));
+                if (oldSummary) {
+                    summaryToKeep = oldSummary;
+                    summaryId = oldSummary.id;
+                }
+            }
+
+            // Diğer çift özetleri sil (bunların siparişleri yeniden işaretlenecek)
+            const summariesToDelete = allDriverSummaries.filter(
+                s => weekSummaryIds.has(s.id) && s.id !== summaryId
+            );
+            for (const s of summariesToDelete) {
+                await base44.asServiceRole.entities.DriverWeeklySummary.delete(s.id);
+                deletedSummaries.push({
+                    driver: group.driver_name,
+                    deleted_id: s.id,
+                    old_week: s.week_start_date,
+                    old_total: s.total_canvas_price
                 });
-                summaryId = existing[0].id;
-                console.log(`🔄 Güncellendi: ${group.driver_name} - $${totalCanvasPrice}`);
+            }
+
+            if (summaryId) {
+                // Mevcut özeti güncelle — HER ZAMAN sıfırdan yaz (birikmeli değil)
+                await base44.asServiceRole.entities.DriverWeeklySummary.update(summaryId, {
+                    week_start_date: weekStart,
+                    week_end_date: weekEnd,
+                    total_canvas_price: totalCanvasPrice,
+                    order_count: orderCount
+                });
+                console.log(`🔄 Güncellendi: ${group.driver_name} - $${totalCanvasPrice} (${orderCount} sipariş)`);
             } else {
                 // Yeni özet oluştur
                 const created = await base44.asServiceRole.entities.DriverWeeklySummary.create({
@@ -119,14 +147,16 @@ Deno.serve(async (req) => {
                     status: 'Hesaplandı'
                 });
                 summaryId = created.id;
-                console.log(`✅ Oluşturuldu: ${group.driver_name} - $${totalCanvasPrice}`);
+                console.log(`✅ Oluşturuldu: ${group.driver_name} - $${totalCanvasPrice} (${orderCount} sipariş)`);
             }
 
-            // Siparişleri weekly_summary_id ile işaretle (çift sayım önleme)
+            // Siparişleri doğru özete işaretle
             for (const order of group.orders) {
-                await base44.asServiceRole.entities.DailyOrder.update(order.id, {
-                    weekly_summary_id: summaryId
-                });
+                if (order.weekly_summary_id !== summaryId) {
+                    await base44.asServiceRole.entities.DailyOrder.update(order.id, {
+                        weekly_summary_id: summaryId
+                    });
+                }
             }
 
             results.push({
@@ -147,7 +177,9 @@ Deno.serve(async (req) => {
         week: { weekStart, weekEnd },
         summaries_created: results.length,
         total_orders_processed: weekOrders.length,
+        deleted_duplicate_summaries: deletedSummaries.length,
         results,
+        deleted_summaries: deletedSummaries,
         errors
     });
 });
