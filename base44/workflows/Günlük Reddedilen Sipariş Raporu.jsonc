@@ -1,0 +1,44 @@
+{
+  "name": "G\u00fcnl\u00fck Reddedilen Sipari\u015f Raporu",
+  "description": "Her gece 02:00'de bir \u00f6nceki g\u00fcn\u00fcn reddedilen sipari\u015flerini Canvas'a g\u00f6nderir",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 6 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "g_nl_k_reddedilen_sipari_raporu",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "reportRejectedOrders",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "reportRejectedOrders"
+  }
+}

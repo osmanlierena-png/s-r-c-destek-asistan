@@ -1,0 +1,44 @@
+{
+  "name": "Yan\u0131ts\u0131z Mesaj Kontrol\u00fc",
+  "description": "Her 10 dakikada bir yan\u0131ts\u0131z mesajlar\u0131 kontrol eder, hat\u0131rlatma ve escalation yapar",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 10,
+      "interval_unit": "minutes",
+      "interval_anchor": "2026-01-07T22:11:32.495000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "yan_ts_z_mesaj_kontrol",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "checkUnrespondedMessages",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "checkUnrespondedMessages"
+  }
+}

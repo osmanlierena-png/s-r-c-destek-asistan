@@ -1,0 +1,44 @@
+{
+  "name": "Otomatik Koordinat ve Mesafe Hesaplama",
+  "description": "Her 5 dakikada bir koordinat\u0131 eksik sipari\u015fleri geocode eder ve s\u00fcr\u00fc\u015f mesafesi olmayanlar\u0131 OSRM ile hesaplar. Manuel butona basmaya gerek kalmaz.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 5,
+      "interval_unit": "minutes",
+      "interval_anchor": "2026-08-20T20:08:55.091000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "otomatik_koordinat_ve_mesafe_hesaplama",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoProcessOrders",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "autoProcessOrders"
+  }
+}
