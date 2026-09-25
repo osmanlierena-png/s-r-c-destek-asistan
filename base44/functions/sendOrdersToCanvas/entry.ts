@@ -13,7 +13,7 @@ if (apiKey !== '47aadaf67ea94f1f9021c59986b2d158' && !(await base44.auth.isAuthe
 }
 
     try {
-        const { date } = await req.json();
+        const { date, include_all } = await req.json();
         
         if (!date) {
             return Response.json({ 
@@ -22,13 +22,13 @@ if (apiKey !== '47aadaf67ea94f1f9021c59986b2d158' && !(await base44.auth.isAuthe
             });
         }
 
-        console.log(`📤 ${date} tarihindeki siparişler Canvas'a gönderiliyor...`);
+        console.log(`📤 ${date} tarihindeki siparişler Canvas'a gönderiliyor... (include_all: ${!!include_all})`);
 
-        // 1. Sadece atanmamış siparişleri çek (Service Role ile)
-        const orders = await base44.asServiceRole.entities.DailyOrder.filter({
-            order_date: date,
-            status: 'Çekildi'
-        }, '-created_date', 500);
+        // 1. Siparişleri çek — include_all=true ise tüm durumlar, değilse sadece 'Çekildi'
+        const filter = include_all 
+            ? { order_date: date }
+            : { order_date: date, status: 'Çekildi' };
+        const orders = await base44.asServiceRole.entities.DailyOrder.filter(filter, '-created_date', 500);
 
         if (orders.length === 0) {
             return Response.json({
