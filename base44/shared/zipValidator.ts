@@ -49,6 +49,7 @@ export async function validateAddressZip(
 
   let coords: { lat: number; lng: number } | null = null;
   let googleZip: string | null = null;
+  let isPartialMatch = false;
 
   try {
     const res = await fetch(geocodeUrl);
@@ -57,6 +58,7 @@ export async function validateAddressZip(
     if (data.status === 'OK' && data.results.length > 0) {
       const result = data.results[0];
       const locationType = result.geometry?.location_type;
+      isPartialMatch = result.partial_match === true;
 
       // partial_match kabul edilir — ZIP yanlış olduğu için partial_match olması normaldir
       // SADECE APPROXIMATE reddedilir (çok kaba koordinat)
@@ -82,6 +84,8 @@ export async function validateAddressZip(
   // ZIP düzeltme kararı
   if (googleZip && isZipValid(googleZip)) {
     // Google geçerli ZIP döndürdü
+    // partial_match ise ZIP düzeltilir AMA 'ZIP şüpheli' ile işaretlenir
+    const flag = isPartialMatch ? 'ZIP şüpheli' : null;
     if (originalZip !== googleZip) {
       // ZIP farklı (veya eksikti) — düzelt
       const fixedAddress = replaceZip(address, googleZip);
@@ -91,7 +95,7 @@ export async function validateAddressZip(
         zip_valid: true,
         zip_fixed: true,
         coords,
-        quality_flag: null
+        quality_flag: flag
       };
     } else {
       // ZIP zaten doğru
@@ -101,7 +105,7 @@ export async function validateAddressZip(
         zip_valid: true,
         zip_fixed: false,
         coords,
-        quality_flag: null
+        quality_flag: flag
       };
     }
   } else if (zipLooksShort || !isZipValid(originalZip)) {
