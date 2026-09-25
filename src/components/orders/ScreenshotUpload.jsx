@@ -68,9 +68,22 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
         
         setProgress(`${i+1}/${selectedFiles.length}: Parsing...`);
         
-        const extractRes = await base44.integrations.Core.ExtractDataFromUploadedFile({
-          file_url: uploadRes.file_url,
-          json_schema: {
+        const parseRes = await base44.integrations.Core.InvokeLLM({
+          prompt: `Bu görsel bir EzCater sipariş tablosu screenshot'ı. Her satırı ayrı bir sipariş olarak parse et.
+
+KRİTİK KURALLAR:
+1. ZIP KODU BÜTÜNLÜĞÜ: Adreslerin sonundaki ZIP kodu tam 5 haneli olmalıdır (örn: 22209). Eğer 4 haneli görünüyorsa (örn: "2209"), OLDUĞU GİBİ al — eksik haneyi TAHMİN ETME, tamamlama.
+2. SÜTUN AYRIŞTIRMA: Her sütunu karıştırma. "Pickup Address" sütunundan sadece pickup adresini, "Delivery Address" sütunundan sadece teslimat adresini al. "Suggested pickup time", "Priority", "Status", "Region" gibi diğer sütunları ALMA.
+3. USA TEMİZLİĞİ: Adresin sonunda "USA" birden fazla kez tekrar ediyorsa, sadece bir tane bırak.
+4. ORDER NO: "Ez" ile başlayan sipariş numarasını tam al (örn: "EzMXFAUY"). Priority/Status/Region sütunlarını alma.
+5. PRICE: Fiyatı sayı olarak al, $ işareti olmadan (örn: 59.97). Binlik ayracı virgül varsa kaldır (örn: "2,191.00" → 2191.00).
+6. TIP: Bahşişi sayı olarak al, $ işareti olmadan (örn: 10.50).
+7. PICKUP TIME: "HH:MM AM/PM" formatında (örn: "06:30 AM"). Suggested pickup time'ı ALMA, sadece gerçek pickup time'ı al.
+8. DELIVERY TIME: "HH:MM AM/PM" formatında (örn: "07:00 AM").
+
+Eğer bir alan boş veya okunamazsa null döndür. Tüm satırları JSON array olarak döndür.`,
+          file_urls: [uploadRes.file_url],
+          response_json_schema: {
             type: "object",
             properties: {
               orders: {
@@ -78,34 +91,13 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
                 items: {
                   type: "object",
                   properties: {
-                    order_no: { 
-                      type: "string",
-                      description: "Order number (e.g., EzMXFAUY). Do NOT extract Priority, Status, Region, or Suggested pickup time."
-                    },
-                    pickup_address: { 
-                      type: "string",
-                      description: "Full pickup address only"
-                    },
-                    dropoff_address: { 
-                      type: "string",
-                      description: "Full delivery address only"
-                    },
-                    pickup_time: { 
-                      type: "string",
-                      description: "Pickup time in HH:MM AM/PM format (e.g., 06:30 AM). Do NOT extract suggested pickup time."
-                    },
-                    dropoff_time: { 
-                      type: "string",
-                      description: "Delivery time in HH:MM AM/PM format (e.g., 07:00 AM)"
-                    },
-                    tip: { 
-                      type: "number",
-                      description: "Tip amount as a number (e.g., 10.5)"
-                    },
-                    price: { 
-                      type: "number",
-                      description: "Order price as a number (e.g., 59.97)"
-                    }
+                    order_no: { type: "string" },
+                    pickup_address: { type: "string" },
+                    dropoff_address: { type: "string" },
+                    pickup_time: { type: "string" },
+                    dropoff_time: { type: "string" },
+                    tip: { type: ["number", "null"] },
+                    price: { type: ["number", "null"] }
                   },
                   required: ["order_no", "pickup_address", "dropoff_address", "pickup_time", "dropoff_time"]
                 }
@@ -114,8 +106,8 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
           }
         });
 
-        if (extractRes.status === 'success' && extractRes.output?.orders) {
-          extractRes.output.orders.forEach((o, idx) => {
+        if (parseRes.orders && parseRes.orders.length > 0) {
+          parseRes.orders.forEach((o, idx) => {
             allOrders.push({
               order_id: o.order_no || `SS${Date.now()}_${i}_${idx}`,
               customer_name: 'Screenshot Upload',
@@ -124,7 +116,8 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
               dropoff_address: o.dropoff_address,
               dropoff_time: o.dropoff_time,
               tip: parseFloat(String(o.tip).replace(/[$,]/g, '')) || 0,
-              price: parseFloat(String(o.price).replace(/[$,]/g, '')) || 0
+              price: parseFloat(String(o.price).replace(/[$,]/g, '')) || 0,
+              screenshot_url: uploadRes.file_url
             });
           });
         }
@@ -148,6 +141,7 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
             customer_name: o.customer_name,
             tip: o.tip,
             price: o.price,
+            screenshot_url: o.screenshot_url,
             status: 'Çekildi'
           }));
 
@@ -160,7 +154,17 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
             }
           }
 
-          // 🚗 Import sonrası otomatik koordinat + sürüş süresi/mesafesi hesaplama
+          // ✅ Adres doğrulama: ZIP kodları + fiyat/bahşiş anomalisi (Canvas'a gönderilmeden ÖNCE)
+          let validationResults = null;
+          try {
+            setProgress('Adresler doğrulanıyor (ZIP + fiyat kontrolü)...');
+            const validateRes = await base44.functions.invoke('validateOrderData', { date: selectedDate });
+            validationResults = validateRes?.data || validateRes;
+          } catch (valErr) {
+            console.error('Adres doğrulama hatası:', valErr);
+          }
+
+          // 🚗 Koordinat + sürüş süresi/mesafesi hesaplama
           try {
             setProgress('Koordinatlar ve sürüş süreleri hesaplanıyor...');
             const processRes = await base44.functions.invoke('autoProcessOrders', {});
@@ -169,6 +173,9 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
               success: true,
               totalOrders: allOrders.length,
               newOrders: newOrders.length,
+              zipFixed: validationResults?.zipFixed || 0,
+              zipSuspect: validationResults?.zipSuspect || 0,
+              priceFlagged: validationResults?.priceFlagged || 0,
               geocoded: processed?.geocoded || 0,
               distanceCalculated: processed?.distanceCalculated || 0,
               remainingGeocode: processed?.remainingGeocode || 0
@@ -179,6 +186,9 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
               success: true,
               totalOrders: allOrders.length,
               newOrders: newOrders.length,
+              zipFixed: validationResults?.zipFixed || 0,
+              zipSuspect: validationResults?.zipSuspect || 0,
+              priceFlagged: validationResults?.priceFlagged || 0,
               autoProcessError: procErr.message
             });
           }
@@ -258,6 +268,15 @@ export default function ScreenshotUpload({ selectedDate, onClose, onSuccess }) {
                     <div className="mt-2 text-sm text-green-800">
                       <p>• {results.totalOrders} orders found</p>
                       <p>• {results.newOrders} new orders added</p>
+                      {results.zipFixed > 0 && (
+                        <p>• ✅ {results.zipFixed} ZIP kodu düzeltildi</p>
+                      )}
+                      {results.zipSuspect > 0 && (
+                        <p className="text-amber-700">• ⚠️ {results.zipSuspect} sipariş "ZIP şüpheli" işaretlendi</p>
+                      )}
+                      {results.priceFlagged > 0 && (
+                        <p className="text-amber-700">• ⚠️ {results.priceFlagged} sipariş "Fiyat kontrol" işaretlendi</p>
+                      )}
                       {results.geocoded != null && (
                         <p>• 📍 {results.geocoded} adres koordinatlandı</p>
                       )}
